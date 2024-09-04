@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     try {
       const userData = await login(email, password);
       console.log('Logged in:', userData);
-      navigate('/chat');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
     }
