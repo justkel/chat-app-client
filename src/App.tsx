@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Dashboard';
+import Members from './pages/Members';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
@@ -17,6 +18,7 @@ const App: React.FC = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Home />} />
+            <Route path="/all-users" element={<Members />} />
           </Routes>
         </Router>
       </AuthProvider>

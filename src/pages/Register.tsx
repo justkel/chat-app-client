@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useRegister } from '../services/auth';
+import { useRegister } from '../hooks/auth';
 import { useNavigate } from 'react-router-dom';
 
 const Register: React.FC = () => {
