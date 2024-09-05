@@ -12,10 +12,10 @@ const FETCH_CHAT_REQUESTS = gql`
 `;
 
 export const useFetchChatRequests = (userId: string | null) => {
-  const { data, loading, error } = useQuery(FETCH_CHAT_REQUESTS, {
+  const { data, loading, error, refetch } = useQuery(FETCH_CHAT_REQUESTS, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };

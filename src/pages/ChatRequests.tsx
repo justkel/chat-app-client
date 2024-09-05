@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Button, Spin, notification } from 'antd';
+import { Card, Button, Spin, notification, Modal } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useFetchChatRequests } from '../hooks/useFetchChatRequests';
@@ -14,6 +14,7 @@ const ChatRequests = () => {
     const [requests, setRequests] = useState([]);
     const { approveChatRequest } = useApproveChatRequest();
     const { rejectChatRequest } = useRejectChatRequest();
+    const { data, loading, error, refetch } = useFetchChatRequests(userId);
 
     useEffect(() => {
         if (user) {
@@ -22,44 +23,56 @@ const ChatRequests = () => {
         }
     }, [user]);
 
-    const { data, loading, error } = useFetchChatRequests(userId);
-
     useEffect(() => {
         if (data) {
             setRequests(data.getChatRequests);
         }
     }, [data]);
 
-    const handleApprove = async (requestId: string) => {
-        try {
-            await approveChatRequest(requestId);
-            notification.success({
-                message: 'Request Approved',
-                description: 'You have successfully approved the chat request.',
-            });
-            // Optionally refetch or update the requests list
-        } catch (err) {
-            notification.error({
-                message: 'Approval Failed',
-                description: 'An error occurred while approving the request.',
-            });
-        }
+    const handleApprove = (requestId: string) => {
+        Modal.confirm({
+            title: 'Are you sure you want to approve this request?',
+            okText: 'Yes',
+            cancelText: 'Cancel',
+            onOk: async () => {
+                try {
+                    await approveChatRequest(requestId);
+                    notification.success({
+                        message: 'Request Approved',
+                        description: 'You have successfully approved the chat request.',
+                    });
+                    refetch(); // Refetch the requests to get the latest data
+                } catch (err) {
+                    notification.error({
+                        message: 'Approval Failed',
+                        description: 'An error occurred while approving the request.',
+                    });
+                }
+            },
+        });
     };
 
-    const handleReject = async (requestId: string) => {
-        try {
-            await rejectChatRequest(requestId);
-            notification.success({
-                message: 'Request Rejected',
-                description: 'You have successfully rejected the chat request.',
-            });
-            // Optionally refetch or update the requests list
-        } catch (err) {
-            notification.error({
-                message: 'Rejection Failed',
-                description: 'An error occurred while rejecting the request.',
-            });
-        }
+    const handleReject = (requestId: string) => {
+        Modal.confirm({
+            title: 'Are you sure you want to reject this request?',
+            okText: 'Yes',
+            cancelText: 'Cancel',
+            onOk: async () => {
+                try {
+                    await rejectChatRequest(requestId);
+                    notification.success({
+                        message: 'Request Rejected',
+                        description: 'You have successfully rejected the chat request.',
+                    });
+                    refetch(); // Refetch the requests to get the latest data
+                } catch (err) {
+                    notification.error({
+                        message: 'Rejection Failed',
+                        description: 'An error occurred while rejecting the request.',
+                    });
+                }
+            },
+        });
     };
 
     if (loading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
@@ -101,13 +114,11 @@ const ChatRequests = () => {
                                 </>
                             }
                             style={{ marginBottom: '10px' }}
-                        >
-                        </Card>
+                        />
                     ))
                 )}
             </div>
         </Dashboard>
-
     );
 };
 

@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Home from './pages/Dashboard';
 import Members from './pages/Members';
 import ChatRequests from './pages/ChatRequests';
+import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
@@ -18,9 +19,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Home />} />
-            <Route path="/all-users" element={<Members />} />
-            <Route path="/pending-requests" element={<ChatRequests />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/all-users" element={<ProtectedRoute><Members /></ProtectedRoute>} />
+            <Route path="/pending-requests" element={<ProtectedRoute><ChatRequests /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
