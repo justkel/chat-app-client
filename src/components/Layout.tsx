@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, InputBase, IconButton, Drawer, Box, Button, Divider } from '@mui/material';
-import { Menu as MenuIcon, Search as SearchIcon, Chat as ChatIcon, Contacts as ContactsIcon, AccountCircle as ProfileIcon, Group as MembersIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Search as SearchIcon, Chat as ChatIcon, Contacts as ContactsIcon, AccountCircle as ProfileIcon, Group as MembersIcon, PendingActions as PendingRequestsIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 interface DashboardLayoutProps {
@@ -113,6 +113,25 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
               }}
             >
               {!isCollapsed && 'Members'}
+            </Button>
+          </Link>
+          <Link to="/pending-requests" style={{ textDecoration: 'none', width: '100%' }}>
+            <Button
+              startIcon={<PendingRequestsIcon />}
+              sx={{
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                color: 'white',
+                width: '100%',
+                mb: 2,
+                textAlign: 'center',
+                fontFamily: 'Poppins, sans-serif !important',
+                fontSize: isCollapsed ? '0.875rem' : '1rem',
+                '& .MuiButton-startIcon': {
+                  fontSize: isCollapsed ? '1.5rem' : '2rem',
+                },
+              }}
+            >
+              {!isCollapsed && 'Pending Requests'}
             </Button>
           </Link>
           <Button

@@ -89,11 +89,11 @@ const Members = () => {
             >
                 <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{
                     width: '100%',
-                    fontWeight: 'bold',  // Make text bold
-                    fontSize: '1.2rem',  // Increase font size for better legibility
+                    fontWeight: 'bold',
+                    fontSize: '1.2rem',
                     '& .MuiAlert-message': {
-                        fontWeight: 'bold',  // Ensure the message text is bold
-                        fontSize: '1.2rem',  // Ensure the message text size is increased
+                        fontWeight: 'bold',
+                        fontSize: '1.2rem',
                     },
                 }}>
                     {snackbar.message}
