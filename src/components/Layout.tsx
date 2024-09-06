@@ -112,7 +112,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
                 },
               }}
             >
-              {!isCollapsed && 'Members'}
+              {!isCollapsed && 'Request Access'}
             </Button>
           </Link>
           <Link to="/pending-requests" style={{ textDecoration: 'none', width: '100%' }}>
@@ -131,7 +131,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
                 },
               }}
             >
-              {!isCollapsed && 'Pending Requests'}
+              {!isCollapsed && 'Approve/Reject'}
             </Button>
           </Link>
           <Button

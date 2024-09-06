@@ -12,10 +12,10 @@ const GET_ALL_USERS_EXCEPT = gql`
 `;
 
 export const useGetAllUsersExcept = (id: string | null) => {
-  const { data, loading, error } = useQuery(GET_ALL_USERS_EXCEPT, {
+  const { data, loading, error, refetch } = useQuery(GET_ALL_USERS_EXCEPT, {
     variables: { id },
     skip: !id, // Skip the query if id is null
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };

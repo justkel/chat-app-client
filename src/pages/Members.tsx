@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Paper, Button, Box, Snackbar, Alert, CircularProgress } from '@mui/material';
 import { useSendChatRequest } from '../hooks/sendChatRequest';
+import { useGetAllChatRequestsMadeByUser } from '../hooks/useGetAllChatRequests';
 
 interface User {
     id: string;
@@ -30,7 +31,8 @@ const Members = () => {
         }
     }, [user]);
 
-    const { data, loading, error } = useGetAllUsersExcept(userId);
+    const { data: usersData, loading: usersLoading, error: usersError, refetch } = useGetAllUsersExcept(userId);
+    const { data: requestsData, loading: requestsLoading, error: requestsError, refetch: statusRefetch } = useGetAllChatRequestsMadeByUser(userId);
 
     const handleSendRequest = async (receiverId: string) => {
         if (!userId) return;
@@ -47,6 +49,8 @@ const Members = () => {
                 severity: 'success',
                 open: true,
             });
+            refetch();
+            statusRefetch();
         } catch (err: any) {
             const errorMessage = err.response?.data?.message || err.message || 'An unexpected error occurred';
             setSnackbar({
@@ -63,7 +67,7 @@ const Members = () => {
         setSnackbar((prevState) => ({ ...prevState, open: false }));
     };
 
-    if (loading) {
+    if (usersLoading || requestsLoading) {
         return (
             <Box
                 sx={{
@@ -77,7 +81,13 @@ const Members = () => {
             </Box>
         );
     }
-    if (error) return <p>Error: {error.message}</p>;
+    if (usersError) return <p>Error: {usersError.message}</p>;
+    if (requestsError) return <p>Error: {requestsError.message}</p>;
+
+    const getRequestStatus = (receiverId: string) => {
+        const request = requestsData?.getAllChatRequestsMadeByUser.find((req: any) => req.receiver.id === receiverId);
+        return request ? request.status : undefined;
+    };
 
     return (
         <Dashboard>
@@ -110,16 +120,16 @@ const Members = () => {
                 }}
             >
                 <Typography
-                    variant="h4"
+                    variant="h6"
                     gutterBottom
                     align="center"
                     color="primary"
                     sx={{ fontFamily: 'Poppins, sans-serif' }}
                 >
-                    Members
+                    Chat Access Request
                 </Typography>
                 <List>
-                    {data?.getAllUsersExcept.map((user: User) => (
+                    {usersData?.getAllUsersExcept.map((user: User) => (
                         <ListItem key={user.id} divider>
                             <ListItemAvatar>
                                 <Avatar sx={{ fontFamily: 'Poppins, sans-serif' }}>{user.fullName.charAt(0)}</Avatar>
@@ -131,24 +141,40 @@ const Members = () => {
                                 secondaryTypographyProps={{ sx: { fontFamily: 'Poppins, sans-serif' } }}
                             />
                             <Box sx={{ ml: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleSendRequest(user.id)}
-                                    disabled={!!loadingStates[user.id]}
-                                    sx={{
-                                        fontFamily: 'Poppins, sans-serif',
-                                        textTransform: 'none',
-                                        borderRadius: '20px',
-                                        px: 3,
-                                        py: 1,
-                                        fontWeight: 500,
-                                        color: loadingStates[user.id] ? 'black' : 'white',
-                                    }}
-                                >
-                                    {loadingStates[user.id] ? 'Sending...' : 'Send Request'}
-                                </Button>
-
+                                {
+                                    // Get request status for this user
+                                    (() => {
+                                        const status = getRequestStatus(user.id);
+                                        switch (status) {
+                                            case 'accepted':
+                                                return <Typography color="green">Accepted</Typography>;
+                                            case 'rejected':
+                                                return <Typography color="red">Rejected</Typography>;
+                                            case 'pending':
+                                                return <Typography color="blue">Sent</Typography>;
+                                            default:
+                                                return (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={() => handleSendRequest(user.id)}
+                                                        disabled={!!loadingStates[user.id]}
+                                                        sx={{
+                                                            fontFamily: 'Poppins, sans-serif',
+                                                            textTransform: 'none',
+                                                            borderRadius: '20px',
+                                                            px: 3,
+                                                            py: 1,
+                                                            fontWeight: 500,
+                                                            color: loadingStates[user.id] ? 'black' : 'white',
+                                                        }}
+                                                    >
+                                                        {loadingStates[user.id] ? 'Sending...' : 'Send Request'}
+                                                    </Button>
+                                                );
+                                        }
+                                    })()
+                                }
                             </Box>
                         </ListItem>
                     ))}
