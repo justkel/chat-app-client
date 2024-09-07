@@ -1,0 +1,20 @@
+import { useQuery, gql } from '@apollo/client';
+
+const GET_ACCEPTED_CHAT_USERS = gql`
+  query GetAcceptedChatUsers($userId: ID!) {
+    getAcceptedChatUsers(userId: $userId) {
+      id
+      fullName
+      email
+    }
+  }
+`;
+
+export const useGetAcceptedChatUsers = (userId: string | null) => {
+  const { data, loading, error } = useQuery(GET_ACCEPTED_CHAT_USERS, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  return { data, loading, error };
+};

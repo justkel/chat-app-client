@@ -1,0 +1,112 @@
+import React, { useEffect, useState } from 'react';
+import { Input, Spin } from 'antd'; // Keeping Ant Design's Input and Spin for loading/search
+import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '../contexts/AuthContext';
+import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
+import Dashboard from '../components/Layout';
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, Paper } from '@mui/material'; // MUI components
+import { UserOutlined } from '@ant-design/icons'; // Assuming you're still using this for the user icon
+
+const { Search } = Input;
+
+const ChatPage = () => {
+    const { user } = useAuth();
+    const [userId, setUserId] = useState<string | null>(null);
+    const { data, loading, error } = useGetAcceptedChatUsers(userId);
+
+    useEffect(() => {
+        if (user) {
+            const decodedToken: any = jwtDecode(user.token);
+            setUserId(decodedToken.sub);
+        }
+    }, [user]);
+
+    const renderAvatar = (fullName: string) => {
+        const initials = fullName
+            .split(' ')
+            .map((name) => name.charAt(0))
+            .join('')
+            .toUpperCase();
+        return (
+            <Avatar sx={{ backgroundColor: '#1890ff', fontFamily: 'Poppins, sans-serif' }}>
+                {initials || <UserOutlined />}
+            </Avatar>
+        );
+    };
+
+    if (loading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
+    if (error) return <p>Error: {error.message}</p>;
+
+    return (
+        <Dashboard>
+            <div className="chat-page-container">
+                <div className="search-section">
+                    <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', marginBottom: '20px' }}>
+                        Chat Users
+                    </Typography>
+                    <Search
+                        placeholder="Search users..."
+                        enterButton
+                        disabled
+                        style={{
+                            width: '100%',
+                            borderRadius: '5px',
+                            marginBottom: '20px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                        }}
+                    />
+                </div>
+
+                <Paper elevation={3} sx={{ padding: '20px' }}>
+                    {data?.getAcceptedChatUsers.length === 0 ? (
+                        <p>No users to chat with</p>
+                    ) : (
+                        <List>
+                            {data?.getAcceptedChatUsers.map((user: any) => (
+                                <ListItem
+                                    key={user.id}
+                                    sx={{
+                                        marginBottom: '20px',
+                                        borderRadius: '12px',
+                                        padding: '10px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                        '&:hover': {
+                                            transform: 'scale(1.01)',
+                                            transition: 'transform 0.2s',
+                                        },
+                                    }}
+                                >
+                                    <ListItemAvatar>
+                                        {renderAvatar(user.fullName)}
+                                    </ListItemAvatar>
+                                    <ListItemText
+                                        primary={user.fullName}
+                                        secondary={user.email}
+                                        primaryTypographyProps={{ 
+                                            sx: { 
+                                                fontFamily: 'Poppins, sans-serif', 
+                                                fontWeight: 'bold',
+                                                color: '#1d1d1f',
+                                            } 
+                                        }}
+                                        secondaryTypographyProps={{ 
+                                            sx: { 
+                                                fontFamily: 'Poppins, sans-serif', 
+                                                color: '#888', 
+                                                fontSize: '14px' 
+                                            } 
+                                        }}
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+                </Paper>
+            </div>
+        </Dashboard>
+    );
+};
+
+export default ChatPage;

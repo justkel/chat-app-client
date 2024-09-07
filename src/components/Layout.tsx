@@ -62,23 +62,26 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
             width: '100%',
           }}
         >
-          <Button
-            startIcon={<ChatIcon />}
-            sx={{
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              color: 'white',
-              width: '100%',
-              mb: 2,
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif !important',
-              fontSize: isCollapsed ? '0.875rem' : '1rem',
-              '& .MuiButton-startIcon': {
-                fontSize: isCollapsed ? '1.5rem' : '2rem',
-              },
-            }}
-          >
-            {!isCollapsed && 'Chats'}
-          </Button>
+          <Link to="/chats" style={{ textDecoration: 'none', width: '100%' }}>
+            <Button
+              startIcon={<ChatIcon />}
+              sx={{
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                color: 'white',
+                width: '100%',
+                mb: 2,
+                textAlign: 'center',
+                fontFamily: 'Poppins, sans-serif !important',
+                fontSize: isCollapsed ? '0.875rem' : '1rem',
+                '& .MuiButton-startIcon': {
+                  fontSize: isCollapsed ? '1.5rem' : '2rem',
+                },
+              }}
+            >
+              {!isCollapsed && 'Chats'}
+            </Button>
+          </Link>
+
           <Button
             startIcon={<ContactsIcon />}
             sx={{
