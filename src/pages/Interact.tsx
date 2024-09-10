@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Input, Spin } from 'antd';
+import { Input, Spin, notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
 
 const { TextArea } = Input;
-const socket = io('http://localhost:5002');
+const socket = io('http://localhost:5002', {
+  reconnectionAttempts: 3,
+});
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -17,15 +19,17 @@ const InteractPage = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Use the custom hook to fetch chat messages
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
 
   useEffect(() => {
     if (user) {
-      const decodedToken: any = jwtDecode(user.token);
-      setUserId(decodedToken.sub);
-
-      socket.emit('joinRoom', { userId: decodedToken.sub, otherUserId });
+      try {
+        const decodedToken: any = jwtDecode(user.token);
+        setUserId(decodedToken.sub);
+        socket.emit('joinRoom', { userId: decodedToken.sub, otherUserId });
+      } catch (err) {
+        notification.error({ message: 'Invalid token', description: 'Please log in again.' });
+      }
 
       return () => {
         socket.disconnect();
@@ -35,7 +39,6 @@ const InteractPage = () => {
 
   useEffect(() => {
     socket.on('receiveMessage', (message) => {
-      // console.log('Received message:', message);
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
@@ -59,26 +62,28 @@ const InteractPage = () => {
   }, [messages]);
 
   const sendMessage = () => {
-  if (newMessage.trim()) {
+    if (!newMessage.trim()) {
+      notification.error({ message: 'Message cannot be empty' });
+      return;
+    }
+
+    if (!socket.connected) {
+      notification.error({ message: 'Connection error', description: 'Unable to send message. Try again later.' });
+      return;
+    }
+
     const message = {
-      sender: {
-        id: userId,
-      },
-      receiver: {
-        id: otherUserId,
-      },
+      sender: { id: userId },
+      receiver: { id: otherUserId },
       content: newMessage,
       timestamp: new Date().toISOString(),
     };
-    console.log(message);
 
     socket.emit('sendMessage', message);
     setNewMessage(''); 
-  }
-};
+  };
 
-
-  if (loading) return <Spin size="large" />;
+  if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -88,13 +93,9 @@ const InteractPage = () => {
           {messages.map((msg: any, index: number) => {
             const isMe = msg.sender?.id === userId;
             return (
-              <div
-                key={index}
-                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
-                    }`}
+                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
                 >
                   <p>{msg.content}</p>
                   <small className="block text-xs mt-1 text-right">
@@ -114,12 +115,14 @@ const InteractPage = () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
+            aria-label="Message Input"
             className="flex-grow resize-none rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
             rows={2}
           />
           <button
             onClick={sendMessage}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={!newMessage.trim()}
           >
             Send
           </button>
