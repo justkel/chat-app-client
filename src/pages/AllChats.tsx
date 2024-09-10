@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Spin } from 'antd'; // Keeping Ant Design's Input and Spin for loading/search
+import { useNavigate } from 'react-router-dom';
+import { Input, Spin } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import Dashboard from '../components/Layout';
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, Paper } from '@mui/material'; // MUI components
-import { UserOutlined } from '@ant-design/icons'; // Assuming you're still using this for the user icon
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, Paper } from '@mui/material';
+import { UserOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -13,6 +14,7 @@ const ChatPage = () => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (user) {
@@ -20,6 +22,10 @@ const ChatPage = () => {
             setUserId(decodedToken.sub);
         }
     }, [user]);
+
+    const handleUserClick = (id: string) => {
+        navigate(`/chat/${id}`);
+    };
 
     const renderAvatar = (fullName: string) => {
         const initials = fullName
@@ -65,6 +71,7 @@ const ChatPage = () => {
                             {data?.getAcceptedChatUsers.map((user: any) => (
                                 <ListItem
                                     key={user.id}
+                                    onClick={() => handleUserClick(user.id)}
                                     sx={{
                                         marginBottom: '20px',
                                         borderRadius: '12px',

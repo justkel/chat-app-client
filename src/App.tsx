@@ -7,6 +7,7 @@ import Home from './pages/Dashboard';
 import Members from './pages/Members';
 import ChatRequests from './pages/ChatRequests';
 import ChatPage from './pages/AllChats';
+import InteractPage from './pages/Interact';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ApolloProvider } from '@apollo/client';
@@ -24,6 +25,7 @@ const App: React.FC = () => {
             <Route path="/all-users" element={<ProtectedRoute><Members /></ProtectedRoute>} />
             <Route path="/pending-requests" element={<ProtectedRoute><ChatRequests /></ProtectedRoute>} />
             <Route path="/chats" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+            <Route path="/chat/:id" element={<ProtectedRoute><InteractPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

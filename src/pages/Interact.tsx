@@ -1,0 +1,132 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { Input, Spin } from 'antd';
+import { jwtDecode } from 'jwt-decode';
+import io from 'socket.io-client';
+import { useAuth } from '../contexts/AuthContext';
+import { useGetChatMessages } from '../hooks/useGetChatMessages';
+
+const { TextArea } = Input;
+const socket = io('http://localhost:5002');
+
+const InteractPage = () => {
+  const { id: otherUserId } = useParams();
+  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [messages, setMessages] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Use the custom hook to fetch chat messages
+  const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
+
+  useEffect(() => {
+    if (user) {
+      const decodedToken: any = jwtDecode(user.token);
+      setUserId(decodedToken.sub);
+
+      socket.emit('joinRoom', { userId: decodedToken.sub, otherUserId });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [user, otherUserId]);
+
+  useEffect(() => {
+    socket.on('receiveMessage', (message) => {
+      // console.log('Received message:', message);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    return () => {
+      socket.off('receiveMessage');
+    };
+  }, []);
+
+
+  useEffect(() => {
+    if (data && data.getChatMessages) {
+      refetch();
+      setMessages(data.getChatMessages);
+    }
+  }, [data, refetch]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const sendMessage = () => {
+  if (newMessage.trim()) {
+    const message = {
+      sender: {
+        id: userId,
+      },
+      receiver: {
+        id: otherUserId,
+      },
+      content: newMessage,
+      timestamp: new Date().toISOString(),
+    };
+    console.log(message);
+
+    socket.emit('sendMessage', message);
+    setNewMessage(''); 
+  }
+};
+
+
+  if (loading) return <Spin size="large" />;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+        <div className="space-y-4">
+          {messages.map((msg: any, index: number) => {
+            const isMe = msg.sender?.id === userId;
+            return (
+              <div
+                key={index}
+                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
+                    }`}
+                >
+                  <p>{msg.content}</p>
+                  <small className="block text-xs mt-1 text-right">
+                    {new Date(msg.timestamp).toLocaleString()}
+                  </small>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef}></div>
+        </div>
+      </div>
+
+      <div className="p-4 bg-white border-t">
+        <div className="flex items-center space-x-4">
+          <TextArea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-grow resize-none rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            rows={2}
+          />
+          <button
+            onClick={sendMessage}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InteractPage;
