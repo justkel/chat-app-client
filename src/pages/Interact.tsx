@@ -17,7 +17,9 @@ const InteractPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<any>(null);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
 
@@ -42,11 +44,17 @@ const InteractPage = () => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
-    return () => {
-      socket.off('receiveMessage');
-    };
-  }, []);
+    socket.on('userTyping', ({ userId: typingUserId, typing }) => {
+      if (typingUserId !== userId) {
+        setIsOtherUserTyping(typing);
+      }
+    });
 
+    // return () => {
+    //   socket.off('receiveMessage');
+    //   socket.off('userTyping');
+    // };
+  }, [userId, otherUserId]);
 
   useEffect(() => {
     if (data && data.getChatMessages) {
@@ -60,6 +68,17 @@ const InteractPage = () => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  const handleTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    socket.emit('typing', { userId, otherUserId });
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('typing', { userId, otherUserId, typing: false });
+    }, 3000);
+  };
 
   const sendMessage = () => {
     if (!newMessage.trim()) {
@@ -80,7 +99,7 @@ const InteractPage = () => {
     };
 
     socket.emit('sendMessage', message);
-    setNewMessage(''); 
+    setNewMessage('');
   };
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
@@ -105,6 +124,13 @@ const InteractPage = () => {
               </div>
             );
           })}
+
+          {isOtherUserTyping && (
+            <div className="text-sm italic text-gray-500">
+              The other user is typing...
+            </div>
+          )}
+
           <div ref={messagesEndRef}></div>
         </div>
       </div>
@@ -113,7 +139,10 @@ const InteractPage = () => {
         <div className="flex items-center space-x-4">
           <TextArea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
             placeholder="Type a message..."
             aria-label="Message Input"
             className="flex-grow resize-none rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
