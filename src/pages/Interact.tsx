@@ -8,7 +8,11 @@ import { useGetChatMessages } from '../hooks/useGetChatMessages';
 
 const { TextArea } = Input;
 const socket = io('http://localhost:5002', {
-  reconnectionAttempts: 3,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
 });
 
 const InteractPage = () => {
@@ -50,10 +54,10 @@ const InteractPage = () => {
       }
     });
 
-    // return () => {
-    //   socket.off('receiveMessage');
-    //   socket.off('userTyping');
-    // };
+    return () => {
+      socket.off('receiveMessage');
+      socket.off('userTyping');
+    };
   }, [userId, otherUserId]);
 
   useEffect(() => {
