@@ -14,10 +14,41 @@ const REGISTER_MUTATION = gql`
 export const useRegister = () => {
   const [registerMutation, { data, loading, error }] = useMutation(REGISTER_MUTATION);
 
-  const register = async (email: string, password: string, fullName: string) => {
-    const response = await registerMutation({ 
-      variables: { registerInput: { email, password, fullName } } 
+  const register = async (input: {
+    email: string;
+    password: string;
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    profilePicture?: File | null;
+  }) => {
+    const { profilePicture, ...registerInput } = input;
+
+    let profilePictureUrl: string | undefined;
+
+    if (profilePicture) {
+      const formData = new FormData();
+      formData.append('file', profilePicture);
+
+      const uploadResponse = await fetch('/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const uploadResult = await uploadResponse.json();
+      profilePictureUrl = uploadResult.url; // Extract the URL from the response
+    }
+
+    const response = await registerMutation({
+      variables: {
+        registerInput: {
+          ...registerInput,
+          profilePicture: profilePictureUrl,
+        },
+      },
     });
+
     return response.data?.register;
   };
 
