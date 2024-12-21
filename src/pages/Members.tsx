@@ -132,7 +132,7 @@ const Members = () => {
                     {usersData?.getAllUsersExcept.map((user: User) => (
                         <ListItem key={user.id} divider>
                             <ListItemAvatar>
-                                <Avatar sx={{ fontFamily: 'Poppins, sans-serif' }}>{user.fullName.charAt(0)}</Avatar>
+                                <Avatar sx={{ fontFamily: 'Poppins, sans-serif' }}>{user.fullName.charAt(0).toUpperCase()}</Avatar>
                             </ListItemAvatar>
                             <ListItemText
                                 primary={user.fullName}
