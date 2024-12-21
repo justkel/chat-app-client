@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRegister } from '../hooks/auth';
 import { useNavigate } from 'react-router-dom';
+import { CameraOutlined } from '@ant-design/icons';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -33,7 +34,14 @@ const Register: React.FC = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setProfilePicture(event.target.files[0]);
+      const file = event.target.files[0];
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (JPEG, PNG, etc.).');
+        return;
+      }
+
+      setProfilePicture(file);
     }
   };
 
@@ -43,8 +51,8 @@ const Register: React.FC = () => {
         <h2 className="text-3xl font-bold text-center text-purple-800 mb-6">Create Your Account</h2>
 
         {/* Profile Picture */}
-        <div className="mb-6 flex flex-col items-center">
-          <label className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer shadow-md">
+        <div className="mb-6 flex flex-col items-center relative">
+          <div className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center cursor-default shadow-md relative">
             {profilePicture ? (
               <img
                 src={URL.createObjectURL(profilePicture)}
@@ -54,13 +62,19 @@ const Register: React.FC = () => {
             ) : (
               <span className="text-gray-500 font-bold">Upload Profile Picture</span>
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
+            {/* Camera Icon */}
+            <label
+              className="absolute bottom-2 right-2 bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md cursor-pointer"
+            >
+              <CameraOutlined className="text-gray-700 text-xl" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
         </div>
 
         {/* Username */}
@@ -134,13 +148,12 @@ const Register: React.FC = () => {
         <button
           onClick={handleRegister}
           disabled={loading}
-          className={`w-full py-2 bg-purple-600 text-white font-semibold rounded-md shadow-md hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-200 ${
-            loading ? 'cursor-not-allowed opacity-50' : ''
-          }`}
+          className={`w-full py-2 bg-purple-600 text-white font-semibold rounded-md shadow-md hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-200 ${loading ? 'cursor-not-allowed opacity-50' : ''
+            }`}
         >
           {loading ? 'Registering...' : 'Register'}
         </button>
-        
+
         {error && (
           <p className="mt-4 text-center text-red-500 animate-pulse">Error: {error.message}</p>
         )}
