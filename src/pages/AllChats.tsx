@@ -79,6 +79,7 @@ const ChatPage = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                        cursor: 'pointer',
                                         '&:hover': {
                                             transform: 'scale(1.01)',
                                             transition: 'transform 0.2s',
