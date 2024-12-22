@@ -6,6 +6,7 @@ const GET_ACCEPTED_CHAT_USERS = gql`
       id
       fullName
       email
+      profilePicture
     }
   }
 `;

@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, Paper } from '@mui/material';
-import { UserOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -27,15 +26,28 @@ const ChatPage = () => {
         navigate(`/chat/${id}`);
     };
 
-    const renderAvatar = (fullName: string) => {
-        const initials = fullName
+    const renderAvatar = (user: any) => {
+        if (user.profilePicture) {
+            // Use the profile picture from the server
+            return (
+                <Avatar
+                    src={`http://localhost:5002${user.profilePicture}`}
+                    alt={user.fullName}
+                    sx={{ backgroundColor: '#1890ff', fontFamily: 'Poppins, sans-serif' }}
+                />
+            );
+        }
+
+        // Fallback to initials if profilePicture is not available
+        const initials = user.fullName
             .split(' ')
-            .map((name) => name.charAt(0))
+            .map((name: string) => name.charAt(0))
             .join('')
             .toUpperCase();
+
         return (
             <Avatar sx={{ backgroundColor: '#1890ff', fontFamily: 'Poppins, sans-serif' }}>
-                {initials || <UserOutlined />}
+                {initials}
             </Avatar>
         );
     };
@@ -86,25 +98,23 @@ const ChatPage = () => {
                                         },
                                     }}
                                 >
-                                    <ListItemAvatar>
-                                        {renderAvatar(user.fullName)}
-                                    </ListItemAvatar>
+                                    <ListItemAvatar>{renderAvatar(user)}</ListItemAvatar>
                                     <ListItemText
                                         primary={user.fullName}
                                         secondary={user.email}
-                                        primaryTypographyProps={{ 
-                                            sx: { 
-                                                fontFamily: 'Poppins, sans-serif', 
+                                        primaryTypographyProps={{
+                                            sx: {
+                                                fontFamily: 'Poppins, sans-serif',
                                                 fontWeight: 'bold',
                                                 color: '#1d1d1f',
-                                            } 
+                                            },
                                         }}
-                                        secondaryTypographyProps={{ 
-                                            sx: { 
-                                                fontFamily: 'Poppins, sans-serif', 
-                                                color: '#888', 
-                                                fontSize: '14px' 
-                                            } 
+                                        secondaryTypographyProps={{
+                                            sx: {
+                                                fontFamily: 'Poppins, sans-serif',
+                                                color: '#888',
+                                                fontSize: '14px',
+                                            },
                                         }}
                                     />
                                 </ListItem>
