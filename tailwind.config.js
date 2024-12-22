@@ -1,10 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", 
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        wave: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        waveMiddle: {
+          '0%, 100%': { transform: 'translateY(-10px)' },
+          '50%': { transform: 'translateY(-15px)' },
+        },
+        waveReverse: {
+          '0%, 100%': { transform: 'translateY(-20px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+      },
+      animation: {
+        wave: 'wave 1.5s ease-in-out infinite',
+        waveMiddle: 'waveMiddle 1.5s ease-in-out infinite',
+        waveReverse: 'waveReverse 1.5s ease-in-out infinite',
+      },
+    },
   },
   plugins: [],
 };

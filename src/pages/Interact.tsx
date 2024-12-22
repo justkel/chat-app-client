@@ -79,21 +79,21 @@ const InteractPage = () => {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, []);  
+  }, []);
 
   const handleTyping = () => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-  
+
     // Emit typing signal
     socket.emit('typing', { userId, otherUserId, typing: true });
-  
+
     // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('typing', { userId, otherUserId, typing: false });
       typingTimeoutRef.current = null; // Clear the ref
-    }, 3000);
+    }, 1000);
   };
 
   const sendMessage = () => {
@@ -141,14 +141,18 @@ const InteractPage = () => {
             );
           })}
 
-          {isOtherUserTyping && (
-            <div className="text-sm italic text-gray-500 transition-opacity duration-300">
-              The other user is typing...
-            </div>
-          )}
-
           <div ref={messagesEndRef}></div>
         </div>
+
+        {isOtherUserTyping && (
+          <div className="mt-10 bg-gray-100">
+            <div className="flex items-center space-x-1">
+              <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#80d4ff' }}></span>
+              <span className="w-4 h-4 bg-indigo-400 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
+              <span className="w-4 h-4 bg-purple-500 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-4 bg-white border-t">
