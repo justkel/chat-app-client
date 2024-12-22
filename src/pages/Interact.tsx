@@ -23,7 +23,7 @@ const InteractPage = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
 
@@ -73,14 +73,26 @@ const InteractPage = () => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);  
+
   const handleTyping = () => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    socket.emit('typing', { userId, otherUserId });
-
+  
+    // Emit typing signal
+    socket.emit('typing', { userId, otherUserId, typing: true });
+  
+    // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('typing', { userId, otherUserId, typing: false });
+      typingTimeoutRef.current = null; // Clear the ref
     }, 3000);
   };
 
@@ -130,7 +142,7 @@ const InteractPage = () => {
           })}
 
           {isOtherUserTyping && (
-            <div className="text-sm italic text-gray-500">
+            <div className="text-sm italic text-gray-500 transition-opacity duration-300">
               The other user is typing...
             </div>
           )}
