@@ -19,14 +19,41 @@ interface JwtPayload {
   exp: number;
 }
 
+interface CustomJwtPayload extends JwtPayload {
+  sub: number;
+  email: string;
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<{ token: string; } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    setUser(null);
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Decode the token to get the user ID (sub)
+        const decodedToken: CustomJwtPayload = jwtDecode(token);
+        const userId = decodedToken.sub;
+
+        // Send the request to update the user's online status
+        await fetch(`http://localhost:5002/user/${userId}/set-online-status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ isOnline: false }),
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update user's online status", error);
+    } finally {
+      // Proceed with logging out
+      localStorage.removeItem('token');
+      setUser(null);
+    }
+  }, []);  
 
   const setLogoutTimer = useCallback((milliseconds: number) => {
     setTimeout(() => {

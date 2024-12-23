@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, InputBase, IconButton, Drawer, Box, Button, Divider } from '@mui/material';
-import { Menu as MenuIcon, Search as SearchIcon, Chat as ChatIcon, Contacts as ContactsIcon, AccountCircle as ProfileIcon, Group as MembersIcon, PendingActions as PendingRequestsIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Search as SearchIcon, Chat as ChatIcon, Contacts as ContactsIcon, AccountCircle as ProfileIcon, Group as MembersIcon, PendingActions as PendingRequestsIcon, Logout } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { Typography as Typo } from 'antd';
+const { Text } = Typo;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +21,19 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
   const handleDrawerToggle = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  const { logout } = useAuth();
+
+  const logoutCallback = () => {
+    Modal.confirm({
+      title: 'Confirm',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Are you sure you want to sign out?',
+      okText: <Text style={{ fontFamily: 'Montserrat, sans-serif', color: '#fff' }}>Sign Out</Text>,
+      cancelText: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Cancel</Text>,
+      onOk: logout,
+    });
+};
 
   return (
     <Box sx={{ display: 'flex', fontFamily: 'Poppins, sans-serif !important' }}>
@@ -154,6 +172,27 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
           >
             {!isCollapsed && 'Profile'}
           </Button>
+
+          <Button
+            startIcon={<Logout />}
+            onClick={logoutCallback}
+            sx={{
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              color: 'white',
+              width: '100%',
+              mt: 40,
+              mb: 2,
+              textAlign: 'center',
+              fontFamily: 'Poppins, sans-serif !important',
+              fontSize: isCollapsed ? '0.875rem' : '1rem',
+              '& .MuiButton-startIcon': {
+                fontSize: isCollapsed ? '1.5rem' : '2rem',
+              },
+            }}
+          >
+            {!isCollapsed && 'Logout'}
+          </Button>
+
         </Box>
 
       </Drawer>
