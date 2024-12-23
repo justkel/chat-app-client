@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
-import '../App.css'
+import '../App.css';
 
 const { TextArea } = Input;
 const socket = io('http://localhost:5002', {
@@ -73,6 +73,13 @@ const InteractPage = () => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Scroll to the bottom when the other user is typing
+  useEffect(() => {
+    if (isOtherUserTyping && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isOtherUserTyping]);
 
   useEffect(() => {
     return () => {
