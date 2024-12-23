@@ -130,7 +130,8 @@ const InteractPage = () => {
             return (
               <div key={index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
+                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} break-words`}
+                  style={{ wordBreak: 'break-word' }}
                 >
                   <p>{msg.content}</p>
                   <small className="block text-xs mt-1 text-right">
@@ -145,11 +146,16 @@ const InteractPage = () => {
         </div>
 
         {isOtherUserTyping && (
-          <div className="mt-10 bg-gray-100">
-            <div className="flex items-center space-x-1">
-              <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#80d4ff' }}></span>
-              <span className="w-4 h-4 bg-indigo-400 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
-              <span className="w-4 h-4 bg-purple-500 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+          <div className="mt-4">
+            <div className="relative max-w-16 h-11 bg-gray-300 text-black p-4 rounded-lg">
+              {/* Pointed extension (speech bubble) */}
+              <div className="absolute top-0 left-0 w-3 h-3 bg-gray-300 transform -translate-y-1/2 -translate-x-1/2 rotate-45"></div>
+
+              <div className="flex items-center space-x-1 pt-2">
+                <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#80d4ff' }}></span>
+                <span className="w-4 h-4 bg-indigo-400 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
+                <span className="w-4 h-4 bg-purple-500 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+              </div>
             </div>
           </div>
         )}
