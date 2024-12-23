@@ -1,4 +1,4 @@
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, gql, useMutation } from '@apollo/client';
 
 const GET_CHAT_MESSAGES = gql`
   query GetChatMessages($userId: ID!, $otherUserId: ID!) {
@@ -12,6 +12,7 @@ const GET_CHAT_MESSAGES = gql`
       receiver {
         id
       }
+      status
     }
   }
 `;
@@ -23,4 +24,35 @@ export const useGetChatMessages = (userId: string | null, otherUserId: string | 
   });
 
   return { data, loading, error, refetch };
+};
+
+const IS_USER_ONLINE = gql`
+  query IsUserOnline($userId: ID!) {
+    isUserOnline(userId: $userId)
+  }
+`;
+
+const UPDATE_MESSAGE_STATUS = gql`
+  mutation UpdateMessageStatus($messageId: ID!, $status: MessageStatus!) {
+    updateMessageStatus(messageId: $messageId, status: $status) {
+      id
+      status
+    }
+  }
+`;
+
+export const useCheckUserOnline = (userId: string | null) => {
+  const { data, loading, error, refetch } = useQuery(IS_USER_ONLINE, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  return { data, loading, error, refetch };
+};
+
+
+export const useUpdateMessageStatus = () => {
+  const [updateMessageStatus, { data, loading, error }] = useMutation(UPDATE_MESSAGE_STATUS);
+
+  return { updateMessageStatus, data, loading, error };
 };

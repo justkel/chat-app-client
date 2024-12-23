@@ -4,7 +4,7 @@ import { Input, Spin, notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
-import { useGetChatMessages } from '../hooks/useGetChatMessages';
+import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -27,6 +27,48 @@ const InteractPage = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
+  const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
+  const { updateMessageStatus } = useUpdateMessageStatus();
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!otherUserId || !userId) return;
+
+      if (onlineLoading) return;
+      if (onlineError) {
+        console.error('Error checking user online status:', onlineError);
+        return;
+      }
+
+      try {
+        await isOnlineRefetch();
+      } catch (err) {
+        console.error('Error refetching online status:', err);
+      }
+
+      if (onlineData?.isUserOnline) {
+        const sentMessages = messages.filter((msg) => msg.status === 'SENT');
+
+        sentMessages.forEach(async (msg) => {
+          try {
+            await updateMessageStatus({
+              variables: { messageId: msg.id, status: 'DELIVERED' },
+            });
+
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
+              )
+            );
+          } catch (err) {
+            console.error('Error updating message statuses:', err);
+          }
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [messages, otherUserId, userId, onlineData, onlineLoading, onlineError, updateMessageStatus, setMessages, isOnlineRefetch]); 
 
   useEffect(() => {
     if (user) {
@@ -120,6 +162,7 @@ const InteractPage = () => {
       receiver: { id: otherUserId },
       content: newMessage,
       timestamp: new Date().toISOString(),
+      status: 'SENT'
     };
 
     socket.emit('sendMessage', message);
@@ -160,6 +203,14 @@ const InteractPage = () => {
                       year: 'numeric',
                     })}
                   </small>
+
+                  {isMe && (
+                    <div className="flex items-center mt-1">
+                      {msg.status === 'SENT' && <span>✓</span>}
+                      {msg.status === 'DELIVERED' && <span>✓✓</span>}
+                    </div>
+                  )}
+
 
                   {isMe && (
                     <div className="chat-pointer"></div>
