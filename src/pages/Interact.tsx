@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
+import '../App.css'
 
 const { TextArea } = Input;
 const socket = io('http://localhost:5002', {
@@ -128,15 +129,27 @@ const InteractPage = () => {
           {messages.map((msg: any, index: number) => {
             const isMe = msg.sender?.id === userId;
             return (
-              <div key={index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={index}
+                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+              >
                 <div
-                  className={`max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} break-words`}
-                  style={{ wordBreak: 'break-word' }}
+                  className={`relative max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} break-words`}
+                  style={{
+                    wordBreak: 'break-word',
+                    borderRadius: isMe
+                      ? '16px 0 16px 16px'
+                      : '16px',
+                  }}
                 >
                   <p>{msg.content}</p>
                   <small className="block text-xs mt-1 text-right">
                     {new Date(msg.timestamp).toLocaleString()}
                   </small>
+
+                  {isMe && (
+                     <div className="chat-pointer"></div>
+                  )}
                 </div>
               </div>
             );
@@ -149,12 +162,12 @@ const InteractPage = () => {
           <div className="mt-4">
             <div className="relative max-w-16 h-11 bg-gray-300 text-black p-4 rounded-lg">
               {/* Pointed extension (speech bubble) */}
-              <div className="absolute top-0 left-0 w-3 h-3 bg-gray-300 transform -translate-y-1/2 -translate-x-1/2 rotate-45"></div>
+              <div className="absolute bottom-0 left-0 w-4 h-4 bg-gray-300 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"></div>
 
               <div className="flex items-center space-x-1 pt-2">
-                <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#80d4ff' }}></span>
-                <span className="w-4 h-4 bg-indigo-400 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
-                <span className="w-4 h-4 bg-purple-500 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+                <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
+                <span className="w-4 h-4 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
+                <span className="w-4 h-4 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
               </div>
             </div>
           </div>

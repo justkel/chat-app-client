@@ -19,6 +19,9 @@ module.exports = {
           '50%': { transform: 'translateY(-10px)' },
         },
       },
+      clipPath: {
+        polygon: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+      },
       animation: {
         wave: 'wave 1.5s ease-in-out infinite',
         waveMiddle: 'waveMiddle 1.5s ease-in-out infinite',
