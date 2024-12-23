@@ -151,11 +151,18 @@ const InteractPage = () => {
                 >
                   <p>{msg.content}</p>
                   <small className="block text-xs mt-1 text-right">
-                    {new Date(msg.timestamp).toLocaleString()}
+                    {new Date(msg.timestamp).toLocaleString('en-GB', {
+                      hour12: false,
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
                   </small>
 
                   {isMe && (
-                     <div className="chat-pointer"></div>
+                    <div className="chat-pointer"></div>
                   )}
                 </div>
               </div>
