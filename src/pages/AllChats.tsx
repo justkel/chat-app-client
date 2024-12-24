@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Input, Spin } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,7 +13,7 @@ const ChatPage = () => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     useEffect(() => {
         if (user) {
@@ -23,8 +23,8 @@ const ChatPage = () => {
     }, [user]);
 
     const handleUserClick = (id: string) => {
-        navigate(`/chat/${id}`);
-    };
+        window.location.href = `/chat/${id}`;
+    };    
 
     const renderAvatar = (user: any) => {
         if (user.profilePicture) {

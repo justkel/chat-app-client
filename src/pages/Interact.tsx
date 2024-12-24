@@ -25,10 +25,19 @@ const InteractPage = () => {
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { updateMessageStatus } = useUpdateMessageStatus();
+
+  useEffect(() => {
+    setIsReceiverOnPage(true);
+
+    return () => {
+      setIsReceiverOnPage(false);
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -70,6 +79,60 @@ const InteractPage = () => {
   }, [messages, otherUserId, userId, onlineData, onlineLoading, onlineError, updateMessageStatus, setMessages, isOnlineRefetch]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isReceiverOnPage) {
+        console.log("Receiver is not on the page, skipping message status update.");
+        return;
+      }
+
+      const ReUpdatingMessages = messages.filter(
+        (msg) => msg.receiver.id === userId,
+      );
+
+      if (ReUpdatingMessages.length > 0) {
+        ReUpdatingMessages.forEach(async (msg) => {
+          const transformedMessage = {
+            sender: { id: msg.sender.id },
+            receiver: { id: msg.receiver.id },
+            content: msg.content,
+            timestamp: msg.timestamp,
+            status: 'READ',
+            id: msg.id,
+          };
+
+          socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
+        })
+      }
+
+      const receivedMessages = messages.filter(
+        (msg) => msg.status.toLowerCase() === 'delivered' && msg.receiver.id === userId
+      );
+      if (receivedMessages.length > 0) {
+        receivedMessages.forEach(async (msg) => {
+          try {
+            await updateMessageStatus(msg.id, 'READ');
+
+            const transformedMessage = {
+              sender: { id: msg.sender.id },
+              receiver: { id: msg.receiver.id },
+              content: msg.content,
+              timestamp: msg.timestamp,
+              status: 'READ',
+              id: msg.id,
+            };
+
+            socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
+          } catch (error) {
+            console.error('Error updating message statuses:', error);
+          }
+        });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer); // Cleanup on unmount
+  }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage]);
+
+  useEffect(() => {
     if (user) {
       try {
         const decodedToken: any = jwtDecode(user.token);
@@ -104,10 +167,19 @@ const InteractPage = () => {
     //   );
     // });
 
+    socket.on('messageStatusUpdatedToRead', (updatedMessage) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === updatedMessage.id ? updatedMessage : msg
+        )
+      );
+    });
+
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
       // socket.off('messageDelivered');
+      socket.off('messageStatusUpdatedToRead');
     };
   }, [userId, otherUserId]);
 
@@ -216,6 +288,9 @@ const InteractPage = () => {
                     <div className="flex items-center mt-1">
                       {msg.status.toLowerCase() === 'sent' && <span>✓</span>}
                       {msg.status.toLowerCase() === 'delivered' && <span>✓✓</span>}
+                      {msg.status.toLowerCase() === 'read' && (
+                        <span className="text-blue-900">✓✓</span>
+                      )}
                     </div>
                   )}
 
