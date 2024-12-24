@@ -47,28 +47,27 @@ const InteractPage = () => {
       }
 
       if (onlineData?.isUserOnline) {
-        const sentMessages = messages.filter((msg) => msg.status === 'SENT');
+        const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
 
         sentMessages.forEach(async (msg) => {
           try {
-            await updateMessageStatus({
-              variables: { messageId: msg.id, status: 'DELIVERED' },
-            });
+            await updateMessageStatus(msg.id, 'DELIVERED');
 
             setMessages((prev) =>
               prev.map((message) =>
                 message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
               )
             );
+            // socket.emit('otherUserOnline', { userId, otherUserId, message: msg.content });
           } catch (err) {
             console.error('Error updating message statuses:', err);
           }
         });
       }
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [messages, otherUserId, userId, onlineData, onlineLoading, onlineError, updateMessageStatus, setMessages, isOnlineRefetch]); 
+  }, [messages, otherUserId, userId, onlineData, onlineLoading, onlineError, updateMessageStatus, setMessages, isOnlineRefetch]);
 
   useEffect(() => {
     if (user) {
@@ -97,9 +96,18 @@ const InteractPage = () => {
       }
     });
 
+    // socket.on('messageDelivered', ({ message }) => {
+    //   setMessages((prevMessages) =>
+    //     prevMessages.map((msg) =>
+    //       msg.id === message.id ? { ...msg, status: 'DELIVERED' } : msg
+    //     )
+    //   );
+    // });
+
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
+      // socket.off('messageDelivered');
     };
   }, [userId, otherUserId]);
 
@@ -206,8 +214,8 @@ const InteractPage = () => {
 
                   {isMe && (
                     <div className="flex items-center mt-1">
-                      {msg.status === 'SENT' && <span>✓</span>}
-                      {msg.status === 'DELIVERED' && <span>✓✓</span>}
+                      {msg.status.toLowerCase() === 'sent' && <span>✓</span>}
+                      {msg.status.toLowerCase() === 'delivered' && <span>✓✓</span>}
                     </div>
                   )}
 

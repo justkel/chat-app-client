@@ -52,7 +52,19 @@ export const useCheckUserOnline = (userId: string | null) => {
 
 
 export const useUpdateMessageStatus = () => {
-  const [updateMessageStatus, { data, loading, error }] = useMutation(UPDATE_MESSAGE_STATUS);
+  const [updateMessageStatusMutation, { data, loading, error }] = useMutation(UPDATE_MESSAGE_STATUS);
+
+  const updateMessageStatus = async (messageId: string, status: string) => {
+    try {
+      const response = await updateMessageStatusMutation({
+        variables: { messageId, status },
+      });
+      return response.data.updateMessageStatus;
+    } catch (err) {
+      console.error('Error updating message status:', err);
+      throw err;
+    }
+  };
 
   return { updateMessageStatus, data, loading, error };
 };
