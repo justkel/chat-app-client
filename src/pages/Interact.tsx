@@ -406,9 +406,9 @@ const InteractPage = () => {
                   )}
 
 
-                  {/* {isMe && (
+                  {isMe && (
                     <div className="chat-pointer"></div>
-                  )} */}
+                  )}
                 </div>
               </div>
             );
