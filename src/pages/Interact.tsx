@@ -27,6 +27,8 @@ const InteractPage = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [scrollLock, setScrollLock] = useState(false);
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
@@ -136,10 +138,12 @@ const InteractPage = () => {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const { scrollTop, scrollHeight, clientHeight } = target;
-  
-    // Detect if the user is not at the bottom
+
     setScrollLock(scrollTop + clientHeight < scrollHeight - 10);
-  };  
+
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    setIsAtBottom(atBottom);
+  };
 
   useEffect(() => {
     if (user) {
@@ -159,7 +163,15 @@ const InteractPage = () => {
 
   useEffect(() => {
     socket.on('receiveMessage', (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages, message];
+
+        if (message.sender.id !== userId && !isAtBottom) {
+          setNewMessageCount((prevCount) => prevCount + 1);
+        }
+
+        return newMessages;
+      });
     });
 
     socket.on('userTyping', ({ userId: typingUserId, typing }) => {
@@ -190,7 +202,7 @@ const InteractPage = () => {
       // socket.off('messageDelivered');
       socket.off('messageStatusUpdatedToRead');
     };
-  }, [userId, otherUserId]);
+  }, [userId, otherUserId, isAtBottom]);
 
   useEffect(() => {
     if (data && data.getChatMessages) {
@@ -207,17 +219,47 @@ const InteractPage = () => {
 
   useEffect(() => {
     if (!scrollLock && messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-}, [messages, scrollLock]);
-
-
-  // Scroll to the bottom when the other user is typing
-  useEffect(() => {
-    if (isOtherUserTyping && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isOtherUserTyping]);
+  }, [messages, scrollLock]);
+
+
+  // // Scroll to the bottom when the other user is typing
+  // useEffect(() => {
+  //   if (isOtherUserTyping && messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  // }, [isOtherUserTyping]);
+
+  // useEffect(() => {
+  //   const checkIfAtBottom = () => {
+  //     if (messagesEndRef.current) {
+  //       const { bottom } = messagesEndRef.current.getBoundingClientRect();
+  //       const isNearBottom = bottom <= window.innerHeight + 50; // You can adjust the 50 to be the desired threshold
+
+  //       if (isOtherUserTyping && isNearBottom) {
+  //         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  //       }
+  //     }
+  //   };
+
+  //   checkIfAtBottom();
+
+  // }, [isOtherUserTyping, isAtBottom]);
+
+  // Scroll to the bottom when the other user is typing, only if the user is at the bottom
+  useEffect(() => {
+    if (isOtherUserTyping && isAtBottom && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isOtherUserTyping, isAtBottom]);
+
+  useEffect(() => {
+    if (isAtBottom) {
+      setNewMessageCount(0);
+    }
+  }, [isAtBottom]);
+
 
   useEffect(() => {
     return () => {
@@ -371,6 +413,21 @@ const InteractPage = () => {
               </div>
             );
           })}
+
+          {newMessageCount > 0 && !isAtBottom && (
+            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
+              <span className="text-sm font-semibold">
+                {newMessageCount === 1 ? '1 New Message' : `${newMessageCount} New Messages`}
+              </span>
+
+              <button
+                className="ml-0 text-lg font-bold hover:opacity-80 transition-opacity"
+                onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                ↓
+              </button>
+            </div>
+          )}
 
           <div ref={messagesEndRef}></div>
         </div>
