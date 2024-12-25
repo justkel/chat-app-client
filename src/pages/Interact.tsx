@@ -285,11 +285,56 @@ const InteractPage = () => {
                   </small>
 
                   {isMe && (
-                    <div className="flex items-center mt-1">
-                      {msg.status.toLowerCase() === 'sent' && <span>✓</span>}
-                      {msg.status.toLowerCase() === 'delivered' && <span>✓✓</span>}
+                    <div className="flex items-center justify-end mt-1">
+                      {msg.status.toLowerCase() === 'sent' && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="tick-icon"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                      {msg.status.toLowerCase() === 'delivered' && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="16"
+                          viewBox="0 0 32 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="tick-icon"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                          <polyline points="26 6 15 17 20 12" />
+                        </svg>
+                      )}
                       {msg.status.toLowerCase() === 'read' && (
-                        <span className="text-blue-900">✓✓</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="16"
+                          viewBox="0 0 32 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="tick-icon text-blue-900"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                          <polyline points="26 6 15 17 20 12" />
+                        </svg>
                       )}
                     </div>
                   )}
