@@ -25,6 +25,7 @@ const InteractPage = () => {
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [scrollLock, setScrollLock] = useState(false);
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
@@ -132,6 +133,14 @@ const InteractPage = () => {
     return () => clearTimeout(timer); // Cleanup on unmount
   }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage]);
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const { scrollTop, scrollHeight, clientHeight } = target;
+  
+    // Detect if the user is not at the bottom
+    setScrollLock(scrollTop + clientHeight < scrollHeight - 10);
+  };  
+
   useEffect(() => {
     if (user) {
       try {
@@ -190,11 +199,18 @@ const InteractPage = () => {
     }
   }, [data, refetch]);
 
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  // }, [messages]);
+
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!scrollLock && messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+}, [messages, scrollLock]);
+
 
   // Scroll to the bottom when the other user is typing
   useEffect(() => {
@@ -254,7 +270,7 @@ const InteractPage = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-100" onScroll={handleScroll}>
         <div className="space-y-4">
           {messages.map((msg: any, index: number) => {
             const isMe = msg.sender?.id === userId;
@@ -265,8 +281,8 @@ const InteractPage = () => {
               >
                 <div
                   className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
-                      : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
+                    : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
                     } break-words hover:scale-105 hover:shadow-xl`}
                   style={{
                     wordBreak: 'break-word',
