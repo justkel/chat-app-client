@@ -264,12 +264,20 @@ const InteractPage = () => {
                 className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`relative max-w-xs p-4 rounded-lg shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} break-words`}
+                  className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
+                      : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
+                    } break-words hover:scale-105 hover:shadow-xl`}
                   style={{
                     wordBreak: 'break-word',
-                    borderRadius: isMe
-                      ? '16px 0 16px 16px'
-                      : '16px',
+                    borderRadius: isMe ? '16px 0 16px 16px' : '16px',
+                    boxShadow: isMe ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 4px 8px rgba(0, 0, 0, 0.15)',
+                    border: isMe ? 'none' : '1px solid rgba(0, 0, 0, 0.1)',
+                    background: isMe
+                      ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
+                      : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
+                    padding: '12px 16px',
+                    transition: 'all 0.3s ease',
                   }}
                 >
                   <p>{msg.content}</p>
@@ -340,9 +348,9 @@ const InteractPage = () => {
                   )}
 
 
-                  {isMe && (
+                  {/* {isMe && (
                     <div className="chat-pointer"></div>
-                  )}
+                  )} */}
                 </div>
               </div>
             );
