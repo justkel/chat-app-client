@@ -43,10 +43,15 @@ const InteractPage = () => {
   };
 
   useEffect(() => {
-    if (otherUserData) {
-      otherUserRefetch();
-    }
-  }, [otherUserData, otherUserRefetch]);
+    const interval = setInterval(() => {
+      if (otherUserData) {
+        otherUserRefetch();
+      }
+    }, 5000);
+  
+    // Cleanup the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, [otherUserData, otherUserRefetch]);  
 
   useEffect(() => {
     setIsReceiverOnPage(true);
