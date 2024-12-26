@@ -180,7 +180,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
               justifyContent: isCollapsed ? 'center' : 'flex-start',
               color: 'white',
               width: '100%',
-              mt: 40,
+              mt: 20,
               mb: 2,
               textAlign: 'center',
               fontFamily: 'Poppins, sans-serif !important',
