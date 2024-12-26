@@ -319,6 +319,10 @@ const InteractPage = () => {
 
     socket.emit('sendMessage', message);
     setNewMessage('');
+
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
