@@ -245,28 +245,28 @@ const InteractPage = () => {
   //   }
   // }, [isOtherUserTyping]);
 
-  // useEffect(() => {
-  //   const checkIfAtBottom = () => {
-  //     if (messagesEndRef.current) {
-  //       const { bottom } = messagesEndRef.current.getBoundingClientRect();
-  //       const isNearBottom = bottom <= window.innerHeight + 50; // You can adjust the 50 to be the desired threshold
-
-  //       if (isOtherUserTyping && isNearBottom) {
-  //         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  //       }
-  //     }
-  //   };
-
-  //   checkIfAtBottom();
-
-  // }, [isOtherUserTyping, isAtBottom]);
-
-  // Scroll to the bottom when the other user is typing, only if the user is at the bottom
   useEffect(() => {
-    if (isOtherUserTyping && isAtBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    const checkIfAtBottom = () => {
+      if (messagesEndRef.current) {
+        const { bottom } = messagesEndRef.current.getBoundingClientRect();
+        const isNearBottom = bottom <= window.innerHeight + 400; // You can adjust the 50 to be the desired threshold
+
+        if (isOtherUserTyping && isNearBottom) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    };
+
+    checkIfAtBottom();
+
   }, [isOtherUserTyping, isAtBottom]);
+
+  // // Scroll to the bottom when the other user is typing, only if the user is at the bottom
+  // useEffect(() => {
+  //   if (isOtherUserTyping && isAtBottom && messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  // }, [isOtherUserTyping, isAtBottom]);
 
   useEffect(() => {
     if (isAtBottom) {
