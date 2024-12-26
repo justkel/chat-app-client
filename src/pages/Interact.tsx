@@ -152,12 +152,13 @@ const InteractPage = () => {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const { scrollTop, scrollHeight, clientHeight } = target;
-
-    setScrollLock(scrollTop + clientHeight < scrollHeight - 10);
-
+  
     const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
     setIsAtBottom(atBottom);
-  };
+  
+    const newScrollLock = !atBottom;
+    setScrollLock(newScrollLock);
+  };  
 
   useEffect(() => {
     if (user) {
@@ -225,17 +226,11 @@ const InteractPage = () => {
     }
   }, [data, refetch]);
 
-  // useEffect(() => {
-  //   if (messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  //   }
-  // }, [messages]);
-
   useEffect(() => {
-    if (!scrollLock && messagesEndRef.current) {
+    if (!scrollLock && isAtBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, scrollLock]);
+  }, [isAtBottom, messages, scrollLock]);  
 
 
   // // Scroll to the bottom when the other user is typing
@@ -341,7 +336,7 @@ const InteractPage = () => {
       </div>
 
       <div className="flex flex-col h-screen pt-20">
-        <div className="flex-1 p-4 bg-gray-100 pb-20" onScroll={handleScroll}>
+        <div className="flex-1 p-4 bg-gray-100 pb-20 overflow-y-auto" onScroll={handleScroll}>
           <div className="space-y-4">
             {messages.map((msg: any, index: number) => {
               const isMe = msg.sender?.id === userId;
