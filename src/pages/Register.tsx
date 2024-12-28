@@ -16,16 +16,16 @@ const Register: React.FC = () => {
 
   const handleRegister = async () => {
     try {
-      const userData = await register({
+      await register({
         email,
         password,
         username,
         firstName,
         lastName,
         phoneNumber,
-        profilePicture, // Assumes the backend handles the file properly
+        profilePicture,
       });
-      console.log('Registered:', userData);
+      console.log('User Registered');
       navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);

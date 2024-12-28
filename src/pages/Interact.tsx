@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Avatar, Input, Spin, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { SendOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
@@ -53,10 +54,10 @@ const InteractPage = () => {
         otherUserRefetch();
       }
     }, 5000);
-  
+
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
-  }, [otherUserData, otherUserRefetch]);  
+  }, [otherUserData, otherUserRefetch]);
 
   useEffect(() => {
     setIsReceiverOnPage(true);
@@ -162,13 +163,13 @@ const InteractPage = () => {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const { scrollTop, scrollHeight, clientHeight } = target;
-  
+
     const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
     setIsAtBottom(atBottom);
-  
+
     const newScrollLock = !atBottom;
     setScrollLock(newScrollLock);
-  };  
+  };
 
   useEffect(() => {
     if (user) {
@@ -240,7 +241,7 @@ const InteractPage = () => {
     if (!scrollLock && isAtBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isAtBottom, messages, scrollLock]);  
+  }, [isAtBottom, messages, scrollLock]);
 
 
   // // Scroll to the bottom when the other user is typing
@@ -501,10 +502,10 @@ const InteractPage = () => {
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+              className="bg-blue-500 mt-3 text-white p-2 rounded-full hover:bg-blue-600 disabled:bg-gray-400"
               disabled={!newMessage.trim()}
             >
-              Send
+              <SendOutlined style={{ fontSize: '20px', textAlign: 'center', }} />
             </button>
           </div>
         </div>

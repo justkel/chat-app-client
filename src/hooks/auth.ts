@@ -123,10 +123,12 @@ export const useLogin = () => {
   const [loginMutation, { data, loading, error }] = useMutation(LOGIN_MUTATION);
   const { login: signin } = useAuth();
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, keepMeLoggedIn: boolean) => {
     try {
-      const response = await loginMutation({ 
-        variables: { loginInput: { email, password } } 
+      const response = await loginMutation({
+        variables: {
+          loginInput: { email, password, keepMeLoggedIn },
+        },
       });
 
       const { accessToken: token } = response.data.login;

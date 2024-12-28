@@ -6,12 +6,13 @@ import { motion } from 'framer-motion';
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const { login, loading, error } = useLogin();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      const userData = await login(email, password);
+      const userData = await login(email, password, keepMeLoggedIn);
       console.log('Logged in:', userData);
       navigate('/dashboard');
     } catch (err) {
@@ -27,9 +28,7 @@ const Login: React.FC = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: 'easeOut' }}
       >
-        <h1 className="text-3xl font-bold text-red-600 text-center mb-8">
-          Welcome Back!
-        </h1>
+        <h1 className="text-3xl font-bold text-red-600 text-center mb-8">Welcome Back!</h1>
         <div className="mb-4">
           <input
             type="email"
@@ -48,14 +47,23 @@ const Login: React.FC = () => {
             className="w-full p-3 text-lg border-b-2 border-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-300"
           />
         </div>
+        <div className="mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={keepMeLoggedIn}
+              onChange={() => setKeepMeLoggedIn(!keepMeLoggedIn)}
+              className="h-4 w-4"
+            />
+            <span>Keep me logged in</span>
+          </label>
+        </div>
         <motion.button
           whileHover={{ scale: 1.05, backgroundColor: '#f56565' }}
           whileTap={{ scale: 0.95 }}
           onClick={handleLogin}
           disabled={loading}
-          className={`w-full py-3 text-lg font-semibold text-white bg-red-600 rounded-lg transition-all duration-300 ${
-            loading ? 'bg-opacity-70 cursor-not-allowed' : 'hover:bg-red-700'
-          }`}
+          className={`w-full py-3 text-lg font-semibold text-white bg-red-600 rounded-lg transition-all duration-300 ${loading ? 'bg-opacity-70 cursor-not-allowed' : 'hover:bg-red-700'}`}
         >
           {loading ? 'Logging in...' : 'Login'}
         </motion.button>
