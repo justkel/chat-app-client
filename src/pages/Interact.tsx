@@ -328,9 +328,11 @@ const InteractPage = () => {
     socket.emit('sendMessage', message);
     setNewMessage('');
 
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 0);
   };
 
   const truncateMessage = (content: string) => {
@@ -414,7 +416,7 @@ const InteractPage = () => {
       </div>
 
       <div className="flex flex-col h-screen pt-20">
-        <div className="flex-1 p-4 bg-gray-100 pb-20 overflow-y-auto" onScroll={handleScroll}>
+        <div className="flex-1 p-4 bg-gray-100 pb-32 overflow-y-auto" onScroll={handleScroll}>
           <div className="space-y-8">
             {messages.map((msg: any, index: number) => {
               const isMe = msg.sender?.id === userId;
@@ -531,11 +533,11 @@ const InteractPage = () => {
               </div>
             )}
 
-            <div ref={messagesEndRef}></div>
+            {/* <div ref={messagesEndRef}></div> */}
           </div>
 
           {isOtherUserTyping && (
-            <div className="mt-4 mb-8">
+            <div className="mt-4 mb-2">
               <div className="relative max-w-16 h-11 bg-gray-300 text-black p-4 rounded-lg">
                 {/* Pointed extension (speech bubble) */}
                 <div className="absolute bottom-0 left-0 w-4 h-4 bg-gray-300 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"></div>
@@ -548,6 +550,8 @@ const InteractPage = () => {
               </div>
             </div>
           )}
+
+          <div ref={messagesEndRef}></div>
         </div>
 
         <div className="fixed bottom-0 w-full bg-gray-100 border-t shadow-lg">
