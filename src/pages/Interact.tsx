@@ -33,6 +33,7 @@ const InteractPage = () => {
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const maxLength = 200;
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
@@ -331,6 +332,44 @@ const InteractPage = () => {
     }
   };
 
+  const truncateMessage = (content: string) => {
+    if (content.length > maxLength) {
+      return {
+        truncated: content.substring(0, maxLength),
+        fullContent: content,
+      };
+    }
+    return { truncated: content, fullContent: null };
+  };
+
+  const handleReadMore = (messageId: string) => {
+    setMessages((prevMessages) =>
+      prevMessages.map((message) =>
+        message.id === messageId ? { ...message, isExpanded: !message.isExpanded } : message
+      )
+    );
+  };
+
+  const renderMessageContent = (message: any) => {
+    const { truncated, fullContent } = truncateMessage(message.content);
+    
+    // If the message is long, show "Read More"
+    if (fullContent && message.receiver.id === userId) {
+      return (
+        <>
+          <span>{message.isExpanded ? fullContent : truncated}</span>
+          {!message.isExpanded && (
+            <button onClick={() => handleReadMore(message.id)} className="text-yellow-800 text-sm">
+              Read More
+            </button>
+          )}
+        </>
+      );
+    }
+    
+    return <span>{message.content}</span>;
+  };
+
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (error) return <p>Error: {error.message}</p>;
@@ -377,7 +416,7 @@ const InteractPage = () => {
                       transition: 'all 0.3s ease',
                     }}
                   >
-                    <p>{msg.content}</p>
+                    {renderMessageContent(msg)}
                     <small className="block text-xs mt-1 text-right">
                       {new Date(msg.timestamp).toLocaleString('en-GB', {
                         hour12: false,
