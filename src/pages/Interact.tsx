@@ -332,7 +332,7 @@ const InteractPage = () => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 0);
+    }, 500);
   };
 
   const truncateMessage = (content: string) => {
