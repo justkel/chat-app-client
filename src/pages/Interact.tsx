@@ -34,6 +34,7 @@ const InteractPage = () => {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const maxLength = 200;
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
@@ -343,6 +344,16 @@ const InteractPage = () => {
   };
 
   const handleReadMore = (messageId: string) => {
+    setExpandedMessages((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(messageId)) {
+        updated.delete(messageId); // Collapse the message
+      } else {
+        updated.add(messageId); // Expand the message
+      }
+      return updated;
+    });
+  
     setMessages((prevMessages) =>
       prevMessages.map((message) =>
         message.id === messageId ? { ...message, isExpanded: !message.isExpanded } : message
@@ -352,23 +363,36 @@ const InteractPage = () => {
 
   const renderMessageContent = (message: any) => {
     const { truncated, fullContent } = truncateMessage(message.content);
-    
-    // If the message is long, show "Read More"
+  
+    // If the message is long and needs truncation
     if (fullContent && message.receiver.id === userId) {
+      const isExpanded = expandedMessages.has(message.id);
       return (
         <>
-          <span>{message.isExpanded ? fullContent : truncated}</span>
-          {!message.isExpanded && (
-            <button onClick={() => handleReadMore(message.id)} className="text-yellow-800 text-sm">
+          <span>{isExpanded ? fullContent : truncated}</span>
+          {!isExpanded && (
+            <button
+              onClick={() => handleReadMore(message.id)}
+              className="text-yellow-800 text-sm"
+            >
               Read More
             </button>
           )}
         </>
       );
     }
-    
+  
     return <span>{message.content}</span>;
   };
+  
+  useEffect(() => {
+    setMessages((prevMessages) =>
+      prevMessages.map((message) => ({
+        ...message,
+        isExpanded: expandedMessages.has(message.id),
+      }))
+    );
+  }, [expandedMessages]);
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
