@@ -353,7 +353,7 @@ const InteractPage = () => {
       }
       return updated;
     });
-  
+
     setMessages((prevMessages) =>
       prevMessages.map((message) =>
         message.id === messageId ? { ...message, isExpanded: !message.isExpanded } : message
@@ -363,7 +363,7 @@ const InteractPage = () => {
 
   const renderMessageContent = (message: any) => {
     const { truncated, fullContent } = truncateMessage(message.content);
-  
+
     // If the message is long and needs truncation
     if (fullContent) {
       const isExpanded = expandedMessages.has(message.id);
@@ -381,10 +381,10 @@ const InteractPage = () => {
         </>
       );
     }
-  
+
     return <span>{message.content}</span>;
   };
-  
+
   useEffect(() => {
     setMessages((prevMessages) =>
       prevMessages.map((message) => ({
@@ -517,7 +517,7 @@ const InteractPage = () => {
             })}
 
             {newMessageCount > 0 && !isAtBottom && (
-              <div className="mb-28 absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
+              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
                 <span className="text-sm font-semibold">
                   {newMessageCount === 1 ? '1 New Message' : `${newMessageCount} New Messages`}
                 </span>
@@ -550,25 +550,25 @@ const InteractPage = () => {
           )}
         </div>
 
-        <div className="fixed bottom-0 w-full p-4 bg-white border-t">
-          <div className="flex items-center space-x-4">
+        <div className="fixed bottom-0 w-full bg-gray-100 border-t shadow-lg">
+          <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
             <TextArea
               value={newMessage}
               onChange={(e) => {
                 setNewMessage(e.target.value);
                 handleTyping();
               }}
-              placeholder="Type a message..."
+              placeholder="Type your message..."
               aria-label="Message Input"
-              className="flex-grow resize-none rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
               rows={2}
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-500 mt-3 text-white p-2 rounded-full hover:bg-blue-600 disabled:bg-gray-400"
+              className="flex items-center justify-center bg-blue-500 text-white w-12 h-12 rounded-full hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
               disabled={!newMessage.trim()}
             >
-              <SendOutlined style={{ fontSize: '20px', textAlign: 'center', }} />
+              <SendOutlined style={{ fontSize: '24px' }} />
             </button>
           </div>
         </div>
