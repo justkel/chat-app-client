@@ -365,7 +365,7 @@ const InteractPage = () => {
     const { truncated, fullContent } = truncateMessage(message.content);
   
     // If the message is long and needs truncation
-    if (fullContent && message.receiver.id === userId) {
+    if (fullContent) {
       const isExpanded = expandedMessages.has(message.id);
       return (
         <>
