@@ -6,11 +6,52 @@ import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography } from '@mui/material';
+import socket from '../socket';
 
 const ChatPage = () => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
+    const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
+
+    useEffect(() => {
+        if (!userId) {
+            return;
+        }
+
+        // Join rooms for each user
+        data?.getAcceptedChatUsers.forEach((user: any) => {
+            const room = [userId, user.id].sort().join('-'); // Unique room identifier
+            socket.emit('joinRoom', { userId, otherUserId: user.id });
+            console.log(`Joined room: ${room}`);
+        });
+
+        socket.on('userActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
+            console.log('Received activity update:', uId, isActive);
+
+            // Only update typing status if userId from state is not equal to uId
+            if (userId === uId) {
+                // console.log('Here');
+                return;
+            }
+
+            setTypingUsers((prev) => ({
+                ...prev,
+                [uId]: isActive,
+            }));
+        });
+
+        // Cleanup listener when component unmounts or userId changes
+        return () => {
+            socket.off('userActivityUpdate');
+            // Leave rooms when component unmounts or userId changes
+            data?.getAcceptedChatUsers.forEach((user: any) => {
+                const room = [userId, user.id].sort().join('-');
+                socket.emit('leaveRoom', { userId, otherUserId: user.id });
+                console.log(`Left room: ${room}`);
+            });
+        };
+    }, [userId, data]);
 
     useEffect(() => {
         if (user) {
@@ -18,6 +59,7 @@ const ChatPage = () => {
             setUserId(decodedToken.sub);
         }
     }, [user]);
+
 
     const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
@@ -32,7 +74,6 @@ const ChatPage = () => {
         acc[key] = msg;
         return acc;
     }, {});
-
 
     return (
         <Dashboard>
@@ -67,7 +108,7 @@ const ChatPage = () => {
                                                 transition: 'transform 0.2s',
                                             },
                                         }}
-                                        onClick={() => (window.location.href = `/chat/${user.id}`)} // Consider useNavigate
+                                        onClick={() => (window.location.href = `/chat/${user.id}`)}
                                     >
                                         <ListItemAvatar>
                                             <Avatar>
@@ -98,11 +139,15 @@ const ChatPage = () => {
                                                 sx: { fontFamily: 'Poppins, sans-serif', color: '#888' },
                                             }}
                                         />
+                                        {typingUsers[user.id] && (
+                                            <Typography sx={{ fontSize: '14px', color: '#888', fontStyle: 'italic' }}>
+                                                Typing...
+                                            </Typography>
+                                        )}
                                     </ListItem>
                                 );
                             })}
                         </List>
-
                     )}
                 </Paper>
             </div>

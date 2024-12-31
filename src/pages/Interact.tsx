@@ -4,20 +4,13 @@ import { Avatar, Input, Spin, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { SendOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
-import io from 'socket.io-client';
+import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById } from '../hooks/useGetOtherUser';
 import '../App.css';
 
 const { TextArea } = Input;
-const socket = io('http://localhost:5002', {
-  reconnection: true,
-  reconnectionAttempts: Infinity,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  timeout: 20000,
-});
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -29,6 +22,7 @@ const InteractPage = () => {
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutR = useRef<NodeJS.Timeout | null>(null); //For ChatPage Component
   const [scrollLock, setScrollLock] = useState(false);
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
@@ -291,13 +285,32 @@ const InteractPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutR.current) {
+        clearTimeout(typingTimeoutR.current);
+      }
+    };
+  }, []);
+
   const handleTyping = () => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    if (typingTimeoutR.current) {
+      clearTimeout(typingTimeoutR.current);
+    }
+
     // Emit typing signal
     socket.emit('typing', { userId, otherUserId, typing: true });
+
+    socket.emit('userActivity', { userId, otherUserId, isActive: true });
+
+    typingTimeoutR.current = setTimeout(() => {
+      socket.emit('userActivity', { userId, otherUserId, isActive: false });
+      typingTimeoutR.current = null;
+    }, 3000);
 
     // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
