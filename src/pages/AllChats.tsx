@@ -124,11 +124,25 @@ const ChatPage = () => {
                                         <ListItemText
                                             primary={user.fullName}
                                             secondary={
-                                                lastMessage
-                                                    ? lastMessage.sender.id === userId
-                                                        ? `You: ${lastMessage.content}`
-                                                        : lastMessage.content
-                                                    : 'No messages yet'
+                                                typingUsers[user.id] ? (
+                                                    <Typography
+                                                        sx={{
+                                                            fontSize: '16px',
+                                                            color: 'green',
+                                                            fontStyle: 'italic',
+                                                            fontWeight: 'bold',
+                                                            fontFamily: 'Poppins, sans-serif'
+                                                        }}
+                                                    >
+                                                        Typing...
+                                                    </Typography>
+                                                ) : (
+                                                    lastMessage ? (
+                                                        lastMessage.sender.id === userId
+                                                            ? `You: ${lastMessage.content}`
+                                                            : lastMessage.content
+                                                    ) : 'No messages yet'
+                                                )
                                             }
                                             primaryTypographyProps={{
                                                 sx: { fontFamily: 'Poppins, sans-serif', fontWeight: 'bold' },
@@ -137,11 +151,6 @@ const ChatPage = () => {
                                                 sx: { fontFamily: 'Poppins, sans-serif', color: '#888' },
                                             }}
                                         />
-                                        {typingUsers[user.id] && (
-                                            <Typography sx={{ fontSize: '14px', color: '#888', fontStyle: 'italic' }}>
-                                                Typing...
-                                            </Typography>
-                                        )}
                                     </ListItem>
                                 );
                             })}
