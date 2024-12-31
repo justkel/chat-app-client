@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Spin } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,7 +12,16 @@ const ChatPage = () => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+    const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({}); // State for last messages map
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
+
+    const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
+    const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
+
+    // Memoize lastMessages to prevent unnecessary recalculations on each render
+    const lastMessages = useMemo(() => {
+        return lastMessagesData?.getLastMessages || [];
+    }, [lastMessagesData?.getLastMessages]);
 
     useEffect(() => {
         if (!userId) {
@@ -21,15 +30,15 @@ const ChatPage = () => {
 
         // Join rooms for each user
         data?.getAcceptedChatUsers.forEach((user: any) => {
-            const room = [userId, user.id].sort().join('-'); // Unique room identifier
-            socket.emit('joinRoom', { userId, otherUserId: user.id });
-            console.log(`Joined room: ${room}`);
+            const room = [userId, user.id].sort().join('-');
+            if (socket.connected) {
+                socket.emit('joinRoom', { userId, otherUserId: user.id });
+                console.log(`Joined room: ${room}`);
+            }
         });
 
         socket.on('userActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
-            // Only update typing status if userId from state is not equal to uId
             if (userId === uId) {
-                // console.log('Here');
                 return;
             }
 
@@ -39,10 +48,22 @@ const ChatPage = () => {
             }));
         });
 
+        socket.on('receiveMessage', (message: any) => {
+            if (!message || !message.sender || !message.receiver) {
+                console.error('Invalid message format:', message);
+                return;
+            }
+
+            setLastMessagesMap((prev) => {
+                const key = message.sender.id === userId ? message.receiver.id : message.sender.id;
+                return { ...prev, [key]: message };
+            });
+        });
+
         // Cleanup listener when component unmounts or userId changes
         return () => {
             socket.off('userActivityUpdate');
-            // Leave rooms when component unmounts or userId changes
+            socket.off('receiveMessage');
             data?.getAcceptedChatUsers.forEach((user: any) => {
                 const room = [userId, user.id].sort().join('-');
                 socket.emit('leaveRoom', { userId, otherUserId: user.id });
@@ -52,26 +73,24 @@ const ChatPage = () => {
     }, [userId, data]);
 
     useEffect(() => {
+        // Generate the lastMessagesMap after lastMessages is updated
+        const newLastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
+            const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;
+            acc[key] = msg;
+            return acc;
+        }, {});
+        setLastMessagesMap(newLastMessagesMap);
+    }, [lastMessages, userId]);
+
+    useEffect(() => {
         if (user) {
             const decodedToken: any = jwtDecode(user.token);
             setUserId(decodedToken.sub);
         }
     }, [user]);
 
-
-    const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
-    const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
-
     if (loading || lastMessagesLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
-
-    const lastMessages = lastMessagesData?.getLastMessages || [];
-
-    const lastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
-        const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;
-        acc[key] = msg;
-        return acc;
-    }, {});
 
     return (
         <Dashboard>
@@ -131,7 +150,7 @@ const ChatPage = () => {
                                                             color: 'green',
                                                             fontStyle: 'italic',
                                                             fontWeight: 'bold',
-                                                            fontFamily: 'Poppins, sans-serif'
+                                                            fontFamily: 'Poppins, sans-serif',
                                                         }}
                                                     >
                                                         Typing...
