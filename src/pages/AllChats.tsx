@@ -27,8 +27,6 @@ const ChatPage = () => {
         });
 
         socket.on('userActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
-            console.log('Received activity update:', uId, isActive);
-
             // Only update typing status if userId from state is not equal to uId
             if (userId === uId) {
                 // console.log('Here');
