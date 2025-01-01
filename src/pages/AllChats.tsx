@@ -5,30 +5,27 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import Dashboard from '../components/Layout';
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography } from '@mui/material';
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
 import socket from '../socket';
 
 const ChatPage = () => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
-    const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({}); // State for last messages map
+    const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({});
+    const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({}); // Unread message counts
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
 
     const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
 
-    // Memoize lastMessages to prevent unnecessary recalculations on each render
     const lastMessages = useMemo(() => {
         return lastMessagesData?.getLastMessages || [];
     }, [lastMessagesData?.getLastMessages]);
 
     useEffect(() => {
-        if (!userId) {
-            return;
-        }
+        if (!userId) return;
 
-        // Join rooms for each user
         data?.getAcceptedChatUsers.forEach((user: any) => {
             const room = [userId, user.id].sort().join('-');
             if (socket.connected) {
@@ -38,10 +35,7 @@ const ChatPage = () => {
         });
 
         socket.on('userActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
-            if (userId === uId) {
-                return;
-            }
-
+            if (userId === uId) return;
             setTypingUsers((prev) => ({
                 ...prev,
                 [uId]: isActive,
@@ -58,9 +52,17 @@ const ChatPage = () => {
                 const key = message.sender.id === userId ? message.receiver.id : message.sender.id;
                 return { ...prev, [key]: message };
             });
+
+            // Increment unread count if the message is from another user
+            if (message.sender.id !== userId) {
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [message.sender.id]: (prev[message.sender.id] || 0) + 1,
+                }));
+            }
         });
 
-        // Cleanup listener when component unmounts or userId changes
+        // Cleanup listeners
         return () => {
             socket.off('userActivityUpdate');
             socket.off('receiveMessage');
@@ -73,7 +75,6 @@ const ChatPage = () => {
     }, [userId, data]);
 
     useEffect(() => {
-        // Generate the lastMessagesMap after lastMessages is updated
         const newLastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
             const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;
             acc[key] = msg;
@@ -88,6 +89,12 @@ const ChatPage = () => {
             setUserId(decodedToken.sub);
         }
     }, [user]);
+
+    const handleUserClick = (otherUserId: number) => {
+        // Reset unread count when opening a chat
+        setUnreadCounts((prev) => ({ ...prev, [otherUserId]: 0 }));
+        window.location.href = `/chat/${otherUserId}`;
+    };
 
     if (loading || lastMessagesLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
@@ -108,6 +115,7 @@ const ChatPage = () => {
                         <List>
                             {data?.getAcceptedChatUsers.map((user: any) => {
                                 const lastMessage = lastMessagesMap[user.id];
+                                const unreadCount = unreadCounts[user.id] || 0;
 
                                 return (
                                     <ListItem
@@ -125,20 +133,29 @@ const ChatPage = () => {
                                                 transition: 'transform 0.2s',
                                             },
                                         }}
-                                        onClick={() => (window.location.href = `/chat/${user.id}`)}
+                                        onClick={() => handleUserClick(user.id)}
                                     >
                                         <ListItemAvatar>
-                                            <Avatar>
-                                                {user.profilePicture ? (
-                                                    <img
-                                                        src={`http://localhost:5002${user.profilePicture}`}
-                                                        alt={user.fullName}
-                                                        style={{ width: '100%', height: '100%' }}
-                                                    />
-                                                ) : (
-                                                    user.fullName[0]
-                                                )}
-                                            </Avatar>
+                                            <Badge
+                                                badgeContent={unreadCount}
+                                                color="primary"
+                                                anchorOrigin={{
+                                                    vertical: 'top',
+                                                    horizontal: 'right',
+                                                }}
+                                            >
+                                                <Avatar>
+                                                    {user.profilePicture ? (
+                                                        <img
+                                                            src={`http://localhost:5002${user.profilePicture}`}
+                                                            alt={user.fullName}
+                                                            style={{ width: '100%', height: '100%' }}
+                                                        />
+                                                    ) : (
+                                                        user.fullName[0]
+                                                    )}
+                                                </Avatar>
+                                            </Badge>
                                         </ListItemAvatar>
                                         <ListItemText
                                             primary={user.fullName}
@@ -155,12 +172,12 @@ const ChatPage = () => {
                                                     >
                                                         Typing...
                                                     </Typography>
+                                                ) : lastMessage ? (
+                                                    lastMessage.sender.id === userId
+                                                        ? `You: ${lastMessage.content}`
+                                                        : lastMessage.content
                                                 ) : (
-                                                    lastMessage ? (
-                                                        lastMessage.sender.id === userId
-                                                            ? `You: ${lastMessage.content}`
-                                                            : lastMessage.content
-                                                    ) : 'No messages yet'
+                                                    'No messages yet'
                                                 )
                                             }
                                             primaryTypographyProps={{
