@@ -33,7 +33,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
       cancelText: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Cancel</Text>,
       onOk: logout,
     });
-};
+  };
 
   return (
     <Box sx={{ display: 'flex', fontFamily: 'Poppins, sans-serif !important' }}>
@@ -80,25 +80,24 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
             width: '100%',
           }}
         >
-          <Link to="/chats" style={{ textDecoration: 'none', width: '100%' }}>
-            <Button
-              startIcon={<ChatIcon />}
-              sx={{
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                color: 'white',
-                width: '100%',
-                mb: 2,
-                textAlign: 'center',
-                fontFamily: 'Poppins, sans-serif !important',
-                fontSize: isCollapsed ? '0.875rem' : '1rem',
-                '& .MuiButton-startIcon': {
-                  fontSize: isCollapsed ? '1.5rem' : '2rem',
-                },
-              }}
-            >
-              {!isCollapsed && 'Chats'}
-            </Button>
-          </Link>
+          <Button
+            startIcon={<ChatIcon />}
+            sx={{
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              color: 'white',
+              width: '100%',
+              mb: 2,
+              textAlign: 'center',
+              fontFamily: 'Poppins, sans-serif !important',
+              fontSize: isCollapsed ? '0.875rem' : '1rem',
+              '& .MuiButton-startIcon': {
+                fontSize: isCollapsed ? '1.5rem' : '2rem',
+              },
+            }}
+            onClick={() => (window.location.href = '/chats')}
+          >
+            {!isCollapsed && 'Chats'}
+          </Button>
 
           <Button
             startIcon={<ContactsIcon />}

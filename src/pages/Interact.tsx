@@ -194,6 +194,10 @@ const InteractPage = () => {
 
         return newMessages;
       });
+
+      if (message.sender.id !== userId && isAtBottom) {
+        socket.emit('resetUnreadCount', { userId, otherUserId });
+      }
     });
 
     socket.on('userTyping', ({ userId: typingUserId, typing }) => {
@@ -275,6 +279,15 @@ const InteractPage = () => {
       setNewMessageCount(0);
     }
   }, [isAtBottom]);
+
+  useEffect(() => {
+    if (isAtBottom && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.sender.id !== userId) {
+            socket.emit('resetUnreadCount', { userId, otherUserId: lastMessage.sender.id });
+        }
+    }
+}, [isAtBottom, messages, userId]);
 
 
   useEffect(() => {

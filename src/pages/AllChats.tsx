@@ -62,10 +62,22 @@ const ChatPage = () => {
             }
         });
 
+        socket.on('unreadCountReset', (otherUserId: { otherUserId: string; count: number }) => {
+            const id = otherUserId.otherUserId;
+            if (id !== userId) {
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [id]: 0,
+                }));
+            }
+
+        });
+
         // Cleanup listeners
         return () => {
             socket.off('userActivityUpdate');
             socket.off('receiveMessage');
+            socket.off('unreadCountReset');
             data?.getAcceptedChatUsers.forEach((user: any) => {
                 const room = [userId, user.id].sort().join('-');
                 socket.emit('leaveRoom', { userId, otherUserId: user.id });
