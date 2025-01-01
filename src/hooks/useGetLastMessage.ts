@@ -14,6 +14,7 @@ const GET_LAST_MESSAGES = gql`
         id
         fullName
       }
+      status
     }
   }
 `;

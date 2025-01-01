@@ -200,9 +200,28 @@ const ChatPage = () => {
                                                         Typing...
                                                     </Typography>
                                                 ) : lastMessage ? (
-                                                    lastMessage.sender.id === userId
-                                                        ? `You: ${lastMessage.content}`
-                                                        : lastMessage.content
+                                                    <>
+                                                        {lastMessage.sender.id === userId ? (
+                                                            <span>
+                                                                You: {lastMessage.status && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: '12px',
+                                                                            color: '#888',
+                                                                            marginLeft: '5px',
+                                                                        }}
+                                                                    >
+                                                                        {lastMessage.status.toLowerCase() === 'sent' && '✔'}
+                                                                        {lastMessage.status.toLowerCase() === 'delivered' && '✔✔'}
+                                                                        {lastMessage.status.toLowerCase() === 'read' && '✔✔✔'}
+                                                                    </span>
+                                                                )}{' '} {lastMessage.content}
+
+                                                            </span>
+                                                        ) : (
+                                                            lastMessage.content
+                                                        )}
+                                                    </>
                                                 ) : (
                                                     'No messages yet'
                                                 )
