@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
+import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
 import socket from '../socket';
@@ -19,9 +20,24 @@ const ChatPage = () => {
     const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
 
+    const { data: unreadMessageCountsData, loading: unreadCountsLoading } = useGetUnreadMessagesCount(userId);
+
     const lastMessages = useMemo(() => {
         return lastMessagesData?.getLastMessages || [];
     }, [lastMessagesData?.getLastMessages]);
+
+    useEffect(() => {
+        if (unreadMessageCountsData) {
+            const unreadCountMap = unreadMessageCountsData.getUnreadMessagesCount.reduce(
+                (acc: Record<number, number>, { userId, unreadCount }: { userId: string, unreadCount: number }) => {
+                    acc[parseInt(userId)] = unreadCount;
+                    return acc;
+                },
+                {}
+            );
+            setUnreadCounts(unreadCountMap);
+        }
+    }, [unreadMessageCountsData]);
 
     useEffect(() => {
         if (!userId) return;
@@ -70,7 +86,6 @@ const ChatPage = () => {
                     [id]: 0,
                 }));
             }
-
         });
 
         // Cleanup listeners
@@ -108,7 +123,7 @@ const ChatPage = () => {
         window.location.href = `/chat/${otherUserId}`;
     };
 
-    if (loading || lastMessagesLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
+    if (loading || lastMessagesLoading || unreadCountsLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
 
     return (
