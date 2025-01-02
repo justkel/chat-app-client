@@ -274,7 +274,7 @@ const ChatPage = () => {
                                                 typingUsers[user.id] ? (
                                                     <Typography
                                                         sx={{
-                                                            fontSize: '16px',
+                                                            fontSize: '13px',
                                                             color: 'green',
                                                             fontStyle: 'italic',
                                                             fontWeight: 'bold',
@@ -295,28 +295,62 @@ const ChatPage = () => {
                                                         Draft: {displayDraftMessage}
                                                     </Typography>
                                                 ) : lastMessage ? (
-                                                    <>
+                                                    <div className="flex items-center">
                                                         {lastMessage.sender.id === userId ? (
-                                                            <span>
-                                                                You: {lastMessage.status && (
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: '12px',
-                                                                            color: '#888',
-                                                                            marginLeft: '5px',
-                                                                        }}
-                                                                    >
-                                                                        {lastMessage.status.toLowerCase() === 'sent' && '✔'}
-                                                                        {lastMessage.status.toLowerCase() === 'delivered' && '✔✔'}
-                                                                        {lastMessage.status.toLowerCase() === 'read' && '✔✔✔'}
-                                                                    </span>
-                                                                )}{' '} {lastMessage.content}
-
-                                                            </span>
+                                                            <>
+                                                                <span className="mr-1 font-semibold">You:</span>
+                                                                <div className="flex items-center">
+                                                                    {lastMessage.status && (
+                                                                        <span
+                                                                            className="text-sm text-gray-600 mr-1"
+                                                                            style={{
+                                                                                fontSize: '12px',
+                                                                            }}
+                                                                        >
+                                                                            {lastMessage.status.toLowerCase() === 'sent' && '✔'}
+                                                                            {lastMessage.status.toLowerCase() === 'delivered' && (
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="24"
+                                                                                    height="16"
+                                                                                    viewBox="0 0 32 16"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    strokeWidth="2"
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    className="tick-icon mb-1"
+                                                                                >
+                                                                                    <polyline points="20 6 9 17 4 12" />
+                                                                                    <polyline points="26 6 15 17 20 12" />
+                                                                                </svg>
+                                                                            )}
+                                                                            {lastMessage.status.toLowerCase() === 'read' && (
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="24"
+                                                                                    height="16"
+                                                                                    viewBox="0 0 32 16"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    strokeWidth="2"
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    className="tick-icon text-blue-900 mb-1"
+                                                                                >
+                                                                                    <polyline points="20 6 9 17 4 12" />
+                                                                                    <polyline points="26 6 15 17 20 12" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </span>
+                                                                    )}
+                                                                    <span>{lastMessage.content}</span>
+                                                                </div>
+                                                            </>
                                                         ) : (
                                                             lastMessage.content
                                                         )}
-                                                    </>
+                                                    </div>
                                                 ) : (
                                                     'No messages yet'
                                                 )

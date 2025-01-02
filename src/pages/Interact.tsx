@@ -345,14 +345,14 @@ const InteractPage = () => {
       typingTimeoutRef.current = null; // Clear the ref
     }, 1000);
 
-    typingTimeoutRef.current = setTimeout(() => {
-      if (newMessage.trim()) {
-        localStorage.setItem(
-          `message_${userId}_${otherUserId}`,
-          newMessage
-        );
-      }
-    }, 2000);
+    // typingTimeoutRef.current = setTimeout(() => {
+    //   if (newMessage.trim()) {
+    //     localStorage.setItem(
+    //       `message_${userId}_${otherUserId}`,
+    //       newMessage
+    //     );
+    //   }
+    // }, 2000);
   };
 
   const sendMessage = () => {
