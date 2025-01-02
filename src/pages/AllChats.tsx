@@ -129,6 +129,33 @@ const ChatPage = () => {
     }, [userId]);
 
     useEffect(() => {
+        if (!userId) return;
+    
+        socket.on('messageStatusUpdatedToRead', (transformedMessage) => {
+            const { sender, receiver, id } = transformedMessage;
+    
+            setLastMessagesMap((prev) => {
+                const key = sender.id === userId ? receiver.id : sender.id;
+    
+                const currentMessage = prev[key];
+    
+                if (currentMessage && currentMessage.id === id) {
+                    return {
+                        ...prev,
+                        [key]: { ...currentMessage, status: 'read' },
+                    };
+                }
+    
+                return prev;
+            });
+        });
+    
+        return () => {
+            socket.off('messageStatusUpdatedToRead');
+        };
+    }, [userId]);    
+
+    useEffect(() => {
         setLastMessagesMap((prev) => {
             const newLastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
                 const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;

@@ -119,7 +119,7 @@ const InteractPage = () => {
       }
 
       const ReUpdatingMessages = messages.filter(
-        (msg) => msg.receiver.id === userId,
+        (msg) => msg.receiver.id === userId && isAtBottom,
       );
 
       if (ReUpdatingMessages.length > 0) {
@@ -138,7 +138,7 @@ const InteractPage = () => {
       }
 
       const receivedMessages = messages.filter(
-        (msg) => msg.status.toLowerCase() === 'delivered' && msg.receiver.id === userId
+        (msg) => msg.status.toLowerCase() === 'delivered' && msg.receiver.id === userId && isAtBottom
       );
       if (receivedMessages.length > 0) {
         receivedMessages.forEach(async (msg) => {
@@ -163,7 +163,7 @@ const InteractPage = () => {
     }, 2000);
 
     return () => clearTimeout(timer); // Cleanup on unmount
-  }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage]);
+  }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage, isAtBottom]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
