@@ -346,7 +346,7 @@ const ChatPage = () => {
                                                                                     strokeWidth="2"
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    className="tick-icon text-indigo-950 mb-1 font-bold"
+                                                                                    className="tick-icon text-green-500 mb-1 font-bold"
                                                                                 >
                                                                                     <polyline points="20 6 9 17 4 12" />
                                                                                     <polyline points="26 6 15 17 20 12" />
