@@ -91,7 +91,16 @@ const InteractPage = () => {
                 message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
               )
             );
-            // socket.emit('otherUserOnline', { userId, otherUserId, message: msg.content });
+
+            const transformedMessage = {
+              sender: { id: msg.sender.id },
+              receiver: { id: msg.receiver.id },
+              content: msg.content,
+              timestamp: msg.timestamp,
+              status: 'DELIVERED',
+              id: msg.id,
+            };
+            socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
           } catch (err) {
             console.error('Error updating message statuses:', err);
           }
