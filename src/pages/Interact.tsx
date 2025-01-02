@@ -182,6 +182,11 @@ const InteractPage = () => {
         const decodedToken: any = jwtDecode(user.token);
         setUserId(decodedToken.sub);
         socket.emit('joinRoom', { userId: decodedToken.sub, otherUserId });
+
+        const savedMessage = localStorage.getItem(
+          `message_${decodedToken.sub}_${otherUserId}`
+        );
+        if (savedMessage) setNewMessage(savedMessage);
       } catch (err) {
         notification.error({ message: 'Invalid token', description: 'Please log in again.' });
       }
@@ -332,13 +337,22 @@ const InteractPage = () => {
     typingTimeoutR.current = setTimeout(() => {
       socket.emit('userActivity', { userId, otherUserId, isActive: false });
       typingTimeoutR.current = null;
-    }, 3000);
+    }, 2000);
 
     // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('typing', { userId, otherUserId, typing: false });
       typingTimeoutRef.current = null; // Clear the ref
     }, 1000);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      if (newMessage.trim()) {
+        localStorage.setItem(
+          `message_${userId}_${otherUserId}`,
+          newMessage
+        );
+      }
+    }, 2000);
   };
 
   const sendMessage = () => {
@@ -362,6 +376,7 @@ const InteractPage = () => {
 
     socket.emit('sendMessage', message);
     setNewMessage('');
+    localStorage.removeItem(`message_${userId}_${otherUserId}`);
 
     setTimeout(() => {
       if (messagesEndRef.current) {
