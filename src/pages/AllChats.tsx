@@ -103,38 +103,43 @@ const ChatPage = () => {
 
     useEffect(() => {
         if (!userId) return;
-    
+
         socket.on('messageDelivered', ({ transformedMessage }) => {
             const { sender, receiver, id } = transformedMessage;
-    
+
             setLastMessagesMap((prev) => {
                 const key = sender.id === userId ? receiver.id : sender.id;
-    
+
                 const currentMessage = prev[key];
-                
+
                 if (currentMessage && currentMessage.id === id) {
                     return {
                         ...prev,
                         [key]: { ...currentMessage, status: 'delivered' },
                     };
                 }
-    
+
                 return prev;
             });
         });
-    
+
         return () => {
             socket.off('messageDelivered');
         };
-    }, [userId]);    
+    }, [userId]);
 
     useEffect(() => {
-        const newLastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
-            const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;
-            acc[key] = msg;
-            return acc;
-        }, {});
-        setLastMessagesMap(newLastMessagesMap);
+        setLastMessagesMap((prev) => {
+            const newLastMessagesMap = lastMessages.reduce((acc: Record<number, any>, msg: any) => {
+                const key = msg.sender.id === userId ? msg.receiver.id : msg.sender.id;
+
+                // Merge with previous state
+                acc[key] = acc[key]?.timestamp > msg.timestamp ? acc[key] : msg; // Keep the most recent
+                return acc;
+            }, { ...prev });
+
+            return newLastMessagesMap;
+        });
     }, [lastMessages, userId]);
 
     useEffect(() => {
