@@ -14,10 +14,14 @@ const ChatPage = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
     const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({});
-    const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({}); // Unread message counts
+    const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
+    const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
 
-    const otherUserIds = data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
+    const otherUserIds = useMemo(() => {
+        return data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
+    }, [data?.getAcceptedChatUsers]);
+
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
 
     const { data: unreadMessageCountsData, loading: unreadCountsLoading } = useGetUnreadMessagesCount(userId);
@@ -38,6 +42,22 @@ const ChatPage = () => {
             setUnreadCounts(unreadCountMap);
         }
     }, [unreadMessageCountsData]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const drafts: Record<string, string> = {};
+            otherUserIds.forEach((otherUserId: any) => {
+                const draftKey = `message_${userId}_${otherUserId}`;
+                const draftMessage = localStorage.getItem(draftKey);
+                if (draftMessage) {
+                    drafts[draftKey] = draftMessage;
+                }
+            });
+            setDraftMessages(drafts);
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [userId, otherUserIds]);
 
     useEffect(() => {
         if (!userId) return;
@@ -130,30 +150,30 @@ const ChatPage = () => {
 
     useEffect(() => {
         if (!userId) return;
-    
+
         socket.on('messageStatusUpdatedToRead', (transformedMessage) => {
             const { sender, receiver, id } = transformedMessage;
-    
+
             setLastMessagesMap((prev) => {
                 const key = sender.id === userId ? receiver.id : sender.id;
-    
+
                 const currentMessage = prev[key];
-    
+
                 if (currentMessage && currentMessage.id === id) {
                     return {
                         ...prev,
                         [key]: { ...currentMessage, status: 'read' },
                     };
                 }
-    
+
                 return prev;
             });
         });
-    
+
         return () => {
             socket.off('messageStatusUpdatedToRead');
         };
-    }, [userId]);    
+    }, [userId]);
 
     useEffect(() => {
         setLastMessagesMap((prev) => {
@@ -202,6 +222,11 @@ const ChatPage = () => {
                             {data?.getAcceptedChatUsers.map((user: any) => {
                                 const lastMessage = lastMessagesMap[user.id];
                                 const unreadCount = unreadCounts[user.id] || 0;
+                                const draftMessage = draftMessages[`message_${userId}_${user.id}`];
+                                const truncatedDraftMessage = draftMessage ? draftMessage.split(' ').slice(0, 40).join(' ') : '';
+                                const displayDraftMessage = draftMessage && draftMessage.split(' ').length > 40
+                                    ? `${truncatedDraftMessage}...`
+                                    : truncatedDraftMessage;
 
                                 return (
                                     <ListItem
@@ -257,6 +282,17 @@ const ChatPage = () => {
                                                         }}
                                                     >
                                                         Typing...
+                                                    </Typography>
+                                                ) : draftMessage ? (
+                                                    <Typography
+                                                        sx={{
+                                                            fontSize: '14px',
+                                                            color: 'green',
+                                                            fontWeight: 'bold',
+                                                            fontFamily: 'Poppins, sans-serif',
+                                                        }}
+                                                    >
+                                                        Draft: {displayDraftMessage}
                                                     </Typography>
                                                 ) : lastMessage ? (
                                                     <>
