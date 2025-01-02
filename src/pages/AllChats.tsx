@@ -209,7 +209,7 @@ const ChatPage = () => {
         <Dashboard>
             <div className="chat-page-container">
                 <div className="search-section">
-                    <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', marginBottom: '20px' }}>
+                    <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', marginBottom: '10px' }}>
                         Chat Users
                     </Typography>
                 </div>
