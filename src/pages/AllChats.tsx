@@ -259,7 +259,7 @@ const ChatPage = () => {
                                                     {user.profilePicture ? (
                                                         <img
                                                             src={`http://localhost:5002${user.profilePicture}`}
-                                                            alt={user.fullName}
+                                                            alt={user.fullName[0]}
                                                             style={{ width: '100%', height: '100%' }}
                                                         />
                                                     ) : (
