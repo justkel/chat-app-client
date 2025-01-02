@@ -295,19 +295,29 @@ const ChatPage = () => {
                                                         Draft: {displayDraftMessage}
                                                     </Typography>
                                                 ) : lastMessage ? (
-                                                    <div className="flex items-center">
+                                                    <span className="flex items-center">
                                                         {lastMessage.sender.id === userId ? (
                                                             <>
                                                                 <span className="mr-1 font-semibold">You:</span>
-                                                                <div className="flex items-center">
+                                                                <span className="flex items-center">
                                                                     {lastMessage.status && (
-                                                                        <span
-                                                                            className="text-sm text-gray-600 mr-1"
-                                                                            style={{
-                                                                                fontSize: '12px',
-                                                                            }}
-                                                                        >
-                                                                            {lastMessage.status.toLowerCase() === 'sent' && '✔'}
+                                                                        <span className="text-sm text-gray-600 mr-1" style={{ fontSize: '12px' }}>
+                                                                            {lastMessage.status.toLowerCase() === 'sent' && (
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="24"
+                                                                                    height="16"
+                                                                                    viewBox="0 0 24 24"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    strokeWidth="2"
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    className="tick-icon"
+                                                                                >
+                                                                                    <polyline points="20 6 9 17 4 12" />
+                                                                                </svg>
+                                                                            )}
                                                                             {lastMessage.status.toLowerCase() === 'delivered' && (
                                                                                 <svg
                                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -336,7 +346,7 @@ const ChatPage = () => {
                                                                                     strokeWidth="2"
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    className="tick-icon text-blue-900 mb-1"
+                                                                                    className="tick-icon text-indigo-950 mb-1 font-bold"
                                                                                 >
                                                                                     <polyline points="20 6 9 17 4 12" />
                                                                                     <polyline points="26 6 15 17 20 12" />
@@ -345,12 +355,12 @@ const ChatPage = () => {
                                                                         </span>
                                                                     )}
                                                                     <span>{lastMessage.content}</span>
-                                                                </div>
+                                                                </span>
                                                             </>
                                                         ) : (
                                                             lastMessage.content
                                                         )}
-                                                    </div>
+                                                    </span>
                                                 ) : (
                                                     'No messages yet'
                                                 )
