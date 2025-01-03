@@ -40,6 +40,14 @@ const InteractPage = () => {
   };
 
   useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = 'http://localhost:5002/uploads/whatsapp-wallpaper.jpg';
+    document.head.appendChild(link);
+  }, []);
+
+  useEffect(() => {
     // Scroll to the bottom of the page
     window.scrollTo(0, document.body.scrollHeight);
   }, []);
@@ -296,12 +304,12 @@ const InteractPage = () => {
 
   useEffect(() => {
     if (isAtBottom && messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.sender.id !== userId) {
-            socket.emit('resetUnreadCount', { userId, otherUserId: lastMessage.sender.id });
-        }
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.sender.id !== userId) {
+        socket.emit('resetUnreadCount', { userId, otherUserId: lastMessage.sender.id });
+      }
     }
-}, [isAtBottom, messages, userId]);
+  }, [isAtBottom, messages, userId]);
 
 
   useEffect(() => {
@@ -466,166 +474,178 @@ const InteractPage = () => {
       </div>
 
       <div className="flex flex-col h-screen pt-20">
-        <div className="flex-1 p-4 bg-gray-100 pb-32 overflow-y-auto" onScroll={handleScroll}>
-          <div className="space-y-8">
-            {messages.map((msg: any, index: number) => {
-              const isMe = msg.sender?.id === userId;
-              return (
-                <div
-                  key={index}
-                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                >
+        <div className="flex-1 p-4 background-container">
+          <div className='overflow-y-auto scrollbar-hide' onScroll={handleScroll}>
+            <div className="space-y-8 pb-20">
+              {messages.map((msg: any, index: number) => {
+                const isMe = msg.sender?.id === userId;
+                return (
                   <div
-                    className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
-                      : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
-                      } break-words hover:scale-105 hover:shadow-xl`}
+                    key={index}
+                    className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
+                        : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
+                        } break-words hover:scale-105 hover:shadow-xl`}
+                      style={{
+                        wordBreak: 'break-word',
+                        borderRadius: isMe ? '16px 0 16px 16px' : '16px',
+                        boxShadow: isMe ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 4px 8px rgba(0, 0, 0, 0.15)',
+                        border: isMe ? 'none' : '1px solid rgba(0, 0, 0, 0.1)',
+                        background: isMe
+                          ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
+                          : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
+                        padding: '12px 16px',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      {renderMessageContent(msg)}
+                      <small className="block text-xs mt-1 text-right">
+                        {new Date(msg.timestamp).toLocaleString('en-GB', {
+                          hour12: false,
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </small>
+
+                      {isMe && (
+                        <div className="flex items-center justify-end mt-1">
+                          {msg.status.toLowerCase() === 'sent' && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="tick-icon"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                          {msg.status.toLowerCase() === 'delivered' && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="16"
+                              viewBox="0 0 32 16"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="tick-icon"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                              <polyline points="26 6 15 17 20 12" />
+                            </svg>
+                          )}
+                          {msg.status.toLowerCase() === 'read' && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="16"
+                              viewBox="0 0 32 16"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="tick-icon text-blue-900"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                              <polyline points="26 6 15 17 20 12" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+
+
+                      {isMe && (
+                        <div className="chat-pointer"></div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {newMessageCount > 0 && !isAtBottom && (
+                <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
+                  <span className="text-sm font-semibold">
+                    {newMessageCount === 1 ? '1 New Message' : `${newMessageCount} New Messages`}
+                  </span>
+
+                  <button
+                    className="ml-0 text-lg font-bold hover:opacity-80 transition-opacity"
+                    onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    ↓
+                  </button>
+                </div>
+              )}
+
+              {isOtherUserTyping && (
+                <div className="mt-4">
+                  <div className="relative max-w-16 h-11 text-black p-4 rounded-lg"
                     style={{
-                      wordBreak: 'break-word',
-                      borderRadius: isMe ? '16px 0 16px 16px' : '16px',
-                      boxShadow: isMe ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 4px 8px rgba(0, 0, 0, 0.15)',
-                      border: isMe ? 'none' : '1px solid rgba(0, 0, 0, 0.1)',
-                      background: isMe
-                        ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
-                        : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
-                      padding: '12px 16px',
-                      transition: 'all 0.3s ease',
+                      background: 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
                     }}
                   >
-                    {renderMessageContent(msg)}
-                    <small className="block text-xs mt-1 text-right">
-                      {new Date(msg.timestamp).toLocaleString('en-GB', {
-                        hour12: false,
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </small>
+                    {/* Pointed extension (speech bubble) */}
+                    <div className="absolute bottom-0 left-0 w-4 h-4 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
+                      }}
+                    ></div>
 
-                    {isMe && (
-                      <div className="flex items-center justify-end mt-1">
-                        {msg.status.toLowerCase() === 'sent' && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="tick-icon"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                        {msg.status.toLowerCase() === 'delivered' && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="16"
-                            viewBox="0 0 32 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="tick-icon"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                            <polyline points="26 6 15 17 20 12" />
-                          </svg>
-                        )}
-                        {msg.status.toLowerCase() === 'read' && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="16"
-                            viewBox="0 0 32 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="tick-icon text-blue-900"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                            <polyline points="26 6 15 17 20 12" />
-                          </svg>
-                        )}
-                      </div>
-                    )}
-
-
-                    {isMe && (
-                      <div className="chat-pointer"></div>
-                    )}
+                    <div className="flex items-center space-x-1 pt-2">
+                      <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
+                      <span className="w-4 h-4 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
+                      <span className="w-4 h-4 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              )}
 
-            {newMessageCount > 0 && !isAtBottom && (
-              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
-                <span className="text-sm font-semibold">
-                  {newMessageCount === 1 ? '1 New Message' : `${newMessageCount} New Messages`}
-                </span>
+              <div ref={messagesEndRef}></div>
+            </div>
+          </div>
 
+          <div className="relative pb-16">
+            <div className="fixed bottom-0 w-full shadow-lg">
+              <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
+                <TextArea
+                  value={newMessage}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping();
+                  }}
+                  placeholder="Type your message..."
+                  aria-label="Message Input"
+                  className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                  rows={2}
+                />
                 <button
-                  className="ml-0 text-lg font-bold hover:opacity-80 transition-opacity"
-                  onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={sendMessage}
+                  className="flex items-center justify-center bg-blue-500 text-white w-12 h-12 rounded-full hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
+                  disabled={!newMessage.trim()}
                 >
-                  ↓
+                  <SendOutlined style={{ fontSize: '24px' }} />
                 </button>
               </div>
-            )}
-
-            {/* <div ref={messagesEndRef}></div> */}
-          </div>
-
-          {isOtherUserTyping && (
-            <div className="mt-4 mb-2">
-              <div className="relative max-w-16 h-11 bg-gray-300 text-black p-4 rounded-lg">
-                {/* Pointed extension (speech bubble) */}
-                <div className="absolute bottom-0 left-0 w-4 h-4 bg-gray-300 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"></div>
-
-                <div className="flex items-center space-x-1 pt-2">
-                  <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
-                  <span className="w-4 h-4 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
-                  <span className="w-4 h-4 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
-                </div>
-              </div>
             </div>
-          )}
-
-          <div ref={messagesEndRef}></div>
-        </div>
-
-        <div className="fixed bottom-0 w-full bg-gray-100 border-t shadow-lg">
-          <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
-            <TextArea
-              value={newMessage}
-              onChange={(e) => {
-                setNewMessage(e.target.value);
-                handleTyping();
-              }}
-              placeholder="Type your message..."
-              aria-label="Message Input"
-              className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
-              rows={2}
-            />
-            <button
-              onClick={sendMessage}
-              className="flex items-center justify-center bg-blue-500 text-white w-12 h-12 rounded-full hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-              disabled={!newMessage.trim()}
-            >
-              <SendOutlined style={{ fontSize: '24px' }} />
-            </button>
           </div>
+
         </div>
+
       </div>
     </div>
   );
