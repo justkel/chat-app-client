@@ -578,7 +578,7 @@ const InteractPage = () => {
               })}
 
               {newMessageCount > 0 && !isAtBottom && (
-                <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
+                <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-green-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">
                   <span className="text-sm font-semibold">
                     {newMessageCount === 1 ? '1 New Message' : `${newMessageCount} New Messages`}
                   </span>
