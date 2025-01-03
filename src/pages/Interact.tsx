@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Avatar, Input, Spin, notification } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
 import { SendOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import socket from '../socket';
@@ -461,8 +461,8 @@ const InteractPage = () => {
   return (
     <div>
       <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-10 w-full overflow-hidden">
-        <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
         <div className="flex items-center space-x-4">
+          <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
           <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
           <div className="flex flex-col">
             <span className="font-semibold">{otherUserData?.getOtherUserById?.username}</span>
@@ -471,7 +471,12 @@ const InteractPage = () => {
             </span>
           </div>
         </div>
+
+        <div>
+          <MoreOutlined className="text-3xl cursor-pointer" />
+        </div>
       </div>
+
 
       <div className="flex flex-col h-screen pt-20">
         <div className="flex-1 p-4 background-container">
