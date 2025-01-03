@@ -480,7 +480,7 @@ const InteractPage = () => {
 
       <div className="flex flex-col h-screen pt-20">
         <div className="flex-1 p-4 background-container">
-          <div className='overflow-y-auto scrollbar-hide' onScroll={handleScroll}>
+          <div className='overflow-y-auto scrollbar-hide h-[80%]' onScroll={handleScroll}>
             <div className="space-y-8 pb-20">
               {messages.map((msg: any, index: number) => {
                 const isMe = msg.sender?.id === userId;
