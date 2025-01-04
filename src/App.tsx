@@ -12,6 +12,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
+import ViewContactPage from './pages/ViewContactPage';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/pending-requests" element={<ProtectedRoute><ChatRequests /></ProtectedRoute>} />
             <Route path="/chats" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><InteractPage /></ProtectedRoute>} />
+            <Route path="/view-contact/:userId/:otherUserId" element={<ProtectedRoute><ViewContactPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

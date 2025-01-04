@@ -19,6 +19,12 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
     navigate(-1);
   };
 
+  const handleViewContact = () => {
+    if (userId && otherUserId) {
+      navigate(`/view-contact/${userId}/${otherUserId}`);
+    }
+  };
+
   return (
     <div>
       <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-10 w-full overflow-hidden">
@@ -40,7 +46,9 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
       {showCard && (
         <div className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
           <ul className="space-y-8">
-            <li className="cursor-pointer hover:text-blue-500">View Contact</li>
+            <li className="cursor-pointer hover:text-blue-500" onClick={handleViewContact}>
+              View Contact
+            </li>
             <li className="cursor-pointer hover:text-blue-500">Search</li>
             <li className="cursor-pointer hover:text-blue-500">Media</li>
             <li className="cursor-pointer hover:text-blue-500">Wallpaper</li>
