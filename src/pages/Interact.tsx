@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Avatar, Input, Spin, notification } from 'antd';
-import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
+import { Input, Spin, notification } from 'antd';
+import HeaderWithInlineCard from '../components/HeaderCard';
 import { SendOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import socket from '../socket';
@@ -14,7 +14,6 @@ const { TextArea } = Input;
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [userId, setUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -34,10 +33,6 @@ const InteractPage = () => {
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { updateMessageStatus } = useUpdateMessageStatus();
-
-  const handleBackNavigation = () => {
-    navigate(-1);
-  };
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -460,23 +455,7 @@ const InteractPage = () => {
 
   return (
     <div>
-      <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-10 w-full overflow-hidden">
-        <div className="flex items-center space-x-4">
-          <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
-          <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
-          <div className="flex flex-col">
-            <span className="font-semibold">{otherUserData?.getOtherUserById?.username}</span>
-            <span className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
-              {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <MoreOutlined className="text-3xl cursor-pointer" />
-        </div>
-      </div>
-
+      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
       <div className="flex flex-col h-screen pt-20">
         <div className="flex-1 p-4 background-container">
