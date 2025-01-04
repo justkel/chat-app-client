@@ -457,7 +457,7 @@ const InteractPage = () => {
     <div>
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
-      <div className="flex flex-col h-screen pt-20">
+      <div className="flex flex-col h-screen pt-12">
         <div className="flex-1 p-4 background-container">
           <div className='overflow-y-auto scrollbar-hide h-[80%]' onScroll={handleScroll}>
             <div className="space-y-8 pb-20">
