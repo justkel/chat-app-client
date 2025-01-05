@@ -50,7 +50,7 @@ const ViewContactPage: React.FC = () => {
         <div className="p-8 min-h-screen font-montserrat relative bg-gradient-to-br from-gray-50 via-gray-100 to-white shadow-lg rounded-2xl">
             <ArrowLeftOutlined
                 className="absolute top-6 left-6 text-2xl cursor-pointer"
-                onClick={() => navigate(-1)}
+                onClick={() => window.location.href = `/chat/${otherUserId}`}
             />
             <MoreOutlined className="absolute top-6 right-6 text-2xl cursor-pointer" onClick={toggleCard} />
 
