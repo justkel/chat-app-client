@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
@@ -13,10 +12,11 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
 import ViewContactPage from './pages/ViewContactPage';
+import EditContactPage from './pages/EditContactPage';
 
 const App: React.FC = () => {
   return (
-    <ApolloProvider client={client}> 
+    <ApolloProvider client={client}>
       <AuthProvider>
         <Router>
           <Routes>
@@ -28,6 +28,7 @@ const App: React.FC = () => {
             <Route path="/chats" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><InteractPage /></ProtectedRoute>} />
             <Route path="/view-contact/:userId/:otherUserId" element={<ProtectedRoute><ViewContactPage /></ProtectedRoute>} />
+            <Route path="/edit-contact/:userId/:otherUserId" element={<ProtectedRoute><EditContactPage /></ProtectedRoute>} /> {/* New Route */}
           </Routes>
         </Router>
       </AuthProvider>
