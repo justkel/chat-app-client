@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOtherUserDetails } from '../hooks/useGetOtherUserContactDetails';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { Avatar, Spin } from 'antd';
+import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
 
 const ViewContactPage: React.FC = () => {
   const { userId, otherUserId } = useParams();
@@ -37,7 +38,13 @@ const ViewContactPage: React.FC = () => {
   }
 
   return (
-    <div className="p-8 font-montserrat">
+    <div className="p-8 font-montserrat relative">
+      <ArrowLeftOutlined
+        className="absolute top-6 left-6 text-2xl cursor-pointer"
+        onClick={() => navigate(-1)}
+      />
+      <MoreOutlined className="absolute top-6 right-6 text-2xl cursor-pointer" />
+
       <div className="bg-white p-6 text-center border-b border-gray-200 w-1/2 mx-auto">
         <Avatar
           size={256}

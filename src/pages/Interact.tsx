@@ -458,8 +458,11 @@ const InteractPage = () => {
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
       <div className="flex flex-col h-screen pt-12">
-        <div className="flex-1 p-4 background-container">
-          <div className='overflow-y-auto scrollbar-hide h-[80%]' onScroll={handleScroll}>
+        <div className="flex-1 p-4 background-container overflow-hidden">
+          <div
+            className="overflow-y-auto scrollbar-hide h-[80%] pr-2"
+            onScroll={handleScroll}
+          >
             <div className="space-y-8 pb-20">
               {messages.map((msg: any, index: number) => {
                 const isMe = msg.sender?.id === userId;
@@ -486,7 +489,10 @@ const InteractPage = () => {
                       }}
                     >
                       {renderMessageContent(msg)}
-                      <small className="block text-xs mt-1 text-right">
+                      <small
+                        className={`block text-xs mt-1 text-right ${isMe ? 'text-white' : 'text-black'
+                          }`}
+                      >
                         {new Date(msg.timestamp).toLocaleString('en-GB', {
                           hour12: false,
                           hour: '2-digit',
@@ -551,7 +557,6 @@ const InteractPage = () => {
                           )}
                         </div>
                       )}
-
 
                       {isMe && (
                         <div className="chat-pointer"></div>
@@ -629,7 +634,6 @@ const InteractPage = () => {
           </div>
 
         </div>
-
       </div>
     </div>
   );
