@@ -37,17 +37,17 @@ const ViewContactPage: React.FC = () => {
   }
 
   return (
-    <div className="p-8">
-      <div className="bg-white shadow-md rounded-lg p-6 text-center">
+    <div className="p-8 font-montserrat">
+      <div className="bg-white p-6 text-center border-b border-gray-200 w-1/2 mx-auto">
         <Avatar
-          size={128}
+          size={256}
           src={`http://localhost:5002${userDetails?.profilePicture}`}
           className="mx-auto mb-4"
         />
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-2xl font-semibold">
           {chatSettings?.customUsername || userDetails?.username}
         </h1>
-        {userDetails?.phoneNumber && <p className="text-gray-700 mt-2">{userDetails?.phoneNumber}</p>}
+        {userDetails?.phoneNumber && <p className="text-gray-700 mt-2 text-xl">{userDetails?.phoneNumber}</p>}
       </div>
     </div>
   );

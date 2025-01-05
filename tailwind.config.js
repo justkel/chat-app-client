@@ -27,6 +27,9 @@ module.exports = {
         waveMiddle: 'waveMiddle 1.5s ease-in-out infinite',
         waveReverse: 'waveReverse 1.5s ease-in-out infinite',
       },
+      fontFamily: {
+        montserrat: ['Montserrat', 'sans-serif'],
+      },
     },
   },
   plugins: [require('tailwind-scrollbar-hide'),],
