@@ -8,6 +8,7 @@ import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById } from '../hooks/useGetOtherUser';
+import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -32,6 +33,7 @@ const InteractPage = () => {
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
   const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
+  const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
   const { updateMessageStatus } = useUpdateMessageStatus();
 
   useEffect(() => {
@@ -41,6 +43,28 @@ const InteractPage = () => {
     link.href = 'http://localhost:5002/uploads/whatsapp-wallpaper.jpg';
     document.head.appendChild(link);
   }, []);
+
+  const [backgroundImage, setBackgroundImage] = useState<string>('');
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (chatSettings?.customWallpaper) {
+        setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
+      } else {
+        setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
+      }
+    }, 100);
+  
+    return () => clearInterval(intervalId);
+  }, [chatSettings?.customWallpaper]);  
+
+  // useEffect(() => {
+  //     if (chatSettings?.customWallpaper) {
+  //       setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
+  //     } else {
+  //       setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
+  //     }
+  // }, [chatSettings?.customWallpaper]);  
 
   useEffect(() => {
     // Scroll to the bottom of the page
@@ -450,7 +474,7 @@ const InteractPage = () => {
   }, [expandedMessages]);
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (otherUserLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (otherUserLoading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -458,7 +482,16 @@ const InteractPage = () => {
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
       <div className="flex flex-col h-screen pt-12">
-        <div className="flex-1 p-4 background-container overflow-hidden">
+        <div className="flex-1 p-4 overflow-hidden"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           <div
             className="overflow-y-auto scrollbar-hide h-[80%] pr-2"
             onScroll={handleScroll}

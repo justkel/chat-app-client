@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
 import { Avatar } from 'antd';
+import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 
 interface HeaderWithInlineCardProps {
   otherUserData: any;
@@ -11,6 +12,7 @@ interface HeaderWithInlineCardProps {
 
 const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserData, userId, otherUserId }) => {
   const [showCard, setShowCard] = useState(false);
+  const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
   const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
@@ -38,7 +40,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
           <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
           <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
           <div className="flex flex-col">
-            <span className="font-semibold">{otherUserData?.getOtherUserById?.username}</span>
+            <span className="font-semibold">{chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}</span>
             <span className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
               {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
             </span>
