@@ -25,6 +25,12 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
     }
   };
 
+  const handleViewWallPaper = () => {
+    if (userId && otherUserId) {
+      navigate(`/view-wallpaper/${userId}/${otherUserId}`);
+    }
+  };
+
   return (
     <div>
       <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-10 w-full overflow-hidden">
@@ -51,7 +57,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
             </li>
             <li className="cursor-pointer hover:text-blue-500">Search</li>
             <li className="cursor-pointer hover:text-blue-500">Media</li>
-            <li className="cursor-pointer hover:text-blue-500">Wallpaper</li>
+            <li className="cursor-pointer hover:text-blue-500" onClick={handleViewWallPaper}>Wallpaper</li>
             <li className="cursor-pointer hover:text-blue-500">Block</li>
           </ul>
         </div>

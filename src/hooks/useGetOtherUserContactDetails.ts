@@ -15,6 +15,7 @@ const GET_CHAT_SETTINGS = gql`
   query GetChatSettings($ownerId: ID!, $otherUserId: ID!) {
     getChatSettings(ownerId: $ownerId, otherUserId: $otherUserId) {
       customUsername
+      customWallpaper
     }
   }
 `;

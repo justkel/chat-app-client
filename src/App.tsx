@@ -13,6 +13,7 @@ import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
 import ViewContactPage from './pages/ViewContactPage';
 import EditContactPage from './pages/EditContactPage';
+import ViewWallPaper from './pages/ViewWallpaper';
 
 const App: React.FC = () => {
   return (
@@ -28,7 +29,8 @@ const App: React.FC = () => {
             <Route path="/chats" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><InteractPage /></ProtectedRoute>} />
             <Route path="/view-contact/:userId/:otherUserId" element={<ProtectedRoute><ViewContactPage /></ProtectedRoute>} />
-            <Route path="/edit-contact/:userId/:otherUserId" element={<ProtectedRoute><EditContactPage /></ProtectedRoute>} /> {/* New Route */}
+            <Route path="/edit-contact/:userId/:otherUserId" element={<ProtectedRoute><EditContactPage /></ProtectedRoute>} />
+            <Route path="/view-wallpaper/:userId/:otherUserId" element={<ProtectedRoute><ViewWallPaper /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
