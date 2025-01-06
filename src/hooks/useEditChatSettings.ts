@@ -20,3 +20,28 @@ export const useEditChatSettings = () => {
     error,
   };
 };
+
+export const SET_CUSTOM_WALLPAPER = gql`
+  mutation SetCustomWallpaper($ownerId: ID!, $otherUserId: ID!, $wallpaper: String!) {
+    setCustomWallpaper(ownerId: $ownerId, otherUserId: $otherUserId, wallpaper: $wallpaper) {
+      customWallpaper
+    }
+  }
+`;
+
+export const useEditWallpaper = () => {
+  const [setCustomWallpaper, { data, loading, error }] = useMutation(SET_CUSTOM_WALLPAPER);
+
+  const updateWallpaper = (ownerId: string, otherUserId: string, wallpaper: string) => {
+    setCustomWallpaper({
+      variables: { ownerId, otherUserId, wallpaper }
+    });
+  };
+
+  return {
+    updateWallpaper,
+    data,
+    loading,
+    error
+  };
+};

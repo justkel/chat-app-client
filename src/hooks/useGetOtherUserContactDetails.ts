@@ -21,11 +21,11 @@ const GET_CHAT_SETTINGS = gql`
 `;
 
 export const useChatSettings = (ownerId: string, otherUserId: string) => {
-  const { data, loading, error } = useQuery(GET_CHAT_SETTINGS, {
+  const { data, loading, error, refetch } = useQuery(GET_CHAT_SETTINGS, {
     variables: { ownerId, otherUserId },
   });
 
-  return { data: data?.getChatSettings, loading, error };
+  return { data: data?.getChatSettings, loading, error, refetch };
 };
 
 export const useOtherUserDetails = (userId: string, otherUserId: string) => {

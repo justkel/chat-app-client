@@ -6,6 +6,7 @@ import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useGetAllWallpapers } from '../hooks/useGetAllWallpapers';
 import { Spin, Avatar, Button } from 'antd';
 import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
+import { useEditWallpaper } from '../hooks/useEditChatSettings';
 
 const ViewWallPaper: React.FC = () => {
     const { userId, otherUserId } = useParams();
@@ -16,12 +17,15 @@ const ViewWallPaper: React.FC = () => {
         wallpaper: string;
         isActive: boolean;
     }>(null);
+    const [customWallpaper, setCustomWallpaper] = useState<string>('');
     const navigate = useNavigate();
 
     const toggleCard = () => setShowCard(!showCard);
 
-    const { data: chatSettings, loading: chatLoading, error: chatError } = useChatSettings(userId!, otherUserId!);
+    const { data: chatSettings, loading: chatLoading, error: chatError, refetch } = useChatSettings(userId!, otherUserId!);
     const { data: wallpapersData, loading: wallpapersLoading, error: wallpapersError } = useGetAllWallpapers();
+
+    const { updateWallpaper, loading: wallpaperLoading, error: wallpaperError } = useEditWallpaper();
 
     useEffect(() => {
         if (user) {
@@ -39,6 +43,12 @@ const ViewWallPaper: React.FC = () => {
         }
     }, [user, userId, navigate]);
 
+    useEffect(() => {
+        if (chatSettings?.customWallpaper) {
+            setCustomWallpaper(chatSettings.customWallpaper);
+        }
+    }, [chatSettings]);
+
     // Preload wallpaper images
     useEffect(() => {
         if (wallpapersData?.getAllWallpapers) {
@@ -49,9 +59,9 @@ const ViewWallPaper: React.FC = () => {
         }
     }, [wallpapersData]);
 
-    if (chatLoading || wallpapersLoading) return <Spin className="mt-8" />;
-    if (chatError || wallpapersError) {
-        console.error(chatError || wallpapersError);
+    if (chatLoading || wallpapersLoading || wallpaperLoading) return <Spin className="mt-8" />;
+    if (chatError || wallpapersError || wallpaperError) {
+        console.error(chatError || wallpapersError || wallpaperError);
         return <div>Error loading data.</div>;
     }
 
@@ -64,7 +74,10 @@ const ViewWallPaper: React.FC = () => {
     };
 
     const selectWallpaper = (wallpaper: string) => {
+        setCustomWallpaper(wallpaper);
+        updateWallpaper(userId!, otherUserId!, wallpaper);
         closeExpandedView();
+        refetch();
     };
 
     return (
@@ -81,7 +94,7 @@ const ViewWallPaper: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {wallpapersData.getAllWallpapers.map((wallpaper: { id: number; wallpaper: string }) => {
-                    const isActive = chatSettings?.customWallpaper === wallpaper.wallpaper;
+                    const isActive = customWallpaper === wallpaper.wallpaper;
 
                     return (
                         <div
