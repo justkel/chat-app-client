@@ -29,6 +29,10 @@ const InteractPage = () => {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCard, setShowCard] = useState(false);
+
+  const toggleCard = () => setShowCard(!showCard);
+
 
   const maxLength = 200;
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
@@ -488,6 +492,11 @@ const InteractPage = () => {
     setShowDeleteModal(true);
   };
 
+  const handleArrowBack = () => {
+    setSelectedMessages([]);
+    setShowCard(false);
+  };
+
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setSelectedMessages([]);
@@ -501,10 +510,25 @@ const InteractPage = () => {
     <div>
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
+      {showCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
+            <ul className="space-y-8">
+              <li className="cursor-pointer hover:text-blue-500">
+                Edit
+              </li>
+              <li className="cursor-pointer hover:text-blue-500">Info</li>
+              <li className="cursor-pointer hover:text-blue-500">Copy</li>
+              <li className="cursor-pointer hover:text-blue-500">Pin</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       {selectedMessages.length > 0 && (
         <div>
-          <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-2 left-0 z-50 w-full overflow-hidden">
-            <ArrowLeftOutlined className="text-xl cursor-pointer" onClick={() => setSelectedMessages([])} />
+          <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-50 w-full overflow-hidden">
+            <ArrowLeftOutlined className="text-xl cursor-pointer" onClick={handleArrowBack} />
             <p className='text-bold text-xl mr-36'>
               {selectedMessages.length}
             </p>
@@ -512,7 +536,7 @@ const InteractPage = () => {
               <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
               <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
               <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" />
-              <MoreOutlined className="text-3xl cursor-pointer" />
+              <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
             </div>
           </div>
         </div>
