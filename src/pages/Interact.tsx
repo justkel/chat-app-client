@@ -28,6 +28,7 @@ const InteractPage = () => {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const maxLength = 200;
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
@@ -483,6 +484,15 @@ const InteractPage = () => {
     );
   };
 
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedMessages([]);
+  };
+
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (error) return <p>Error: {error.message}</p>;
@@ -494,13 +504,13 @@ const InteractPage = () => {
       {selectedMessages.length > 0 && (
         <div>
           <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-2 left-0 z-50 w-full overflow-hidden">
-            <ArrowLeftOutlined className="text-xl cursor-pointer" />
+            <ArrowLeftOutlined className="text-xl cursor-pointer" onClick={() => setSelectedMessages([])} />
             <p className='text-bold text-xl mr-36'>
               {selectedMessages.length}
             </p>
             <div>
               <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
-              <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" />
+              <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
               <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" />
               <MoreOutlined className="text-3xl cursor-pointer" />
             </div>
@@ -712,6 +722,43 @@ const InteractPage = () => {
               <div ref={messagesEndRef}></div>
             </div>
           </div>
+
+          {showDeleteModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white w-1/3 rounded-lg shadow-lg p-6 relative">
+                <h4 className="text-lg font-bold">
+                  Delete {selectedMessages.length} Message(s)
+                </h4>
+
+                <div className="mt-6 text-right">
+                  <button
+                    className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
+                    onClick={() => {
+                      console.log("Delete for me");
+                      closeDeleteModal();
+                    }}
+                  >
+                    Delete for me
+                  </button>
+                  <button
+                    className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
+                    onClick={() => {
+                      console.log("Delete for everyone");
+                      closeDeleteModal();
+                    }}
+                  >
+                    Delete for everyone
+                  </button>
+                  <button
+                    className="block w-full text-left text-gray-600 py-2 px-4 hover:bg-gray-100 rounded mt-4"
+                    onClick={closeDeleteModal}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="relative pb-16">
             <div className="fixed bottom-0 w-full shadow-lg">
