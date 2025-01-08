@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
 import HeaderWithInlineCard from '../components/HeaderCard';
-import { SendOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,6 +27,8 @@ const InteractPage = () => {
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+
   const maxLength = 200;
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
@@ -54,9 +56,9 @@ const InteractPage = () => {
         setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
       }
     }, 100);
-  
+
     return () => clearInterval(intervalId);
-  }, [chatSettings?.customWallpaper]);  
+  }, [chatSettings?.customWallpaper]);
 
   // useEffect(() => {
   //     if (chatSettings?.customWallpaper) {
@@ -473,6 +475,14 @@ const InteractPage = () => {
     );
   }, [expandedMessages]);
 
+  const toggleMessageSelection = (index: number) => {
+    setSelectedMessages((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index]
+    );
+  };
+
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (error) return <p>Error: {error.message}</p>;
@@ -480,6 +490,23 @@ const InteractPage = () => {
   return (
     <div>
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
+
+      {selectedMessages.length > 0 && (
+        <div>
+          <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-2 left-0 z-50 w-full overflow-hidden">
+            <ArrowLeftOutlined className="text-xl cursor-pointer" />
+            <p className='text-bold text-xl mr-36'>
+              {selectedMessages.length}
+            </p>
+            <div>
+              <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
+              <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" />
+              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" />
+              <MoreOutlined className="text-3xl cursor-pointer" />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col h-screen pt-12">
         <div className="flex-1 p-4 overflow-hidden"
@@ -499,11 +526,23 @@ const InteractPage = () => {
             <div className="space-y-8 pb-20">
               {messages.map((msg: any, index: number) => {
                 const isMe = msg.sender?.id === userId;
+                const isSelected = selectedMessages.includes(index);
+
                 return (
                   <div
                     key={index}
-                    className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative`}
                   >
+                    {isSelected && (
+                      <div
+                        className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMessageSelection(index);
+                        }}
+                      ></div>
+                    )}
+
                     <div
                       className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
                         ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
@@ -535,6 +574,39 @@ const InteractPage = () => {
                           year: 'numeric',
                         })}
                       </small>
+
+                      <div
+                        className={`absolute top-2 ${isMe ? '-left-7' : '-right-7'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMessageSelection(index);
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          color: "#007BFF",
+                          borderRadius: "50%",
+                          width: "24px",
+                          height: "24px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                      </div>
 
                       {isMe && (
                         <div className="flex items-center justify-end mt-1">
