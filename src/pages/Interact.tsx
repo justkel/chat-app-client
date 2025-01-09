@@ -58,12 +58,12 @@ const InteractPage = () => {
   const [backgroundImage, setBackgroundImage] = useState<string>('');
 
   useEffect(() => {
-      if (chatSettings?.customWallpaper) {
-        setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
-      } else {
-        setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
-      }
-  }, [chatSettings?.customWallpaper]);  
+    if (chatSettings?.customWallpaper) {
+      setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
+    } else {
+      setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
+    }
+  }, [chatSettings?.customWallpaper]);
 
   // useEffect(() => {
   //   // Scroll to the bottom of the page
@@ -508,19 +508,29 @@ const InteractPage = () => {
 
   const handleDeleteForEveryone = async () => {
     const messageIds = selectedMessages;
-  
+
     deleteMessagesForEveryone(messageIds, String(userId));
-  
+
     setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
 
     socket.emit('deleteForEveryone', { userId, otherUserId, messageIds });
-  
+
     closeDeleteModal();
+  };
+
+  const isWithinTimeLimit = (timestamp: string | number | Date) => {
+    const fifteenMinutes = 15 * 60 * 1000;
+    const now = new Date().getTime();
+    return now - new Date(timestamp).getTime() <= fifteenMinutes;
   };
 
   const canDeleteForEveryone = selectedMessages.every((msgId) => {
     const message = messages.find((msg) => msg.id === msgId);
-    return message && message.sender.id === userId;
+    return (
+      message &&
+      message.sender.id === userId &&
+      isWithinTimeLimit(message.timestamp)
+    );
   });
 
   const handleDelete = () => {
