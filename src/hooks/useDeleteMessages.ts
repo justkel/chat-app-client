@@ -22,3 +22,26 @@ export const useDeleteMessages = () => {
     error
   };
 };
+
+export const DELETE_MESSAGES_FOR_EVERYONE_MUTATION = gql`
+  mutation deleteMessagesForEveryone($messageIds: [ID!]!, $userId: ID!) {
+    deleteMessagesForEveryone(messageIds: $messageIds, userId: $userId)
+  }
+`;
+
+export const useDeleteMessagesForEveryone = () => {
+  const [deleteMessagesForEveryoneMutation, { data, loading, error }] = useMutation(DELETE_MESSAGES_FOR_EVERYONE_MUTATION);
+
+  const deleteMessagesForEveryone = (messageIds: string[], userId: string) => {
+    deleteMessagesForEveryoneMutation({
+      variables: { messageIds, userId }
+    });
+  };
+
+  return {
+    deleteMessagesForEveryone,
+    data,
+    loading,
+    error
+  };
+};

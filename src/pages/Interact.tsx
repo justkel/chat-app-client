@@ -10,6 +10,7 @@ import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '
 import { useGetOtherUserById } from '../hooks/useGetOtherUser';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
+import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -44,6 +45,7 @@ const InteractPage = () => {
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
   const { updateMessageStatus } = useUpdateMessageStatus();
   const { deleteMessages } = useDeleteMessages();
+  const { deleteMessagesForEveryone } = useDeleteMessagesForEveryone();
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -56,24 +58,12 @@ const InteractPage = () => {
   const [backgroundImage, setBackgroundImage] = useState<string>('');
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
       if (chatSettings?.customWallpaper) {
         setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
       } else {
         setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
       }
-    }, 100);
-
-    return () => clearInterval(intervalId);
-  }, [chatSettings?.customWallpaper]);
-
-  // useEffect(() => {
-  //     if (chatSettings?.customWallpaper) {
-  //       setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
-  //     } else {
-  //       setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
-  //     }
-  // }, [chatSettings?.customWallpaper]);  
+  }, [chatSettings?.customWallpaper]);  
 
   // useEffect(() => {
   //   // Scroll to the bottom of the page
@@ -274,11 +264,18 @@ const InteractPage = () => {
       );
     });
 
+    socket.on('messagesDeletedForEveryone', ({ messageIds }) => {
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => !messageIds.includes(msg.id))
+      );
+    });
+
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
       // socket.off('messageDelivered');
       socket.off('messageStatusUpdatedToRead');
+      socket.off('messagesDeletedForEveryone');
     };
   }, [userId, otherUserId, isAtBottom]);
 
@@ -411,7 +408,8 @@ const InteractPage = () => {
       timestamp: new Date().toISOString(),
       status: 'SENT',
       senderDFM: false,
-      receiverDFM: false, //add delForMe too
+      receiverDFM: false,
+      delForAll: false,
     };
 
     socket.emit('sendMessage', message);
@@ -508,6 +506,18 @@ const InteractPage = () => {
     setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
   };
 
+  const handleDeleteForEveryone = async () => {
+    const messageIds = selectedMessages;
+  
+    deleteMessagesForEveryone(messageIds, String(userId));
+  
+    setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
+
+    socket.emit('deleteForEveryone', { userId, otherUserId, messageIds });
+  
+    closeDeleteModal();
+  };
+
   const canDeleteForEveryone = selectedMessages.every((msgId) => {
     const message = messages.find((msg) => msg.id === msgId);
     return message && message.sender.id === userId;
@@ -585,7 +595,7 @@ const InteractPage = () => {
             <div className="space-y-8 pb-20">
               {messages.filter((msg) => {
                 const isMe = msg.sender?.id === userId;
-                return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM));
+                return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
               }).map((msg: any, index: number) => {
                 const isMe = msg.sender?.id === userId;
                 const isSelected = selectedMessages.includes(msg.id);
@@ -791,10 +801,7 @@ const InteractPage = () => {
                   </button>
                   <button
                     className={`block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded ${!canDeleteForEveryone ? 'hidden' : ''}`}
-                    onClick={() => {
-                      console.log("Delete for everyone");
-                      closeDeleteModal();
-                    }}
+                    onClick={handleDeleteForEveryone}
                   >
                     Delete for everyone
                   </button>
