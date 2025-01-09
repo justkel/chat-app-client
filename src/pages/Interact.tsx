@@ -273,7 +273,7 @@ const InteractPage = () => {
         )
       );
     });
-    
+
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
@@ -400,7 +400,7 @@ const InteractPage = () => {
     }
 
     if (!socket.connected) {
-      notification.error({ message: 'Connection error', description: 'Unable to send message. Try again later.' });
+      notification.error({ message: 'Connection error', description: 'Unable to send message. Please refresh page.' });
       return;
     }
 
@@ -507,6 +507,11 @@ const InteractPage = () => {
 
     setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
   };
+
+  const canDeleteForEveryone = selectedMessages.every((msgId) => {
+    const message = messages.find((msg) => msg.id === msgId);
+    return message && message.sender.id === userId;
+  });
 
   const handleDelete = () => {
     setShowDeleteModal(true);
@@ -785,7 +790,7 @@ const InteractPage = () => {
                     Delete for me
                   </button>
                   <button
-                    className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
+                    className={`block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded ${!canDeleteForEveryone ? 'hidden' : ''}`}
                     onClick={() => {
                       console.log("Delete for everyone");
                       closeDeleteModal();
