@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById } from '../hooks/useGetOtherUser';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
+import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -27,7 +28,7 @@ const InteractPage = () => {
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+  const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCard, setShowCard] = useState(false);
 
@@ -42,6 +43,7 @@ const InteractPage = () => {
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
   const { updateMessageStatus } = useUpdateMessageStatus();
+  const { deleteMessages } = useDeleteMessages();
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -262,14 +264,16 @@ const InteractPage = () => {
     //   );
     // });
 
-    socket.on('messageStatusUpdatedToRead', (updatedMessage) => {
+    socket.on('messageStatusUpdatedToRead', (updatedMessage) => { //Found the delete issue
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
-          msg.id === updatedMessage.id ? updatedMessage : msg
+          msg.id === updatedMessage.id
+            ? { ...msg, ...updatedMessage }
+            : msg
         )
       );
     });
-
+    
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
@@ -405,7 +409,9 @@ const InteractPage = () => {
       receiver: { id: otherUserId },
       content: newMessage,
       timestamp: new Date().toISOString(),
-      status: 'SENT'
+      status: 'SENT',
+      senderDFM: false,
+      receiverDFM: false, //add delForMe too
     };
 
     socket.emit('sendMessage', message);
@@ -480,12 +486,26 @@ const InteractPage = () => {
     );
   }, [expandedMessages]);
 
-  const toggleMessageSelection = (index: number) => {
+  const toggleMessageSelection = (msg: any) => {
     setSelectedMessages((prev) =>
-      prev.includes(index)
-        ? prev.filter((i) => i !== index)
-        : [...prev, index]
+      prev.includes(msg.id)
+        ? prev.filter((id) => id !== msg.id)
+        : [...prev, msg.id]
     );
+  };
+
+  const deleteMessagess = async () => {
+    closeDeleteModal();
+
+    if (!selectedMessages || selectedMessages.length === 0) {
+      console.error("No messages selected for deletion");
+      return;
+    }
+
+    const messageIds = selectedMessages;
+    deleteMessages(messageIds, String(userId));
+
+    setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
   };
 
   const handleDelete = () => {
@@ -558,9 +578,12 @@ const InteractPage = () => {
             onScroll={handleScroll}
           >
             <div className="space-y-8 pb-20">
-              {messages.map((msg: any, index: number) => {
+              {messages.filter((msg) => {
                 const isMe = msg.sender?.id === userId;
-                const isSelected = selectedMessages.includes(index);
+                return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM));
+              }).map((msg: any, index: number) => {
+                const isMe = msg.sender?.id === userId;
+                const isSelected = selectedMessages.includes(msg.id);
 
                 return (
                   <div
@@ -572,7 +595,7 @@ const InteractPage = () => {
                         className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleMessageSelection(index);
+                          toggleMessageSelection(msg);
                         }}
                       ></div>
                     )}
@@ -613,7 +636,7 @@ const InteractPage = () => {
                         className={`absolute top-2 ${isMe ? '-left-7' : '-right-7'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleMessageSelection(index);
+                          toggleMessageSelection(msg);
                         }}
                         style={{
                           cursor: "pointer",
@@ -757,10 +780,7 @@ const InteractPage = () => {
                 <div className="mt-6 text-right">
                   <button
                     className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
-                    onClick={() => {
-                      console.log("Delete for me");
-                      closeDeleteModal();
-                    }}
+                    onClick={deleteMessagess}
                   >
                     Delete for me
                   </button>

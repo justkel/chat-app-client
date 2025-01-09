@@ -13,6 +13,9 @@ const GET_CHAT_MESSAGES = gql`
         id
       }
       status
+      senderDFM
+      receiverDFM
+      delForAll
     }
   }
 `;
