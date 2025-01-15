@@ -126,9 +126,9 @@ const ChatPage = () => {
                         [key]: senderMessage || null,
                     };
                 });
-            } 
-            
-            if (userId !== uId){
+            }
+
+            if (userId !== uId) {
                 setLastMessagesMap((prev) => {
                     const key = receiverMessage !== null ? (receiverMessage.sender.id === userId ? receiverMessage.receiver.id : receiverMessage.sender.id) : uId;
                     return { ...prev, [key]: receiverMessage || null };
@@ -249,6 +249,25 @@ const ChatPage = () => {
         window.location.href = `/chat/${otherUserId}`;
     };
 
+    const formatTimestamp = (timestamp: string) => {
+        const messageDate = new Date(timestamp);
+        const currentDate = new Date();
+
+        const isToday = messageDate.toDateString() === currentDate.toDateString();
+        const isYesterday =
+            messageDate.getDate() === currentDate.getDate() - 1 &&
+            messageDate.getMonth() === currentDate.getMonth() &&
+            messageDate.getFullYear() === currentDate.getFullYear();
+
+        if (isToday) {
+            return `${messageDate.getHours()}:${messageDate.getMinutes()} ${messageDate.getHours() < 12 ? "AM" : "PM"}`;
+        } else if (isYesterday) {
+            return "Yesterday";
+        } else {
+            return `${messageDate.getMonth() + 1}/${messageDate.getDate()}/${messageDate.getFullYear().toString().slice(-2)}`;
+        }
+    };
+
     if (loading || lastMessagesLoading || unreadCountsLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
 
@@ -342,7 +361,8 @@ const ChatPage = () => {
                                                         Draft: {displayDraftMessage}
                                                     </Typography>
                                                 ) : lastMessage !== null ? (
-                                                    <span className="flex items-center">
+                                                    <div className="flex justify-between">
+                                                       <span className="flex items-center">
                                                         {lastMessage.sender.id === userId ? (
                                                             <>
                                                                 <span className="mr-1 font-semibold">You:</span>
@@ -407,7 +427,9 @@ const ChatPage = () => {
                                                         ) : (
                                                             lastMessage.content
                                                         )}
-                                                    </span>
+                                                    </span> 
+                                                    <span className="text-sm text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
+                                                    </div>
                                                 ) : (
                                                     'No messages yet'
                                                 )
