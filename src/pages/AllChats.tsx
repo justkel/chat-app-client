@@ -252,21 +252,25 @@ const ChatPage = () => {
     const formatTimestamp = (timestamp: string) => {
         const messageDate = new Date(timestamp);
         const currentDate = new Date();
-
+    
         const isToday = messageDate.toDateString() === currentDate.toDateString();
         const isYesterday =
             messageDate.getDate() === currentDate.getDate() - 1 &&
             messageDate.getMonth() === currentDate.getMonth() &&
             messageDate.getFullYear() === currentDate.getFullYear();
-
+    
+        const hours = messageDate.getHours();
+        let minutes = messageDate.getMinutes();
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+    
         if (isToday) {
-            return `${messageDate.getHours()}:${messageDate.getMinutes()} ${messageDate.getHours() < 12 ? "AM" : "PM"}`;
+            return `${hours}:${formattedMinutes} ${hours < 12 ? "AM" : "PM"}`;
         } else if (isYesterday) {
             return "Yesterday";
         } else {
             return `${messageDate.getMonth() + 1}/${messageDate.getDate()}/${messageDate.getFullYear().toString().slice(-2)}`;
         }
-    };
+    };    
 
     if (loading || lastMessagesLoading || unreadCountsLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
@@ -362,73 +366,73 @@ const ChatPage = () => {
                                                     </Typography>
                                                 ) : lastMessage !== null ? (
                                                     <div className="flex justify-between">
-                                                       <span className="flex items-center">
-                                                        {lastMessage.sender.id === userId ? (
-                                                            <>
-                                                                <span className="mr-1 font-semibold">You:</span>
-                                                                <span className="flex items-center">
-                                                                    {lastMessage.status && (
-                                                                        <span className="text-sm text-gray-600 mr-1" style={{ fontSize: '12px' }}>
-                                                                            {lastMessage.status.toLowerCase() === 'sent' && (
-                                                                                <svg
-                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                    width="24"
-                                                                                    height="16"
-                                                                                    viewBox="0 0 24 24"
-                                                                                    fill="none"
-                                                                                    stroke="currentColor"
-                                                                                    strokeWidth="2"
-                                                                                    strokeLinecap="round"
-                                                                                    strokeLinejoin="round"
-                                                                                    className="tick-icon"
-                                                                                >
-                                                                                    <polyline points="20 6 9 17 4 12" />
-                                                                                </svg>
-                                                                            )}
-                                                                            {lastMessage.status.toLowerCase() === 'delivered' && (
-                                                                                <svg
-                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                    width="24"
-                                                                                    height="16"
-                                                                                    viewBox="0 0 32 16"
-                                                                                    fill="none"
-                                                                                    stroke="currentColor"
-                                                                                    strokeWidth="2"
-                                                                                    strokeLinecap="round"
-                                                                                    strokeLinejoin="round"
-                                                                                    className="tick-icon mb-1"
-                                                                                >
-                                                                                    <polyline points="20 6 9 17 4 12" />
-                                                                                    <polyline points="26 6 15 17 20 12" />
-                                                                                </svg>
-                                                                            )}
-                                                                            {lastMessage.status.toLowerCase() === 'read' && (
-                                                                                <svg
-                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                    width="24"
-                                                                                    height="16"
-                                                                                    viewBox="0 0 32 16"
-                                                                                    fill="none"
-                                                                                    stroke="currentColor"
-                                                                                    strokeWidth="2"
-                                                                                    strokeLinecap="round"
-                                                                                    strokeLinejoin="round"
-                                                                                    className="tick-icon text-green-500 mb-1 font-bold"
-                                                                                >
-                                                                                    <polyline points="20 6 9 17 4 12" />
-                                                                                    <polyline points="26 6 15 17 20 12" />
-                                                                                </svg>
-                                                                            )}
-                                                                        </span>
-                                                                    )}
-                                                                    <span>{lastMessage.content}</span>
-                                                                </span>
-                                                            </>
-                                                        ) : (
-                                                            lastMessage.content
-                                                        )}
-                                                    </span> 
-                                                    <span className="text-sm text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
+                                                        <span className="flex items-center">
+                                                            {lastMessage.sender.id === userId ? (
+                                                                <>
+                                                                    <span className="mr-1 font-semibold">You:</span>
+                                                                    <span className="flex items-center">
+                                                                        {lastMessage.status && (
+                                                                            <span className="text-sm text-gray-600 mr-1" style={{ fontSize: '12px' }}>
+                                                                                {lastMessage.status.toLowerCase() === 'sent' && (
+                                                                                    <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        width="24"
+                                                                                        height="16"
+                                                                                        viewBox="0 0 24 24"
+                                                                                        fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="2"
+                                                                                        strokeLinecap="round"
+                                                                                        strokeLinejoin="round"
+                                                                                        className="tick-icon"
+                                                                                    >
+                                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                                    </svg>
+                                                                                )}
+                                                                                {lastMessage.status.toLowerCase() === 'delivered' && (
+                                                                                    <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        width="24"
+                                                                                        height="16"
+                                                                                        viewBox="0 0 32 16"
+                                                                                        fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="2"
+                                                                                        strokeLinecap="round"
+                                                                                        strokeLinejoin="round"
+                                                                                        className="tick-icon mb-1"
+                                                                                    >
+                                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                                        <polyline points="26 6 15 17 20 12" />
+                                                                                    </svg>
+                                                                                )}
+                                                                                {lastMessage.status.toLowerCase() === 'read' && (
+                                                                                    <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        width="24"
+                                                                                        height="16"
+                                                                                        viewBox="0 0 32 16"
+                                                                                        fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="2"
+                                                                                        strokeLinecap="round"
+                                                                                        strokeLinejoin="round"
+                                                                                        className="tick-icon text-green-500 mb-1 font-bold"
+                                                                                    >
+                                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                                        <polyline points="26 6 15 17 20 12" />
+                                                                                    </svg>
+                                                                                )}
+                                                                            </span>
+                                                                        )}
+                                                                        <span>{lastMessage.content}</span>
+                                                                    </span>
+                                                                </>
+                                                            ) : (
+                                                                lastMessage.content
+                                                            )}
+                                                        </span>
+                                                        <span className="text-lg text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
                                                     </div>
                                                 ) : (
                                                     'No messages yet'
