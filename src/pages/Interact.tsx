@@ -11,6 +11,7 @@ import { useGetOtherUserById } from '../hooks/useGetOtherUser';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
+import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -46,6 +47,7 @@ const InteractPage = () => {
   const { updateMessageStatus } = useUpdateMessageStatus();
   const { deleteMessages } = useDeleteMessages();
   const { deleteMessagesForEveryone } = useDeleteMessagesForEveryone();
+  const [fetchLastValidMessages] = useFetchLastValidMessages();
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -150,6 +152,8 @@ const InteractPage = () => {
 
       if (ReUpdatingMessages.length > 0) {
         ReUpdatingMessages.forEach(async (msg) => {
+          await updateMessageStatus(msg.id, 'READ');
+
           const transformedMessage = {
             sender: { id: msg.sender.id },
             receiver: { id: msg.receiver.id },
@@ -186,7 +190,7 @@ const InteractPage = () => {
           }
         });
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer); // Cleanup on unmount
   }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage, isAtBottom]);
@@ -503,15 +507,58 @@ const InteractPage = () => {
     const messageIds = selectedMessages;
     deleteMessages(messageIds, String(userId));
 
-    setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.filter((msg) => !messageIds.includes(msg.id));
+
+      const lastValidMessage = [...updatedMessages]
+        .reverse()
+        .find((msg) => {
+          const isMe = msg.sender?.id === userId;
+          return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
+        });
+
+      socket.emit("lastValidMessageForMe", {
+        userId,
+        otherUserId,
+        message: lastValidMessage,
+      });
+
+      return updatedMessages;
+    });
   };
 
   const handleDeleteForEveryone = async () => {
     const messageIds = selectedMessages;
 
-    deleteMessagesForEveryone(messageIds, String(userId));
+    const unreadCount = messages.filter(
+      (msg) => messageIds.includes(msg.id) && msg.status.toLowerCase() !== 'read'
+    ).length;
 
-    setMessages((prevMessages) => prevMessages.filter((msg) => !messageIds.includes(msg.id)));
+    await deleteMessagesForEveryone(messageIds, String(userId));
+
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    setMessages((prevMessages) =>
+      prevMessages.filter((msg) => !messageIds.includes(msg.id))
+    );
+
+    try {
+      const { data } = await fetchLastValidMessages({
+        variables: { userId, otherUserId },
+        fetchPolicy: 'network-only', // Force fresh data
+      });
+
+      const { senderLastMessage, receiverLastMessage } = data?.getLastValidMessages || {};
+      socket.emit('lastValidMessages', {
+        userId,
+        otherUserId,
+        senderMessage: senderLastMessage,
+        receiverMessage: receiverLastMessage,
+        unreadCount,
+      });
+
+    } catch (error) {
+      console.error('Error fetching last valid messages:', error);
+    }
 
     socket.emit('deleteForEveryone', { userId, otherUserId, messageIds });
 

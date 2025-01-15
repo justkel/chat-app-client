@@ -1,4 +1,4 @@
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, gql, useLazyQuery } from '@apollo/client';
 
 const GET_LAST_MESSAGES = gql`
   query GetLastMessages($userId: ID!, $otherUserIds: [ID!]!) {
@@ -15,6 +15,9 @@ const GET_LAST_MESSAGES = gql`
         fullName
       }
       status
+      senderDFM
+      receiverDFM
+      delForAll
     }
   }
 `;
@@ -27,4 +30,52 @@ export const useGetLastMessages = (userId: number, otherUserIds: number[]) => {
   });
 
   return { data, loading, error };
+};
+
+
+const GET_LAST_VALID_MESSAGES = gql`
+  query GetLastValidMessages($userId: ID!, $otherUserId: ID!) {
+    getLastValidMessages(userId: $userId, otherUserId: $otherUserId) {
+      senderLastMessage {
+        id
+        content
+        sender {
+          id
+          username
+        }
+        receiver {
+          id
+          username
+        }
+        timestamp
+        status
+        senderDFM
+        receiverDFM
+        delForAll
+      }
+      receiverLastMessage {
+        id
+        content
+        sender {
+          id
+          username
+        }
+        receiver {
+          id
+          username
+        }
+        timestamp
+        status
+        senderDFM
+        receiverDFM
+        delForAll
+      }
+    }
+  }
+`;
+
+export const useFetchLastValidMessages = () => {
+  return useLazyQuery(GET_LAST_VALID_MESSAGES, {
+    fetchPolicy: 'network-only', // Always fetch fresh data
+  });
 };

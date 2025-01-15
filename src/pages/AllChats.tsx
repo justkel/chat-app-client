@@ -98,6 +98,51 @@ const ChatPage = () => {
             }
         });
 
+        socket.on('updatedLastMessageForDelMe', (message: { message: any, uId: any, oth: any, }) => {
+            const msg = message.message;
+            const uId = message.uId;
+            const oth = message.oth;
+
+            if (uId !== userId) return;
+
+            setLastMessagesMap((prev) => {
+                const key = msg !== undefined ? (msg.sender.id === userId ? msg.receiver.id : msg.sender.id) : oth;
+                return { ...prev, [key]: msg || null };
+            });
+
+        });
+
+        socket.on('updatedLastMessage', ({ senderMessage, receiverMessage, unreadCount, uId, oth }: { senderMessage: any; receiverMessage: any; unreadCount: number, uId: any, oth: any }) => {
+            if (userId === uId) {
+                setLastMessagesMap((prev) => {
+                    const key = senderMessage !== null
+                        ? (senderMessage.sender.id === userId
+                            ? senderMessage.receiver.id
+                            : senderMessage.sender.id)
+                        : oth;
+
+                    return {
+                        ...prev,
+                        [key]: senderMessage || null,
+                    };
+                });
+            } 
+            
+            if (userId !== uId){
+                setLastMessagesMap((prev) => {
+                    const key = receiverMessage !== null ? (receiverMessage.sender.id === userId ? receiverMessage.receiver.id : receiverMessage.sender.id) : uId;
+                    return { ...prev, [key]: receiverMessage || null };
+                });
+
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [uId]: unreadCount !== undefined
+                        ? Math.max((prev[uId] || 0) - unreadCount, 0)
+                        : (prev[uId] || 0),
+                }));
+            }
+        });
+
         socket.on('unreadCountReset', (otherUserId: { otherUserId: string; count: number }) => {
             const id = otherUserId.otherUserId;
             if (id !== userId) {
@@ -113,6 +158,8 @@ const ChatPage = () => {
             socket.off('userActivityUpdate');
             socket.off('receiveMessage');
             socket.off('unreadCountReset');
+            socket.off('updatedLastMessageForDelMe');
+            socket.off('updatedLastMessage');
             data?.getAcceptedChatUsers.forEach((user: any) => {
                 const room = [userId, user.id].sort().join('-');
                 socket.emit('leaveRoom', { userId, otherUserId: user.id });
@@ -220,7 +267,7 @@ const ChatPage = () => {
                     ) : (
                         <List>
                             {data?.getAcceptedChatUsers.map((user: any) => {
-                                const lastMessage = lastMessagesMap[user.id];
+                                const lastMessage = lastMessagesMap[user.id] || null;
                                 const unreadCount = unreadCounts[user.id] || 0;
                                 const draftMessage = draftMessages[`message_${userId}_${user.id}`];
                                 const truncatedDraftMessage = draftMessage ? draftMessage.split(' ').slice(0, 40).join(' ') : '';
@@ -294,7 +341,7 @@ const ChatPage = () => {
                                                     >
                                                         Draft: {displayDraftMessage}
                                                     </Typography>
-                                                ) : lastMessage ? (
+                                                ) : lastMessage !== null ? (
                                                     <span className="flex items-center">
                                                         {lastMessage.sender.id === userId ? (
                                                             <>
