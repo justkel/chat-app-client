@@ -41,7 +41,7 @@ const InteractPage = () => {
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
-  const { data: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
+  const { isOnline: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
   const { updateMessageStatus } = useUpdateMessageStatus();
@@ -91,53 +91,64 @@ const InteractPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (!otherUserId || !userId) return;
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-      if (onlineLoading) return;
-      if (onlineError) {
-        console.error('Error checking user online status:', onlineError);
-        return;
-      }
+useEffect(() => {
+  if (!otherUserId || !userId) return;
 
+  if (intervalRef.current) clearInterval(intervalRef.current);
+
+  intervalRef.current = setInterval(async () => {
+
+    if (onlineLoading) return;
+    if (onlineError) {
+      console.error('Error checking user online status:', onlineError);
+      return;
+    }
+
+    try {
+      await isOnlineRefetch();
+    } catch (err) {
+      console.error('Error refetching online status:', err);
+    }
+  }, 2000);
+
+  return () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+}, [otherUserId, userId, onlineLoading, onlineError, isOnlineRefetch]);
+
+useEffect(() => {
+  if (onlineData?.status.toLowerCase() === 'yes') {
+    const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
+
+    sentMessages.forEach(async (msg) => {
       try {
-        await isOnlineRefetch();
+        await updateMessageStatus(msg.id, 'DELIVERED');
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
+          )
+        );
+
+        const transformedMessage = {
+          sender: { id: msg.sender.id },
+          receiver: { id: msg.receiver.id },
+          content: msg.content,
+          timestamp: msg.timestamp,
+          status: 'DELIVERED',
+          id: msg.id,
+        };
+        socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
       } catch (err) {
-        console.error('Error refetching online status:', err);
+        console.error('Error updating message statuses:', err);
       }
-
-      if (onlineData?.isUserOnline) {
-        const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
-
-        sentMessages.forEach(async (msg) => {
-          try {
-            await updateMessageStatus(msg.id, 'DELIVERED');
-
-            setMessages((prev) =>
-              prev.map((message) =>
-                message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
-              )
-            );
-
-            const transformedMessage = {
-              sender: { id: msg.sender.id },
-              receiver: { id: msg.receiver.id },
-              content: msg.content,
-              timestamp: msg.timestamp,
-              status: 'DELIVERED',
-              id: msg.id,
-            };
-            socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
-          } catch (err) {
-            console.error('Error updating message statuses:', err);
-          }
-        });
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [messages, otherUserId, userId, onlineData, onlineLoading, onlineError, updateMessageStatus, setMessages, isOnlineRefetch]);
+    });
+  }
+}, [messages, onlineData, otherUserId, updateMessageStatus, userId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

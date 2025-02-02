@@ -31,7 +31,10 @@ export const useGetChatMessages = (userId: string | null, otherUserId: string | 
 
 const IS_USER_ONLINE = gql`
   query IsUserOnline($userId: ID!) {
-    isUserOnline(userId: $userId)
+    isUserOnline(userId: $userId) {
+      userId
+      status
+    }
   }
 `;
 
@@ -50,7 +53,9 @@ export const useCheckUserOnline = (userId: string | null) => {
     skip: !userId,
   });
 
-  return { data, loading, error, refetch };
+  const isOnline = loading || error ? null : data?.isUserOnline ?? { userId, status: "No" };
+
+  return { isOnline, loading, error, refetch };
 };
 
 
