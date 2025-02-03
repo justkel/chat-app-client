@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
@@ -37,6 +38,7 @@ const InteractPage = () => {
   const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState<boolean>(false);
 
 
   const maxLength = 200;
@@ -84,6 +86,10 @@ const InteractPage = () => {
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
   }, [otherUserData, otherUserRefetch]);
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewMessage((prevMessage) => prevMessage + emojiData.emoji);
+  };
 
   useEffect(() => {
     setIsReceiverOnPage(true);
@@ -931,6 +937,14 @@ const InteractPage = () => {
                   className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
                   rows={2}
                 />
+
+                <button
+                  onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
+                  className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition duration-200 ease-in-out"
+                >
+                  <span role="img" aria-label="emoji" className="text-xl">😊</span>
+                </button>
+
                 <button
                   onClick={sendMessage}
                   className="flex items-center justify-center bg-blue-500 text-white w-12 h-12 rounded-full hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
@@ -939,8 +953,15 @@ const InteractPage = () => {
                   <SendOutlined style={{ fontSize: '24px' }} />
                 </button>
               </div>
+
+              {isEmojiPickerVisible && (
+                <div className="absolute bottom-20 left-0 z-10 w-100 p-2 bg-white border rounded-lg shadow-xl overflow-auto scrollbar-hidden">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
             </div>
           </div>
+          );
 
         </div>
       </div>
