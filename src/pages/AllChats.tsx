@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
+import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
 import socket from '../socket';
@@ -21,6 +22,8 @@ const ChatPage = () => {
     const otherUserIds = useMemo(() => {
         return data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
     }, [data?.getAcceptedChatUsers]);
+
+    const { data: chatUserData, loading: chatLoading } = useGetChatUserDetails(Number(userId), otherUserIds);
 
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
 
@@ -252,17 +255,17 @@ const ChatPage = () => {
     const formatTimestamp = (timestamp: string) => {
         const messageDate = new Date(timestamp);
         const currentDate = new Date();
-    
+
         const isToday = messageDate.toDateString() === currentDate.toDateString();
         const isYesterday =
             messageDate.getDate() === currentDate.getDate() - 1 &&
             messageDate.getMonth() === currentDate.getMonth() &&
             messageDate.getFullYear() === currentDate.getFullYear();
-    
+
         const hours = messageDate.getHours();
         let minutes = messageDate.getMinutes();
         const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
-    
+
         if (isToday) {
             return `${hours}:${formattedMinutes} ${hours < 12 ? "AM" : "PM"}`;
         } else if (isYesterday) {
@@ -270,9 +273,9 @@ const ChatPage = () => {
         } else {
             return `${messageDate.getMonth() + 1}/${messageDate.getDate()}/${messageDate.getFullYear().toString().slice(-2)}`;
         }
-    };    
+    };
 
-    if (loading || lastMessagesLoading || unreadCountsLoading) return <Spin size="large" style={{ display: 'block', margin: '0 auto' }} />;
+    if (loading || lastMessagesLoading || unreadCountsLoading || chatLoading) return <Spin size="default" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
 
     return (
@@ -297,6 +300,10 @@ const ChatPage = () => {
                                 const displayDraftMessage = draftMessage && draftMessage.split(' ').length > 40
                                     ? `${truncatedDraftMessage}...`
                                     : truncatedDraftMessage;
+
+                                const chatDetail = chatUserData?.getOtherUserChatDetails?.find(
+                                    (chat: any) => chat && chat.otherUser && chat.otherUser.id === user.id
+                                );
 
                                 return (
                                     <ListItem
@@ -339,7 +346,7 @@ const ChatPage = () => {
                                             </Badge>
                                         </ListItemAvatar>
                                         <ListItemText
-                                            primary={user.fullName}
+                                            primary={chatDetail?.customUsername || user.fullName}
                                             secondary={
                                                 typingUsers[user.id] ? (
                                                     <Typography
@@ -432,7 +439,7 @@ const ChatPage = () => {
                                                                 lastMessage.content
                                                             )}
                                                         </span>
-                                                        <span className="text-lg text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
+                                                        <span className="text-md text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
                                                     </div>
                                                 ) : (
                                                     'No messages yet'
