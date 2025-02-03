@@ -469,6 +469,7 @@ const InteractPage = () => {
     socket.emit('sendMessage', message);
     setNewMessage('');
     localStorage.removeItem(`message_${userId}_${otherUserId}`);
+    setIsEmojiPickerVisible(false);
 
     setTimeout(() => {
       if (messagesEndRef.current) {
