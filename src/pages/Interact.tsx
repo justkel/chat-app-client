@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
@@ -33,6 +33,8 @@ const InteractPage = () => {
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCard, setShowCard] = useState(false);
+  const [errorOccurred, setErrorOccurred] = useState(false);
+  const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
 
@@ -91,64 +93,95 @@ const InteractPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      if (error.message.includes('Chat does not exist between you and this user. Action not allowed.')) {
+        notification.error({
+          message: 'Action Not Allowed',
+          description: 'Chat does not exist between you and this user.',
+          duration: 4,
+          style: {
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            border: '1px solid #ff4d4f',
+            borderRadius: '8px',
+            padding: '12px',
+            fontWeight: 'bold',
+            color: '#ff4d4f',
+          },
+        });
+        setErrorOccurred(true);
+      }
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (errorOccurred) {
+      const timeout = setTimeout(() => {
+        navigate('/chats');
+      }, 5000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [errorOccurred, navigate]);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-useEffect(() => {
-  if (!otherUserId || !userId) return;
+  useEffect(() => {
+    if (!otherUserId || !userId) return;
 
-  if (intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
-  intervalRef.current = setInterval(async () => {
+    intervalRef.current = setInterval(async () => {
 
-    if (onlineLoading) return;
-    if (onlineError) {
-      console.error('Error checking user online status:', onlineError);
-      return;
-    }
-
-    try {
-      await isOnlineRefetch();
-    } catch (err) {
-      console.error('Error refetching online status:', err);
-    }
-  }, 2000);
-
-  return () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-  };
-}, [otherUserId, userId, onlineLoading, onlineError, isOnlineRefetch]);
-
-useEffect(() => {
-  if (onlineData?.status.toLowerCase() === 'yes') {
-    const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
-
-    sentMessages.forEach(async (msg) => {
-      try {
-        await updateMessageStatus(msg.id, 'DELIVERED');
-
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
-          )
-        );
-
-        const transformedMessage = {
-          sender: { id: msg.sender.id },
-          receiver: { id: msg.receiver.id },
-          content: msg.content,
-          timestamp: msg.timestamp,
-          status: 'DELIVERED',
-          id: msg.id,
-        };
-        socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
-      } catch (err) {
-        console.error('Error updating message statuses:', err);
+      if (onlineLoading) return;
+      if (onlineError) {
+        console.error('Error checking user online status:', onlineError);
+        return;
       }
-    });
-  }
-}, [messages, onlineData, otherUserId, updateMessageStatus, userId]);
+
+      try {
+        await isOnlineRefetch();
+      } catch (err) {
+        console.error('Error refetching online status:', err);
+      }
+    }, 2000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [otherUserId, userId, onlineLoading, onlineError, isOnlineRefetch]);
+
+  useEffect(() => {
+    if (onlineData?.status.toLowerCase() === 'yes') {
+      const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
+
+      sentMessages.forEach(async (msg) => {
+        try {
+          await updateMessageStatus(msg.id, 'DELIVERED');
+
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
+            )
+          );
+
+          const transformedMessage = {
+            sender: { id: msg.sender.id },
+            receiver: { id: msg.receiver.id },
+            content: msg.content,
+            timestamp: msg.timestamp,
+            status: 'DELIVERED',
+            id: msg.id,
+          };
+          socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
+        } catch (err) {
+          console.error('Error updating message statuses:', err);
+        }
+      });
+    }
+  }, [messages, onlineData, otherUserId, updateMessageStatus, userId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -607,7 +640,7 @@ useEffect(() => {
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (error) return <p>Error: {error.message}</p>;
+  // if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div>
