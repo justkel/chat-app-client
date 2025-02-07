@@ -39,6 +39,10 @@ const InteractPage = () => {
 
   const toggleCard = () => setShowCard(!showCard);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState<boolean>(false);
+  const [editMessage, setEditMessage] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  const messageToEdit = messages.find(msg => msg.id === selectedMessages[0]);
 
 
   const maxLength = 200;
@@ -640,6 +644,11 @@ const InteractPage = () => {
     setShowCard(false);
   };
 
+  const messageEdit = () => {
+    setShowCard(false);
+    setIsEditing(true);
+  };
+
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setSelectedMessages([]);
@@ -657,13 +666,58 @@ const InteractPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
             <ul className="space-y-8">
-              <li className="cursor-pointer hover:text-blue-500">
-                Edit
-              </li>
+              {selectedMessages.length === 1 && (() => {
+                const firstSelectedMessage = messages.find(msg => msg.id === selectedMessages[0]);
+                return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
+              })() && (
+                  <li className="cursor-pointer hover:text-blue-500" onClick={messageEdit}>
+                    Edit
+                  </li>
+                )}
+
               <li className="cursor-pointer hover:text-blue-500">Info</li>
               <li className="cursor-pointer hover:text-blue-500">Copy</li>
               <li className="cursor-pointer hover:text-blue-500">Pin</li>
             </ul>
+          </div>
+        </div>
+      )}
+
+      {isEditing && messageToEdit && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-[95%] max-w-lg">
+            <p className="text-gray-500 text-sm mb-3">Editing message...</p>
+
+            <div className="bg-gray-100 p-4 rounded text-gray-700 mb-4 opacity-60 max-h-32 overflow-y-auto">
+              {messageToEdit.content}
+            </div>
+
+            <textarea
+              value={editMessage !== null ? editMessage : messageToEdit.content.trim()}
+              onChange={(e) => setEditMessage(e.target.value)}
+              className="w-full h-32 border border-gray-300 p-3 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <div className="flex justify-end gap-4 mt-4">
+
+              <button
+                onClick={() => {
+                  setSelectedMessages([]);
+                  setIsEditing(false);
+                }}
+                className="text-gray-500 hover:text-red-500 text-lg"
+              >
+                ❌
+              </button>
+
+              <button
+                className="text-green-500 hover:text-green-600 text-2xl disabled:text-gray-400 disabled:cursor-not-allowed"
+                disabled={editMessage.length === 0 || !messageToEdit.content.trim()}
+              >
+                ✔
+              </button>
+
+            </div>
           </div>
         </div>
       )}
@@ -962,7 +1016,6 @@ const InteractPage = () => {
               )}
             </div>
           </div>
-          );
 
         </div>
       </div>
