@@ -39,7 +39,7 @@ const InteractPage = () => {
 
   const toggleCard = () => setShowCard(!showCard);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState<boolean>(false);
-  const [editMessage, setEditMessage] = useState("");
+  const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
 
   const messageToEdit = messages.find(msg => msg.id === selectedMessages[0]);
@@ -328,12 +328,21 @@ const InteractPage = () => {
       );
     });
 
+    socket.on('messageEdited', (updatedMessage) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === updatedMessage.id ? { ...msg, content: updatedMessage.content } : msg
+        )
+      );
+    });
+
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
       // socket.off('messageDelivered');
       socket.off('messageStatusUpdatedToRead');
       socket.off('messagesDeletedForEveryone');
+      socket.off('messageEdited');
     };
   }, [userId, otherUserId, isAtBottom]);
 
@@ -620,6 +629,29 @@ const InteractPage = () => {
     closeDeleteModal();
   };
 
+  const handleEditMessage = async () => {
+    if (!messageToEdit || !editMessage) {
+      console.error("Message or new content is missing");
+      return;
+    }
+
+    socket.emit('editMessage', {
+      messageId: messageToEdit.id,
+      newContent: editMessage,
+      userId: userId,
+    });
+
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.id === messageToEdit.id ? { ...msg, content: editMessage } : msg
+      )
+    );
+
+    setSelectedMessages([]);
+    setIsEditing(false);
+  };
+
+
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
     const now = new Date().getTime();
@@ -689,11 +721,13 @@ const InteractPage = () => {
             <p className="text-gray-500 text-sm mb-3">Editing message...</p>
 
             <div className="bg-gray-100 p-4 rounded text-gray-700 mb-4 opacity-60 max-h-32 overflow-y-auto">
-              {messageToEdit.content}
+              {messageToEdit.content.length > 100
+                ? `${messageToEdit.content.substring(0, 100)}...`
+                : messageToEdit.content}
             </div>
 
             <textarea
-              value={editMessage !== null ? editMessage : messageToEdit.content.trim()}
+              value={editMessage !== undefined ? editMessage : messageToEdit.content.trim()}
               onChange={(e) => setEditMessage(e.target.value)}
               className="w-full h-32 border border-gray-300 p-3 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -712,7 +746,8 @@ const InteractPage = () => {
 
               <button
                 className="text-green-500 hover:text-green-600 text-2xl disabled:text-gray-400 disabled:cursor-not-allowed"
-                disabled={editMessage.length === 0 || !messageToEdit.content.trim()}
+                disabled={editMessage === "" || !messageToEdit.content.trim()}
+                onClick={handleEditMessage}
               >
                 ✔
               </button>
