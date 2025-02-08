@@ -457,6 +457,11 @@ const InteractPage = () => {
     // }, 2000);
   };
 
+  socket.on('disconnect', () => {
+    console.warn('Socket disconnected, attempting to reconnect...');
+    socket.connect();
+  });
+
   const sendMessage = () => {
     if (!newMessage.trim()) {
       notification.error({ message: 'Message cannot be empty' });
@@ -464,9 +469,19 @@ const InteractPage = () => {
     }
 
     if (!socket.connected) {
-      notification.error({ message: 'Connection error', description: 'Unable to send message. Please refresh page.' });
+      socket.connect();
+    
+      setTimeout(() => {
+        if (!socket.connected) {
+          notification.error({
+            message: 'Connection error',
+            description: 'Unable to send message. Please refresh the page.',
+          });
+        }
+      }, 3000);
       return;
     }
+    
 
     const message = {
       sender: { id: userId },
@@ -640,6 +655,21 @@ const InteractPage = () => {
       newContent: editMessage,
       userId: userId,
     });
+
+    const { data } = await fetchLastValidMessages({
+      variables: { userId, otherUserId },
+      fetchPolicy: 'network-only', // Force fresh data
+    });
+
+    const { senderLastMessage, receiverLastMessage } = data?.getLastValidMessages || {};
+
+    socket.emit('LastMessageAfterEdit', {
+      userId,
+      otherUserId,
+      senderMessage: senderLastMessage,
+      receiverMessage: receiverLastMessage,
+    });
+ 
 
     setMessages((prevMessages) =>
       prevMessages.map((msg) =>

@@ -146,6 +146,30 @@ const ChatPage = () => {
             }
         });
 
+        socket.on('updatedLastMessageAfterEdit', ({ senderMessage, receiverMessage, uId, oth }: { senderMessage: any; receiverMessage: any; uId: any, oth: any }) => {
+            if (userId === uId) {
+                setLastMessagesMap((prev) => {
+                    const key = senderMessage !== null
+                        ? (senderMessage.sender.id === userId
+                            ? senderMessage.receiver.id
+                            : senderMessage.sender.id)
+                        : oth;
+
+                    return {
+                        ...prev,
+                        [key]: senderMessage || null,
+                    };
+                });
+            }
+
+            if (userId !== uId) {
+                setLastMessagesMap((prev) => {
+                    const key = receiverMessage !== null ? (receiverMessage.sender.id === userId ? receiverMessage.receiver.id : receiverMessage.sender.id) : uId;
+                    return { ...prev, [key]: receiverMessage || null };
+                });
+            }
+        });
+
         socket.on('unreadCountReset', (otherUserId: { otherUserId: string; count: number }) => {
             const id = otherUserId.otherUserId;
             if (id !== userId) {
