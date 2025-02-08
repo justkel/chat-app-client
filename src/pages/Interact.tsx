@@ -655,32 +655,39 @@ const InteractPage = () => {
       newContent: editMessage,
       userId: userId,
     });
-
+  
     const { data } = await fetchLastValidMessages({
       variables: { userId, otherUserId },
-      fetchPolicy: 'network-only', // Force fresh data
+      fetchPolicy: 'network-only', // Ensure fresh data
     });
-
-    const { senderLastMessage, receiverLastMessage } = data?.getLastValidMessages || {};
-
+  
+    let { senderLastMessage, receiverLastMessage } = data?.getLastValidMessages || {};
+  
+    if (senderLastMessage?.id === messageToEdit.id) {
+      senderLastMessage = { ...senderLastMessage, content: editMessage };
+    }
+    if (receiverLastMessage?.id === messageToEdit.id) {
+      receiverLastMessage = { ...receiverLastMessage, content: editMessage };
+    }
+  
     socket.emit('LastMessageAfterEdit', {
       userId,
       otherUserId,
       senderMessage: senderLastMessage,
       receiverMessage: receiverLastMessage,
     });
- 
 
     setMessages((prevMessages) =>
       prevMessages.map((msg) =>
         msg.id === messageToEdit.id ? { ...msg, content: editMessage } : msg
       )
     );
-
+  
     setSelectedMessages([]);
     setIsEditing(false);
+    setEditMessage(undefined);
   };
-
+  
 
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
