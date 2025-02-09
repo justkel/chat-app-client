@@ -994,22 +994,18 @@ const InteractPage = () => {
 
               {isOtherUserTyping && (
                 <div className="mt-4">
-                  <div className="relative max-w-16 h-11 text-black p-4 rounded-lg"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
-                    }}
-                  >
+                  <div className="relative max-w-16 h-11 text-black p-4 rounded-lg">
                     {/* Pointed extension (speech bubble) */}
-                    <div className="absolute bottom-0 left-0 w-4 h-4 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"
+                    {/* <div className="absolute bottom-0 left-0 w-4 h-4 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"
                       style={{
                         background: 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
                       }}
-                    ></div>
+                    ></div> */}
 
                     <div className="flex items-center space-x-1 pt-2">
-                      <span className="w-4 h-4 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
-                      <span className="w-4 h-4 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
-                      <span className="w-4 h-4 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+                      <span className="w-4 h-2 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
+                      <span className="w-4 h-2 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
+                      <span className="w-4 h-2 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
                     </div>
                   </div>
                 </div>
