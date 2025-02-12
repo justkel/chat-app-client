@@ -12,6 +12,9 @@ const GET_CHAT_MESSAGES = gql`
       receiver {
         id
       }
+      repliedTo {
+        id
+      }
       status
       senderDFM
       receiverDFM

@@ -34,6 +34,7 @@ const InteractPage = () => {
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCard, setShowCard] = useState(false);
+  const [showReplyCard, setShowReplyCard] = useState(false);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const navigate = useNavigate();
 
@@ -41,9 +42,16 @@ const InteractPage = () => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState<boolean>(false);
   const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
+  const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
 
-  const messageToEdit = messages.find(msg => msg.id === selectedMessages[0]);
-
+  useEffect(() => {
+    if (selectedMessages.length === 1) {
+      const selectedMessage = messages.find(msg => msg.id === selectedMessages[0]) || null;
+      setCurrentSelectedMessage(selectedMessage);
+    } else {
+      setCurrentSelectedMessage(null);
+    }
+  }, [selectedMessages, messages]);
 
   const maxLength = 200;
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
@@ -56,6 +64,10 @@ const InteractPage = () => {
   const { deleteMessages } = useDeleteMessages();
   const { deleteMessagesForEveryone } = useDeleteMessagesForEveryone();
   const [fetchLastValidMessages] = useFetchLastValidMessages();
+
+  const storedReplyMessage = JSON.parse(
+    localStorage.getItem(`replyMessage_${userId}_${otherUserId}`) || "null"
+  );
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -470,7 +482,7 @@ const InteractPage = () => {
 
     if (!socket.connected) {
       socket.connect();
-    
+
       setTimeout(() => {
         if (!socket.connected) {
           notification.error({
@@ -481,7 +493,7 @@ const InteractPage = () => {
       }, 3000);
       return;
     }
-    
+
 
     const message = {
       sender: { id: userId },
@@ -645,31 +657,31 @@ const InteractPage = () => {
   };
 
   const handleEditMessage = async () => {
-    if (!messageToEdit || !editMessage) {
+    if (!currentSelectedMessage || !editMessage) {
       console.error("Message or new content is missing");
       return;
     }
 
     socket.emit('editMessage', {
-      messageId: messageToEdit.id,
+      messageId: currentSelectedMessage.id,
       newContent: editMessage,
       userId: userId,
     });
-  
+
     const { data } = await fetchLastValidMessages({
       variables: { userId, otherUserId },
       fetchPolicy: 'network-only', // Ensure fresh data
     });
-  
+
     let { senderLastMessage, receiverLastMessage } = data?.getLastValidMessages || {};
-  
-    if (senderLastMessage?.id === messageToEdit.id) {
+
+    if (senderLastMessage?.id === currentSelectedMessage.id) {
       senderLastMessage = { ...senderLastMessage, content: editMessage };
     }
-    if (receiverLastMessage?.id === messageToEdit.id) {
+    if (receiverLastMessage?.id === currentSelectedMessage.id) {
       receiverLastMessage = { ...receiverLastMessage, content: editMessage };
     }
-  
+
     socket.emit('LastMessageAfterEdit', {
       userId,
       otherUserId,
@@ -679,15 +691,15 @@ const InteractPage = () => {
 
     setMessages((prevMessages) =>
       prevMessages.map((msg) =>
-        msg.id === messageToEdit.id ? { ...msg, content: editMessage } : msg
+        msg.id === currentSelectedMessage.id ? { ...msg, content: editMessage } : msg
       )
     );
-  
+
     setSelectedMessages([]);
     setIsEditing(false);
     setEditMessage(undefined);
   };
-  
+
 
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
@@ -718,6 +730,29 @@ const InteractPage = () => {
     setIsEditing(true);
   };
 
+  const messageReply = () => {
+    if (currentSelectedMessage) {
+      const replyData = {
+        id: currentSelectedMessage.id,
+        senderId: currentSelectedMessage.sender.id,
+        content: currentSelectedMessage.content,
+      };
+
+      localStorage.setItem(
+        `replyMessage_${userId}_${otherUserId}`,
+        JSON.stringify(replyData)
+      );
+    }
+
+    setShowCard(false);
+    setShowReplyCard(true);
+
+    setSelectedMessages((prevSelected) =>
+      prevSelected.filter((id) => id !== currentSelectedMessage?.id)
+    );
+  };
+
+
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setSelectedMessages([]);
@@ -744,6 +779,14 @@ const InteractPage = () => {
                   </li>
                 )}
 
+              {selectedMessages.length === 1 && (() => {
+                return messages.find(msg => msg.id === selectedMessages[0]);
+              })() && (
+                  <li className="cursor-pointer hover:text-blue-500" onClick={messageReply}>
+                    Reply
+                  </li>
+                )}
+
               <li className="cursor-pointer hover:text-blue-500">Info</li>
               <li className="cursor-pointer hover:text-blue-500">Copy</li>
               <li className="cursor-pointer hover:text-blue-500">Pin</li>
@@ -752,19 +795,19 @@ const InteractPage = () => {
         </div>
       )}
 
-      {isEditing && messageToEdit && (
+      {isEditing && currentSelectedMessage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-[95%] max-w-lg">
             <p className="text-gray-500 text-sm mb-3">Editing message...</p>
 
             <div className="bg-gray-100 p-4 rounded text-gray-700 mb-4 opacity-60 max-h-32 overflow-y-auto">
-              {messageToEdit.content.length > 100
-                ? `${messageToEdit.content.substring(0, 100)}...`
-                : messageToEdit.content}
+              {currentSelectedMessage.content.length > 100
+                ? `${currentSelectedMessage.content.substring(0, 100)}...`
+                : currentSelectedMessage.content}
             </div>
 
             <textarea
-              value={editMessage !== undefined ? editMessage : messageToEdit.content.trim()}
+              value={editMessage !== undefined ? editMessage : currentSelectedMessage.content.trim()}
               onChange={(e) => setEditMessage(e.target.value)}
               className="w-full h-32 border border-gray-300 p-3 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -783,7 +826,7 @@ const InteractPage = () => {
 
               <button
                 className="text-green-500 hover:text-green-600 text-2xl disabled:text-gray-400 disabled:cursor-not-allowed"
-                disabled={editMessage === "" || !messageToEdit.content.trim()}
+                disabled={editMessage === "" || !currentSelectedMessage.content.trim()}
                 onClick={handleEditMessage}
               >
                 ✔
@@ -1047,6 +1090,28 @@ const InteractPage = () => {
           )}
 
           <div className="relative pb-16">
+            {showReplyCard && storedReplyMessage && (
+              <div className="absolute bottom-16 w-full flex justify-center">
+                <div className="relative bg-gray-100 p-3 rounded-lg shadow-md max-w-4xl w-full mx-auto text-sm text-gray-700 opacity-70 pointer-events-auto">
+
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
+                      setShowReplyCard(false);
+                    }}
+                    className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700 transition duration-200 ease-in-out"
+                  >
+                    ✖
+                  </button>
+
+                  <p className="font-semibold">
+                    {storedReplyMessage.senderId === userId ? "You" : "Other User"}
+                  </p>
+                  <p>{storedReplyMessage.content}</p>
+                </div>
+              </div>
+            )}
+
             <div className="fixed bottom-0 w-full shadow-lg">
               <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
                 <TextArea
