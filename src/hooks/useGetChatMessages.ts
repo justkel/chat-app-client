@@ -14,6 +14,7 @@ const GET_CHAT_MESSAGES = gql`
       }
       repliedTo {
         id
+        content
       }
       status
       senderDFM
