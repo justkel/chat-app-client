@@ -296,6 +296,14 @@ const InteractPage = () => {
   useEffect(() => {
     socket.on('receiveMessage', (message) => {
       setMessages((prevMessages) => {
+        if (message.repliedTo?.id) {
+          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo.id);
+
+          if (repliedMessage) {
+            message.repliedTo.content = repliedMessage.content;
+          }
+        }
+
         const newMessages = [...prevMessages, message];
 
         if (message.sender.id !== userId && !isAtBottom) {
@@ -494,11 +502,14 @@ const InteractPage = () => {
       return;
     }
 
+    const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
+    const repliedTo = replyMessage ? JSON.parse(replyMessage).id : null;
 
     const message = {
       sender: { id: userId },
       receiver: { id: otherUserId },
       content: newMessage,
+      repliedTo,
       timestamp: new Date().toISOString(),
       status: 'SENT',
       senderDFM: false,
@@ -508,7 +519,8 @@ const InteractPage = () => {
 
     socket.emit('sendMessage', message);
     setNewMessage('');
-    localStorage.removeItem(`message_${userId}_${otherUserId}`);
+
+    localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
     setIsEmojiPickerVisible(false);
 
     setTimeout(() => {
@@ -905,10 +917,20 @@ const InteractPage = () => {
                         background: isMe
                           ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
                           : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
-                        padding: '12px 16px',
+                        padding: '12px 6px',
                         transition: 'all 0.3s ease',
                       }}
                     >
+                      {msg.repliedTo && msg.repliedTo.content && (
+                        <div className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
+                          }`}>
+                          <span className="block font-semibold opacity-80">Replied to:</span>
+                          {msg.repliedTo.content.length > 30
+                            ? msg.repliedTo.content.slice(0, 30) + "..."
+                            : msg.repliedTo.content}
+                        </div>
+                      )}
+
                       {renderMessageContent(msg)}
                       <small
                         className={`block text-xs mt-1 text-right ${isMe ? 'text-white' : 'text-black'
