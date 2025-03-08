@@ -33,6 +33,40 @@ export const useGetChatMessages = (userId: string | null, otherUserId: string | 
   return { data, loading, error, refetch };
 };
 
+
+const GET_CHAT_MESSAGES_ALL = gql`
+  query GetChatMessages($userId: ID!, $otherUserId: ID!) {
+    getChatMessages(userId: $userId, otherUserId: $otherUserId) {
+      id
+      content
+      timestamp
+      sender {
+        id
+      }
+      receiver {
+        id
+      }
+      repliedTo {
+        id
+        content
+      }
+      status
+      senderDFM
+      receiverDFM
+      delForAll
+    }
+  }
+`;
+
+export const useGetChatMessagesAll = (userId: string | null, otherUserId: string | null) => {
+  const { data, loading, error, refetch } = useQuery(GET_CHAT_MESSAGES_ALL, {
+    variables: { userId, otherUserId },
+    skip: !userId || !otherUserId,
+  });
+
+  return { data, loading, error, refetch };
+};
+
 const IS_USER_ONLINE = gql`
   query IsUserOnline($userId: ID!) {
     isUserOnline(userId: $userId) {

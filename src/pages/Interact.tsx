@@ -7,7 +7,7 @@ import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendO
 import { jwtDecode } from 'jwt-decode';
 import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
-import { useGetChatMessages, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
+import { useGetChatMessages, useGetChatMessagesAll, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById } from '../hooks/useGetOtherUser';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
@@ -23,6 +23,7 @@ const InteractPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
+  const [messagesAll, setMessagesAll] = useState<any[]>([]);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +58,7 @@ const InteractPage = () => {
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
   const { data, loading, error, refetch } = useGetChatMessages(userId, otherUserId ?? null);
+  const { data: dataAll, loading: loadingMsgAll } = useGetChatMessagesAll(userId, otherUserId ?? null);
   const { isOnline: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
@@ -86,6 +88,18 @@ const InteractPage = () => {
       setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
     }
   }, [chatSettings?.customWallpaper]);
+
+  useEffect(() => {
+    if (dataAll?.getChatMessages) {
+      setMessagesAll(dataAll.getChatMessages);
+    } else {
+      setMessagesAll([]);
+    }
+  }, [dataAll]);
+  
+  // useEffect(() => {
+  //   refetchMsgAll();
+  // }, [messages, refetchMsgAll]);
 
   // useEffect(() => {
   //   // Scroll to the bottom of the page
@@ -310,6 +324,19 @@ const InteractPage = () => {
           setNewMessageCount((prevCount) => prevCount + 1);
         }
 
+        return newMessages;
+      });
+
+      setMessagesAll((prevMessages) => {
+        if (message.repliedTo?.id) {
+          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo.id);
+
+          if (repliedMessage) {
+            message.repliedTo.content = repliedMessage.content;
+          }
+        }
+
+        const newMessages = [...prevMessages, message];
         return newMessages;
       });
 
@@ -771,7 +798,7 @@ const InteractPage = () => {
   };
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (otherUserLoading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (otherUserLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -924,7 +951,11 @@ const InteractPage = () => {
                       {msg.repliedTo && msg.repliedTo.content && (
                         <div className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
                           }`}>
-                          <span className="block font-semibold opacity-80">Replied to:</span>
+                          <span className="block font-semibold opacity-80">
+                            {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
+                              ? "You"
+                              : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                          </span>
                           {msg.repliedTo.content.length > 30
                             ? msg.repliedTo.content.slice(0, 30) + "..."
                             : msg.repliedTo.content}
