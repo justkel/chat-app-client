@@ -96,7 +96,7 @@ const InteractPage = () => {
       setMessagesAll([]);
     }
   }, [dataAll]);
-  
+
   // useEffect(() => {
   //   refetchMsgAll();
   // }, [messages, refetchMsgAll]);
@@ -105,6 +105,27 @@ const InteractPage = () => {
   //   // Scroll to the bottom of the page
   //   window.scrollTo(0, document.body.scrollHeight);
   // }, []);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setShowCard(false);
+      }
+    };
+
+    if (showCard) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCard]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -807,7 +828,7 @@ const InteractPage = () => {
 
       {showCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
+          <div ref={cardRef} className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
             <ul className="space-y-8">
               {selectedMessages.length === 1 && (() => {
                 const firstSelectedMessage = messages.find(msg => msg.id === selectedMessages[0]);
@@ -818,13 +839,11 @@ const InteractPage = () => {
                   </li>
                 )}
 
-              {selectedMessages.length === 1 && (() => {
-                return messages.find(msg => msg.id === selectedMessages[0]);
-              })() && (
-                  <li className="cursor-pointer hover:text-blue-500" onClick={messageReply}>
-                    Reply
-                  </li>
-                )}
+              {selectedMessages.length === 1 && messages.find(msg => msg.id === selectedMessages[0]) && (
+                <li className="cursor-pointer hover:text-blue-500" onClick={messageReply}>
+                  Reply
+                </li>
+              )}
 
               <li className="cursor-pointer hover:text-blue-500">Info</li>
               <li className="cursor-pointer hover:text-blue-500">Copy</li>
