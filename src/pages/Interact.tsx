@@ -201,19 +201,19 @@ const InteractPage = () => {
   const formatTimestampV2 = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-  
+
     const formattedTime = date.toLocaleString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
-  
+
     const formattedDate = date.toLocaleString("en-US", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
     });
-  
+
     if (date.toDateString() === now.toDateString()) {
       return (
         <span>
@@ -221,7 +221,7 @@ const InteractPage = () => {
         </span>
       );
     }
-  
+
     const yesterday = new Date();
     yesterday.setDate(now.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) {
@@ -231,13 +231,13 @@ const InteractPage = () => {
         </span>
       );
     }
-  
+
     return (
       <span>
         {formattedDate} {formattedTime}
       </span>
     );
-  };  
+  };
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -899,11 +899,11 @@ const InteractPage = () => {
   return (
     <div>
       {showInfoCard && (
-        <div className="fixed inset-0 h-screen bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="relative bg-gray-100 p-3 rounded-lg shadow-md max-w-4xl w-full mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
+        <div className="fixed inset-0 h-screen w-screen bg-black/50 flex justify-center z-[9999]">
+          <div className="relative bg-gray-100 p-3 rounded-lg shadow-md w-screen mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
             <button
               onClick={closeInfoCard}
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-xl sm:text-2xl text-gray-500 hover:text-gray-700 transition duration-200 ease-in-out"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-xl sm:text-2xl text-gray-500 mr-10 hover:text-gray-700 transition duration-200 ease-in-out"
             >
               ✖
             </button>
@@ -913,7 +913,7 @@ const InteractPage = () => {
               {currentSelectedMessage.timestamp && formatTimestamp(currentSelectedMessage.timestamp)}
             </p>
 
-            <div className="flex justify-end mr-3 mt-5">
+            <div className="flex justify-end mt-5 mr-10">
               <div
                 className="relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform bg-gradient-to-r from-blue-500 to-blue-700 text-white break-words hover:scale-105 hover:shadow-xl"
                 style={{
@@ -1009,8 +1009,8 @@ const InteractPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-col text-lg font-semibold mt-2">
-              <span className="flex items-center mb-7 gap-4">
+            <div className="flex flex-col text-lg font-semibold mt-2 mr-10">
+              <span className="flex items-center mb-7 justify-between gap-4">
                 <span className="flex items-center gap-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1029,12 +1029,12 @@ const InteractPage = () => {
                   </svg>
                   Read
                 </span>
-                <span className="ml-4 text-sm">
+                <span className="ml-auto text-sm">
                   {currentSelectedMessage.status.toLowerCase() === "read" ? "Yes" : "-"}
                 </span>
               </span>
 
-              <span className="flex items-center mb-7 gap-4">
+              <span className="flex items-center mb-7 justify-between gap-4">
                 <span className="flex items-center gap-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1053,10 +1053,10 @@ const InteractPage = () => {
                   </svg>
                   Delivered
                 </span>
-                <span className="text-sm ml-4">
+                <span className="text-sm ml-auto">
                   {currentSelectedMessage.status.toLowerCase() !== "sent" &&
                     currentSelectedMessage.deliveredAt ? (
-                    (formatTimestampV2(currentSelectedMessage.deliveredAt))
+                    formatTimestampV2(currentSelectedMessage.deliveredAt)
                   ) : (
                     "-"
                   )}
