@@ -456,11 +456,17 @@ const ChatPage = () => {
                                                                                 )}
                                                                             </span>
                                                                         )}
-                                                                        <span>{lastMessage.content}</span>
+                                                                        <span className="truncate block max-w-full">
+                                                                            {lastMessage.content.length > 100 ? lastMessage.content.slice(0, 100) + "..." : lastMessage.content}
+                                                                        </span>
+
                                                                     </span>
                                                                 </>
                                                             ) : (
-                                                                lastMessage.content
+                                                                <span className="truncate block max-w-full">
+                                                                    {lastMessage.content.length > 100 ? lastMessage.content.slice(0, 100) + "..." : lastMessage.content}
+                                                                </span>
+
                                                             )}
                                                         </span>
                                                         <span className="text-md text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>

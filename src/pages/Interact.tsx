@@ -5,6 +5,7 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
+import dayjs from 'dayjs';
 import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useGetChatMessagesAll, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
@@ -13,6 +14,7 @@ import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
+import { ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 
 const { TextArea } = Input;
@@ -36,6 +38,7 @@ const InteractPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showReplyCard, setShowReplyCard] = useState(false);
+  const [showInfoCard, setShowInfoCard] = useState(false);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const navigate = useNavigate();
 
@@ -181,6 +184,61 @@ const InteractPage = () => {
     }
   }, [errorOccurred, navigate]);
 
+  const formatTimestamp = (timestamp: string) => {
+    const messageDate = dayjs(timestamp);
+    const today = dayjs();
+    const yesterday = today.subtract(1, 'day');
+
+    if (messageDate.isSame(today, 'day')) {
+      return 'Today';
+    } else if (messageDate.isSame(yesterday, 'day')) {
+      return 'Yesterday';
+    } else {
+      return messageDate.format('DD/MM/YY');
+    }
+  };
+
+  const formatTimestampV2 = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+  
+    const formattedTime = date.toLocaleString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  
+    const formattedDate = date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
+  
+    if (date.toDateString() === now.toDateString()) {
+      return (
+        <span>
+          <span className="text-blue-500">today</span> {formattedTime}
+        </span>
+      );
+    }
+  
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return (
+        <span>
+          <span className="text-red-500">yesterday</span> {formattedTime}
+        </span>
+      );
+    }
+  
+    return (
+      <span>
+        {formattedDate} {formattedTime}
+      </span>
+    );
+  };  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -220,7 +278,9 @@ const InteractPage = () => {
 
           setMessages((prev) =>
             prev.map((message) =>
-              message.id === msg.id ? { ...message, status: 'DELIVERED' } : message
+              message.id === msg.id
+                ? { ...message, status: 'DELIVERED', deliveredAt: new Date() }
+                : message
             )
           );
 
@@ -230,8 +290,10 @@ const InteractPage = () => {
             content: msg.content,
             timestamp: msg.timestamp,
             status: 'DELIVERED',
+            deliveredAt: new Date(),
             id: msg.id,
           };
+
           socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
         } catch (err) {
           console.error('Error updating message statuses:', err);
@@ -262,6 +324,7 @@ const InteractPage = () => {
             timestamp: msg.timestamp,
             status: 'READ',
             id: msg.id,
+            deliveredAt: msg.deliveredAt,
           };
 
           socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
@@ -283,6 +346,7 @@ const InteractPage = () => {
               timestamp: msg.timestamp,
               status: 'READ',
               id: msg.id,
+              deliveredAt: msg.deliveredAt,
             };
 
             socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
@@ -329,10 +393,10 @@ const InteractPage = () => {
   }, [user, otherUserId]);
 
   useEffect(() => {
-    socket.on('receiveMessage', (message) => {
+    socket.on('receiveMessage', (message: ChatMessage) => {
       setMessages((prevMessages) => {
         if (message.repliedTo?.id) {
-          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo.id);
+          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo?.id);
 
           if (repliedMessage) {
             message.repliedTo.content = repliedMessage.content;
@@ -350,7 +414,7 @@ const InteractPage = () => {
 
       setMessagesAll((prevMessages) => {
         if (message.repliedTo?.id) {
-          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo.id);
+          const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo?.id);
 
           if (repliedMessage) {
             message.repliedTo.content = repliedMessage.content;
@@ -366,7 +430,7 @@ const InteractPage = () => {
       }
     });
 
-    socket.on('userTyping', ({ userId: typingUserId, typing }) => {
+    socket.on('userTyping', ({ userId: typingUserId, typing }: UserTypingEvent) => {
       if (typingUserId !== userId) {
         setIsOtherUserTyping(typing);
       }
@@ -380,7 +444,7 @@ const InteractPage = () => {
     //   );
     // });
 
-    socket.on('messageStatusUpdatedToRead', (updatedMessage) => { //Found the delete issue
+    socket.on('messageStatusUpdatedToRead', (updatedMessage: ChatMessage) => { //Found the delete issue
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === updatedMessage.id
@@ -390,13 +454,13 @@ const InteractPage = () => {
       );
     });
 
-    socket.on('messagesDeletedForEveryone', ({ messageIds }) => {
+    socket.on('messagesDeletedForEveryone', ({ messageIds }: { messageIds: string[] }) => {
       setMessages((prevMessages) =>
         prevMessages.filter((msg) => !messageIds.includes(msg.id))
       );
     });
 
-    socket.on('messageEdited', (updatedMessage) => {
+    socket.on('messageEdited', (updatedMessage: ChatMessage) => {
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === updatedMessage.id ? { ...msg, content: updatedMessage.content } : msg
@@ -812,9 +876,19 @@ const InteractPage = () => {
     );
   };
 
+  const viewMessageInfo = () => {
+    setShowCard(false);
+    setShowInfoCard(true);
+  };
+
 
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
+    setSelectedMessages([]);
+  };
+
+  const closeInfoCard = () => {
+    setShowInfoCard(false);
     setSelectedMessages([]);
   };
 
@@ -824,6 +898,174 @@ const InteractPage = () => {
 
   return (
     <div>
+      {showInfoCard && (
+        <div className="fixed inset-0 h-screen bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="relative bg-gray-100 p-3 rounded-lg shadow-md max-w-4xl w-full mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
+            <button
+              onClick={closeInfoCard}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-xl sm:text-2xl text-gray-500 hover:text-gray-700 transition duration-200 ease-in-out"
+            >
+              ✖
+            </button>
+
+            <p className="font-semibold text-center text-xl mb-5">Message info</p>
+            <p className="font-semibold text-center text-md">
+              {currentSelectedMessage.timestamp && formatTimestamp(currentSelectedMessage.timestamp)}
+            </p>
+
+            <div className="flex justify-end mr-3 mt-5">
+              <div
+                className="relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform bg-gradient-to-r from-blue-500 to-blue-700 text-white break-words hover:scale-105 hover:shadow-xl"
+                style={{
+                  wordBreak: 'break-word',
+                  borderRadius: '16px 0 16px 16px',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                  padding: '12px 6px',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
+                  <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
+                    <span className="block font-semibold opacity-80">
+                      {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
+                        ? "You"
+                        : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                    </span>
+                    {currentSelectedMessage.repliedTo.content.length > 30
+                      ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
+                      : currentSelectedMessage.repliedTo.content}
+                  </div>
+                )}
+
+                <p className="font-semibold text-center">
+                  {currentSelectedMessage.content.length > 150
+                    ? `${currentSelectedMessage.content.slice(0, 150)}...`
+                    : currentSelectedMessage.content}
+                </p>
+
+                <small className="block text-xs mt-1 text-right text-white">
+                  {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}
+                </small>
+
+                <div className="flex items-center justify-end mt-1">
+                  {currentSelectedMessage.status.toLowerCase() === 'sent' && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="tick-icon"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                  {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="16"
+                      viewBox="0 0 32 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="tick-icon"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                      <polyline points="26 6 15 17 20 12" />
+                    </svg>
+                  )}
+                  {currentSelectedMessage.status.toLowerCase() === 'read' && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="16"
+                      viewBox="0 0 32 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="tick-icon text-blue-900"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                      <polyline points="26 6 15 17 20 12" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col text-lg font-semibold mt-2">
+              <span className="flex items-center mb-7 gap-4">
+                <span className="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="16"
+                    viewBox="0 0 32 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="tick-icon text-green-600 mb-1"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                    <polyline points="26 6 15 17 20 12" />
+                  </svg>
+                  Read
+                </span>
+                <span className="ml-4 text-sm">
+                  {currentSelectedMessage.status.toLowerCase() === "read" ? "Yes" : "-"}
+                </span>
+              </span>
+
+              <span className="flex items-center mb-7 gap-4">
+                <span className="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="16"
+                    viewBox="0 0 32 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="tick-icon mb-1"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                    <polyline points="26 6 15 17 20 12" />
+                  </svg>
+                  Delivered
+                </span>
+                <span className="text-sm ml-4">
+                  {currentSelectedMessage.status.toLowerCase() !== "sent" &&
+                    currentSelectedMessage.deliveredAt ? (
+                    (formatTimestampV2(currentSelectedMessage.deliveredAt))
+                  ) : (
+                    "-"
+                  )}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
 
       {showCard && (
@@ -845,7 +1087,9 @@ const InteractPage = () => {
                 </li>
               )}
 
-              <li className="cursor-pointer hover:text-blue-500">Info</li>
+              {selectedMessages.length === 1 && messages.find(msg => msg.id === selectedMessages[0] && msg.sender.id === userId) && (
+                <li className="cursor-pointer hover:text-blue-500" onClick={viewMessageInfo}>Info</li>
+              )}
               <li className="cursor-pointer hover:text-blue-500">Copy</li>
               <li className="cursor-pointer hover:text-blue-500">Pin</li>
             </ul>

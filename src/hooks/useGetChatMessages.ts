@@ -20,6 +20,7 @@ const GET_CHAT_MESSAGES = gql`
       senderDFM
       receiverDFM
       delForAll
+      deliveredAt
     }
   }
 `;
@@ -54,6 +55,7 @@ const GET_CHAT_MESSAGES_ALL = gql`
       senderDFM
       receiverDFM
       delForAll
+      deliveredAt
     }
   }
 `;
