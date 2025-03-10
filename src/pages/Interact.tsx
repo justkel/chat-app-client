@@ -673,20 +673,18 @@ const InteractPage = () => {
   const renderMessageContent = (message: any) => {
     const { truncated, fullContent } = truncateMessage(message.content);
 
-    // If the message is long and needs truncation
+    const isExpanded = expandedMessages.has(message.id);
+
     if (fullContent) {
-      const isExpanded = expandedMessages.has(message.id);
       return (
         <>
           <span>{isExpanded ? fullContent : truncated}</span>
-          {!isExpanded && (
-            <button
-              onClick={() => handleReadMore(message.id)}
-              className="text-yellow-800 text-sm"
-            >
-              Read More
-            </button>
-          )}
+          <button
+            onClick={() => handleReadMore(message.id)}
+            className="text-yellow-800 text-sm ml-2"
+          >
+            {isExpanded ? " Show Less" : " Read More"}
+          </button>
         </>
       );
     }
