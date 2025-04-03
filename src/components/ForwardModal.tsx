@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftOutlined, SearchOutlined, CheckCircleFilled } from '@ant-design/icons';
+import { ArrowLeftOutlined, SearchOutlined, CheckCircleFilled, SendOutlined } from '@ant-design/icons';
 
 interface User {
     id: string;
@@ -25,7 +25,7 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
         setSelectedUsers((prevSelected) =>
             prevSelected.includes(userId)
                 ? prevSelected.filter(id => id !== userId)
-                : [...prevSelected, userId] 
+                : [...prevSelected, userId]
         );
     };
 
@@ -33,22 +33,27 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
         user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const selectedUserNames = data
+        .filter(user => selectedUsers.includes(user.id))
+        .map(user => user.fullName)
+        .join(', ');
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-[600px] relative">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-[600px] relative flex flex-col">
+                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <ArrowLeftOutlined
                         className="text-xl cursor-pointer"
                         onClick={() => setShowModal(false)}
                     />
                     <p className="font-semibold text-2xl">Forward to ...</p>
-                    <SearchOutlined 
-                        className="text-xl cursor-pointer" 
-                        onClick={() => setShowSearch(!showSearch)} 
+                    <SearchOutlined
+                        className="text-xl cursor-pointer"
+                        onClick={() => setShowSearch(!showSearch)}
                     />
                 </div>
 
-                {/* Search Input (Shown only when search is activated) */}
                 {showSearch && (
                     <input
                         type="text"
@@ -59,7 +64,7 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
                     />
                 )}
 
-                <div className="mt-6">
+                <div className="flex-grow overflow-y-auto">
                     <p className="font-semibold text-xl">Chats List</p>
                     <div className="space-y-6 mt-4">
                         {filteredUsers.length > 0 ? (
@@ -96,6 +101,20 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
                             <p className="text-gray-500">No users found</p>
                         )}
                     </div>
+                </div>
+
+                <div className="mt-6 border-t pt-4 flex justify-between items-center">
+                    <p className="text-gray-700 truncate max-w-[80%]">
+                        {selectedUserNames || 'No user selected'}
+                    </p>
+
+                    <button 
+                        className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400"
+                        disabled={selectedUsers.length === 0}
+                    >
+                        <SendOutlined />
+                        Send
+                    </button>
                 </div>
             </div>
         </div>

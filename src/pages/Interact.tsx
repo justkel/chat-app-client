@@ -1156,7 +1156,7 @@ const InteractPage = () => {
             <div>
               <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
               <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
-              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12"  onClick={handleForward}/>
+              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" onClick={handleForward} />
               <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
             </div>
           </div>
@@ -1458,10 +1458,11 @@ const InteractPage = () => {
 
                 <button
                   onClick={sendMessage}
-                  className="flex items-center justify-center bg-blue-500 text-white w-12 h-12 rounded-full hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
                   disabled={!newMessage.trim()}
                 >
-                  <SendOutlined style={{ fontSize: '24px' }} />
+                  <SendOutlined style={{ fontSize: '20px' }} />
+                  Send
                 </button>
               </div>
 
