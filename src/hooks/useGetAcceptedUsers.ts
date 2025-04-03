@@ -19,3 +19,24 @@ export const useGetAcceptedChatUsers = (userId: string | null) => {
 
   return { data, loading, error };
 };
+
+const GET_USERS_TO_FORWARD_TO = gql`
+  query GetUsersToForwardTo($userId: ID!) {
+    getUsersToForwardTo(userId: $userId) {
+      id
+      fullName
+      email
+      profilePicture
+    }
+  }
+`;
+
+export const useGetUsersToForwardTo = (userId: string | null) => {
+  const { data, loading, error } = useQuery(GET_USERS_TO_FORWARD_TO, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  return { data, loading, error };
+};
+

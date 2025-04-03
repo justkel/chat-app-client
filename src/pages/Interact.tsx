@@ -16,6 +16,8 @@ import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
 import { ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
+import ForwardModal from '../components/ForwardModal';
+import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 
 const { TextArea } = Input;
 
@@ -39,6 +41,7 @@ const InteractPage = () => {
   const [showCard, setShowCard] = useState(false);
   const [showReplyCard, setShowReplyCard] = useState(false);
   const [showInfoCard, setShowInfoCard] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
   const [errorOccurred, setErrorOccurred] = useState(false);
   const navigate = useNavigate();
 
@@ -65,6 +68,7 @@ const InteractPage = () => {
   const { isOnline: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
+  const { data: usersForForward } = useGetUsersToForwardTo(userId);
   const { updateMessageStatus } = useUpdateMessageStatus();
   const { deleteMessages } = useDeleteMessages();
   const { deleteMessagesForEveryone } = useDeleteMessagesForEveryone();
@@ -842,6 +846,10 @@ const InteractPage = () => {
     setShowDeleteModal(true);
   };
 
+  const handleForward = () => {
+    setShowForwardModal(true);
+  };
+
   const handleArrowBack = () => {
     setSelectedMessages([]);
     setShowCard(false);
@@ -1065,6 +1073,7 @@ const InteractPage = () => {
         </div>
       )}
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
+      <ForwardModal showModal={showForwardModal} setShowModal={setShowForwardModal} data={usersForForward?.getUsersToForwardTo || []} />
 
       {showCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1147,7 +1156,7 @@ const InteractPage = () => {
             <div>
               <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
               <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
-              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" />
+              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12"  onClick={handleForward}/>
               <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
             </div>
           </div>
