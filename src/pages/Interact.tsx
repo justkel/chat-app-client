@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
-import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PaperClipOutlined, CloseOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
 import socket from '../socket';
@@ -52,6 +52,7 @@ const InteractPage = () => {
   const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   useEffect(() => {
     if (selectedMessages.length === 1) {
@@ -936,6 +937,18 @@ const InteractPage = () => {
     setSelectedMessages([]);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setSelectedImages((prev) => [...prev, ...fileArray]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
@@ -1505,11 +1518,30 @@ const InteractPage = () => {
                     setNewMessage(e.target.value);
                     handleTyping();
                   }}
-                  placeholder="Type your message..."
+                  placeholder={
+                    selectedImages.length > 0
+                      ? "Remove image(s) to type a message..."
+                      : "Type your message..."
+                  }
                   aria-label="Message Input"
-                  className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                  className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
                   rows={2}
+                  disabled={selectedImages.length > 0}
                 />
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    id="image-upload"
+                    onChange={handleImageChange}
+                  />
+                  <label htmlFor="image-upload" className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition duration-200 ease-in-out cursor-pointer">
+                    <PaperClipOutlined className="text-xl" />
+                  </label>
+                </div>
 
                 <button
                   onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
@@ -1518,15 +1550,45 @@ const InteractPage = () => {
                   <span role="img" aria-label="emoji" className="text-xl">😊</span>
                 </button>
 
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-                  disabled={!newMessage.trim()}
-                >
-                  <SendOutlined style={{ fontSize: '20px' }} />
-                  Send
-                </button>
+                {selectedImages.length === 0 ? (
+                  <button
+                    onClick={sendMessage}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
+                    disabled={!newMessage.trim()}
+                  >
+                    <SendOutlined style={{ fontSize: '20px' }} />
+                    Send
+                  </button>
+                ) : (
+                  <button
+                    // onClick={sendImageMessage}
+                    className="bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-green-700 shadow-lg transition duration-200 ease-in-out"
+                  >
+                    <SendOutlined style={{ fontSize: '20px' }} />
+                    Send Image{selectedImages.length > 1 ? "s" : ""}
+                  </button>
+                )}
               </div>
+
+              {selectedImages.length > 0 && (
+                <div className="flex flex-wrap gap-3 px-6 pb-2">
+                  {selectedImages.map((image, index) => (
+                    <div key={index} className="relative w-20 h-20 border rounded-lg overflow-hidden shadow-sm">
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt={`preview-${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-0 right-0 bg-white bg-opacity-80 p-1 rounded-bl"
+                      >
+                        <CloseOutlined className="text-xs text-red-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {isEmojiPickerVisible && (
                 <div className="absolute bottom-20 left-0 z-10 w-100 p-2 bg-white border rounded-lg shadow-xl overflow-auto scrollbar-hidden">
