@@ -12,9 +12,10 @@ interface ForwardModalProps {
     showModal: boolean;
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
     data: User[];
+    onSendForwardedMessage: (selectedUsers: string[]) => void;
 }
 
-const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, data }) => {
+const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, data, onSendForwardedMessage }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showSearch, setShowSearch] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -27,6 +28,12 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
                 ? prevSelected.filter(id => id !== userId)
                 : [...prevSelected, userId]
         );
+    };
+
+    const handleSendClick = () => {
+        // Call the parent's callback and send the selected users
+        onSendForwardedMessage(selectedUsers);
+        setShowModal(false);
     };
 
     const filteredUsers = data?.filter(user =>
@@ -109,6 +116,7 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
                     </p>
 
                     <button 
+                        onClick={handleSendClick}
                         className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400"
                         disabled={selectedUsers.length === 0}
                     >

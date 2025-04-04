@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
-import { ArrowLeftOutlined, DeleteOutlined, ForwardOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined } from '@ant-design/icons';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
 import socket from '../socket';
@@ -18,6 +18,8 @@ import { ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 import ForwardModal from '../components/ForwardModal';
 import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShare } from '@fortawesome/free-solid-svg-icons';
 
 const { TextArea } = Input;
 
@@ -850,6 +852,42 @@ const InteractPage = () => {
     setShowForwardModal(true);
   };
 
+  const handleSendForwardedMessage = (selectedUsers: string[]) => {
+    if (!currentSelectedMessage) return;
+
+    selectedUsers.forEach((uid, index) => {
+      socket.emit('joinRoom', { userId: userId, otherUserId: uid });
+
+      const message = {
+        sender: { id: userId },
+        receiver: { id: uid },
+        content: currentSelectedMessage.content,
+        repliedTo: null,
+        timestamp: new Date().toISOString(),
+        status: 'SENT',
+        senderDFM: false,
+        receiverDFM: false,
+        delForAll: false,
+        wasForwarded: true,
+      };
+
+      socket.emit('sendMessage', message);
+      setSelectedMessages([]);
+
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500);
+
+      if (index === 0) {
+        navigate(`/chat/${uid}`);
+      }
+    });
+
+    setShowForwardModal(false);
+  };
+
   const handleArrowBack = () => {
     setSelectedMessages([]);
     setShowCard(false);
@@ -940,6 +978,13 @@ const InteractPage = () => {
                     {currentSelectedMessage.repliedTo.content.length > 30
                       ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
                       : currentSelectedMessage.repliedTo.content}
+                  </div>
+                )}
+
+                {currentSelectedMessage.wasForwarded && (
+                  <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                    <FontAwesomeIcon icon={faShare} className="mr-1" />
+                    Forwarded
                   </div>
                 )}
 
@@ -1073,7 +1118,12 @@ const InteractPage = () => {
         </div>
       )}
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
-      <ForwardModal showModal={showForwardModal} setShowModal={setShowForwardModal} data={usersForForward?.getUsersToForwardTo || []} />
+      <ForwardModal
+        showModal={showForwardModal}
+        setShowModal={setShowForwardModal}
+        data={usersForForward?.getUsersToForwardTo || []}
+        onSendForwardedMessage={handleSendForwardedMessage}
+      />
 
       {showCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1156,7 +1206,12 @@ const InteractPage = () => {
             <div>
               <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
               <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
-              <ForwardOutlined className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12" onClick={handleForward} />
+              <FontAwesomeIcon
+                icon={faShare}
+                size="lg"
+                className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12"
+                onClick={handleForward}
+              />
               <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
             </div>
           </div>
@@ -1229,6 +1284,13 @@ const InteractPage = () => {
                           {msg.repliedTo.content.length > 30
                             ? msg.repliedTo.content.slice(0, 30) + "..."
                             : msg.repliedTo.content}
+                        </div>
+                      )}
+
+                      {msg.wasForwarded && (
+                        <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                          <FontAwesomeIcon icon={faShare} className="mr-1" />
+                          Forwarded
                         </div>
                       )}
 

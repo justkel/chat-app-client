@@ -29,6 +29,7 @@ export type ChatMessage = {
   delForAll: boolean;
   isEdited: boolean;
   deliveredAt?: Date | null;
+  wasForwarded: boolean;
 };
 
 export type UserTypingEvent = {

@@ -18,6 +18,7 @@ const GET_LAST_MESSAGES = gql`
       senderDFM
       receiverDFM
       delForAll
+      wasForwarded
     }
   }
 `;
@@ -69,6 +70,7 @@ const GET_LAST_VALID_MESSAGES = gql`
         senderDFM
         receiverDFM
         delForAll
+        wasForwarded
       }
     }
   }
