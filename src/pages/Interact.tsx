@@ -649,6 +649,41 @@ const InteractPage = () => {
     }, 500);
   };
 
+  const uploadImageAndSend = async () => {
+    if (!selectedImages.length || !userId || !otherUserId) return;
+
+    const formData = new FormData();
+
+    selectedImages.forEach((file) => {
+      formData.append('images', file); // Key must match backend interceptor field name
+    });
+
+    formData.append('senderId', userId ?? '');
+    formData.append('receiverId', otherUserId ?? '');
+
+    const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
+    const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
+    formData.append('repliedTo', repliedTo.toString());
+
+    try {
+      const response = await fetch('http://localhost:5002/chat-control/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const messages = await response.json();
+
+      messages.forEach((msg: any) => {
+        socket.emit('sendMessage', msg);
+      });
+
+      setSelectedImages([]);
+    } catch (err) {
+      console.error('Image upload failed:', err);
+    }
+  };
+
+
   const truncateMessage = (content: string) => {
     if (content.length > maxLength) {
       return {
@@ -1561,11 +1596,14 @@ const InteractPage = () => {
                   </button>
                 ) : (
                   <button
-                    // onClick={sendImageMessage}
-                    className="bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-green-700 shadow-lg transition duration-200 ease-in-out"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      uploadImageAndSend();
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
                   >
                     <SendOutlined style={{ fontSize: '20px' }} />
-                    Send Image{selectedImages.length > 1 ? "s" : ""}
+                    Send
                   </button>
                 )}
               </div>
