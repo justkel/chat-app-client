@@ -8,6 +8,7 @@ import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
+import { CameraOutlined } from '@ant-design/icons';
 import socket from '../socket';
 
 const ChatPage = () => {
@@ -457,14 +458,32 @@ const ChatPage = () => {
                                                                             </span>
                                                                         )}
                                                                         <span className="truncate block max-w-full">
-                                                                            {lastMessage.content.length > 100 ? lastMessage.content.slice(0, 100) + "..." : lastMessage.content}
+                                                                            {lastMessage.content.startsWith('/chat-uploads') ? (
+                                                                                <span className="flex items-center gap-1 text-gray-600">
+                                                                                    <CameraOutlined />
+                                                                                    <span>Photo</span>
+                                                                                </span>
+                                                                            ) : (
+                                                                                lastMessage.content.length > 100
+                                                                                    ? lastMessage.content.slice(0, 100) + "..."
+                                                                                    : lastMessage.content
+                                                                            )}
                                                                         </span>
 
                                                                     </span>
                                                                 </>
                                                             ) : (
                                                                 <span className="truncate block max-w-full">
-                                                                    {lastMessage.content.length > 100 ? lastMessage.content.slice(0, 100) + "..." : lastMessage.content}
+                                                                    {lastMessage.content.startsWith('/chat-uploads') ? (
+                                                                        <span className="flex items-center gap-1 text-gray-600">
+                                                                            <CameraOutlined />
+                                                                            <span>Photo</span>
+                                                                        </span>
+                                                                    ) : (
+                                                                        lastMessage.content.length > 100
+                                                                            ? lastMessage.content.slice(0, 100) + "..."
+                                                                            : lastMessage.content
+                                                                    )}
                                                                 </span>
 
                                                             )}

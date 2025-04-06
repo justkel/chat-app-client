@@ -60,7 +60,7 @@ const InteractPage = () => {
       msg.content?.startsWith('/chat-uploads')
     );
   }, [messages]);
-  
+
   const selectedImage =
     selectedImageIndex !== null
       ? `http://localhost:5002${imageMessages[selectedImageIndex]?.content}`
@@ -1079,9 +1079,20 @@ const InteractPage = () => {
                         ? "You"
                         : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
                     </span>
-                    {currentSelectedMessage.repliedTo.content.length > 30
-                      ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
-                      : currentSelectedMessage.repliedTo.content}
+                    {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads')
+                      ? (
+                        <img
+                          src={`http://localhost:5002${currentSelectedMessage.repliedTo.content}`}
+                          alt="reply"
+                          className="w-20 h-20 object-cover rounded-md shadow"
+                        />
+                      )
+                      : (
+                        currentSelectedMessage.repliedTo.content.length > 30
+                          ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
+                          : currentSelectedMessage.repliedTo.content
+                      )
+                    }
                   </div>
                 )}
 
@@ -1385,9 +1396,17 @@ const InteractPage = () => {
                               ? "You"
                               : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
                           </span>
-                          {msg.repliedTo.content.length > 30
-                            ? msg.repliedTo.content.slice(0, 30) + "..."
-                            : msg.repliedTo.content}
+                          {msg.repliedTo.content.startsWith('/chat-uploads') ? (
+                            <img
+                              src={`http://localhost:5002${msg.repliedTo.content}`}
+                              alt="Reply preview"
+                              className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
+                            />
+                          ) : (
+                            msg.repliedTo.content.length > 30
+                              ? msg.repliedTo.content.slice(0, 30) + "..."
+                              : msg.repliedTo.content
+                          )}
                         </div>
                       )}
 
@@ -1651,7 +1670,16 @@ const InteractPage = () => {
                   <p className="font-semibold">
                     {storedReplyMessage.senderId === userId ? "You" : "Other User"}
                   </p>
-                  <p>{storedReplyMessage.content}</p>
+                  {storedReplyMessage.content.startsWith('/chat-uploads') ? (
+                    <img
+                      src={`http://localhost:5002${storedReplyMessage.content}`}
+                      alt="Reply preview"
+                      className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md cursor-pointer transition-transform hover:scale-105"
+                      onClick={() => openImage(`http://localhost:5002${storedReplyMessage.content}`)}
+                    />
+                  ) : (
+                    <p>{storedReplyMessage.content}</p>
+                  )}
                 </div>
               </div>
             )}
