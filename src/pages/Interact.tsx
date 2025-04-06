@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Avatar, Input, Spin, notification } from 'antd';
+import { Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PaperClipOutlined, CloseOutlined } from '@ant-design/icons';
@@ -53,10 +53,43 @@ const InteractPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
-  const openImage = (url: string) => setSelectedImage(url);
-  const closeImage = () => setSelectedImage(null);
+  const imageMessages = useMemo(() => {
+    return messages.filter((msg) =>
+      msg.content?.startsWith('/chat-uploads')
+    );
+  }, [messages]);
+  
+  const selectedImage =
+    selectedImageIndex !== null
+      ? `http://localhost:5002${imageMessages[selectedImageIndex]?.content}`
+      : undefined;
+
+
+  const openImage = (imageUrl: string) => {
+    const index = imageMessages.findIndex(
+      (msg) => `http://localhost:5002${msg.content}` === imageUrl
+    );
+    if (index !== -1) setSelectedImageIndex(index);
+  };
+
+  const goPrev = () => {
+    if (selectedImageIndex && selectedImageIndex > 0) {
+      setSelectedImageIndex((prev) => prev! - 1);
+    }
+  };
+
+  const goNext = () => {
+    if (selectedImageIndex && selectedImageIndex < imageMessages.length - 1) {
+      setSelectedImageIndex((prev) => prev! + 1);
+    }
+  };
+
+  const closeImage = () => {
+    setSelectedImageIndex(null);
+  };
+
 
 
   useEffect(() => {
@@ -116,10 +149,10 @@ const InteractPage = () => {
   //   refetchMsgAll();
   // }, [messages, refetchMsgAll]);
 
-  // useEffect(() => {
-  //   // Scroll to the bottom of the page
-  //   window.scrollTo(0, document.body.scrollHeight);
-  // }, []);
+  useEffect(() => {
+    // Scroll to the bottom of the page
+    window.scrollTo(0, document.body.scrollHeight);
+  }, []);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -723,14 +756,17 @@ const InteractPage = () => {
 
     if (isImage) {
       return (
-        <Avatar
-          shape="square"
-          size={128}
-          src={imageUrl}
-          alt="chat image"
-          className="rounded-lg shadow-md cursor-pointer transition-transform hover:scale-105"
+        <div
+          className="w-40 h-40 rounded-xl overflow-hidden shadow-lg cursor-pointer transition-transform hover:scale-105 bg-white"
           onClick={() => openImage(imageUrl)}
-        />
+        >
+          <img
+            src={imageUrl}
+            alt=""
+            className="max-w-xs max-h-64 object-cover"
+          />
+        </div>
+
       );
     }
 
@@ -1542,7 +1578,7 @@ const InteractPage = () => {
             </div>
           )}
 
-          {selectedImage && (
+          {/* {selectedImage && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
               <div className="relative">
                 <img
@@ -1550,6 +1586,43 @@ const InteractPage = () => {
                   alt="preview"
                   className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
                 />
+                <button
+                  onClick={closeImage}
+                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
+                >
+                  ❌
+                </button>
+              </div>
+            </div>
+          )} */}
+
+          {selectedImageIndex !== null && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
+              <div className="relative flex items-center">
+                {selectedImageIndex > 0 && (
+                  <button
+                    onClick={goPrev}
+                    className="absolute left-4 text-white text-4xl hover:scale-110 transition-transform"
+                  >
+                    ❮
+                  </button>
+                )}
+
+                <img
+                  src={selectedImage}
+                  alt="preview"
+                  className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
+                />
+
+                {selectedImageIndex < imageMessages.length - 1 && (
+                  <button
+                    onClick={goNext}
+                    className="absolute right-4 text-white text-4xl hover:scale-110 transition-transform"
+                  >
+                    ❯
+                  </button>
+                )}
+
                 <button
                   onClick={closeImage}
                   className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
