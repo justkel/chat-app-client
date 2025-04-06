@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Input, Spin, notification } from 'antd';
+import { Avatar, Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PaperClipOutlined, CloseOutlined } from '@ant-design/icons';
@@ -53,6 +53,11 @@ const InteractPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const openImage = (url: string) => setSelectedImage(url);
+  const closeImage = () => setSelectedImage(null);
+
 
   useEffect(() => {
     if (selectedMessages.length === 1) {
@@ -713,8 +718,23 @@ const InteractPage = () => {
   };
 
   const renderMessageContent = (message: any) => {
-    const { truncated, fullContent } = truncateMessage(message.content);
+    const isImage = message.content?.startsWith("/chat-uploads/");
+    const imageUrl = `http://localhost:5002${message.content}`;
 
+    if (isImage) {
+      return (
+        <Avatar
+          shape="square"
+          size={128}
+          src={imageUrl}
+          alt="chat image"
+          className="rounded-lg shadow-md cursor-pointer transition-transform hover:scale-105"
+          onClick={() => openImage(imageUrl)}
+        />
+      );
+    }
+
+    const { truncated, fullContent } = truncateMessage(message.content);
     const isExpanded = expandedMessages.has(message.id);
 
     if (fullContent) {
@@ -1518,6 +1538,24 @@ const InteractPage = () => {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {selectedImage && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
+              <div className="relative">
+                <img
+                  src={selectedImage}
+                  alt="preview"
+                  className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
+                />
+                <button
+                  onClick={closeImage}
+                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
+                >
+                  ❌
+                </button>
               </div>
             </div>
           )}
