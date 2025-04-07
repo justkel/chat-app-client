@@ -1040,6 +1040,24 @@ const InteractPage = () => {
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const groupMessagesByTimestamp = (messages: any[]) => {
+    return messages.reduce((acc: any, message: any) => {
+      const timestamp = new Date(message.timestamp).toLocaleString();
+      if (!acc[timestamp]) {
+        acc[timestamp] = [];
+      }
+      acc[timestamp].push(message);
+      return acc;
+    }, {});
+  };
+
+  // Filter image messages
+  const filterImageMessages = (messages: any[]) => {
+    return messages.filter((msg) => msg.content?.startsWith('/chat-uploads'));
+  };
+
+  const groupedMessages = groupMessagesByTimestamp(messages);
+
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
@@ -1349,184 +1367,330 @@ const InteractPage = () => {
             onScroll={handleScroll}
           >
             <div className="space-y-8 pb-20">
-              {messages.filter((msg) => {
-                const isMe = msg.sender?.id === userId;
-                return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
-              }).map((msg: any, index: number) => {
-                const isMe = msg.sender?.id === userId;
-                const isSelected = selectedMessages.includes(msg.id);
+              <div>
+                {Object.keys(groupedMessages).map((timestamp, index) => (
+                  <div key={index}>
+                    {/* Render non-image messages */}
+                    {groupedMessages[timestamp]
+                      .filter((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        return (
+                          !msg.content.startsWith('/chat-uploads') &&
+                          !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
+                        );
+                      })
+                      .map((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        const isSelected = selectedMessages.includes(msg.id);
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative`}
+                          >
+                            {isSelected && (
+                              <div
+                                className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageSelection(msg);
+                                }}
+                              ></div>
+                            )}
 
-                return (
-                  <div
-                    key={index}
-                    className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative`}
-                  >
-                    {isSelected && (
-                      <div
-                        className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMessageSelection(msg);
-                        }}
-                      ></div>
-                    )}
+                            <div
+                              className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
+                                ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
+                                : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
+                                } break-words hover:scale-105 hover:shadow-xl`}
+                              style={{
+                                wordBreak: 'break-word',
+                                borderRadius: isMe ? '16px 0 16px 16px' : '16px',
+                                boxShadow: isMe ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 4px 8px rgba(0, 0, 0, 0.15)',
+                                border: isMe ? 'none' : '1px solid rgba(0, 0, 0, 0.1)',
+                                background: isMe
+                                  ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
+                                  : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
+                                padding: '12px 6px',
+                                transition: 'all 0.3s ease',
+                              }}
+                            >
+                              {msg.repliedTo && msg.repliedTo.content && (
+                                <div
+                                  className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
+                                    }`}
+                                >
+                                  <span className="block font-semibold opacity-80">
+                                    {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
+                                      ? "You"
+                                      : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                                  </span>
+                                  {msg.repliedTo.content.startsWith('/chat-uploads') ? (
+                                    <img
+                                      src={`http://localhost:5002${msg.repliedTo.content}`}
+                                      alt="Reply preview"
+                                      className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
+                                    />
+                                  ) : (
+                                    msg.repliedTo.content.length > 30
+                                      ? msg.repliedTo.content.slice(0, 30) + "..."
+                                      : msg.repliedTo.content
+                                  )}
+                                </div>
+                              )}
 
-                    <div
-                      className={`relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform ${isMe
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
-                        : 'bg-gradient-to-r from-gray-200 to-gray-400 text-black'
-                        } break-words hover:scale-105 hover:shadow-xl`}
-                      style={{
-                        wordBreak: 'break-word',
-                        borderRadius: isMe ? '16px 0 16px 16px' : '16px',
-                        boxShadow: isMe ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 4px 8px rgba(0, 0, 0, 0.15)',
-                        border: isMe ? 'none' : '1px solid rgba(0, 0, 0, 0.1)',
-                        background: isMe
-                          ? 'linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(56, 189, 248, 1) 100%)'
-                          : 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
-                        padding: '12px 6px',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
-                      {msg.repliedTo && msg.repliedTo.content && (
-                        <div className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
-                          }`}>
-                          <span className="block font-semibold opacity-80">
-                            {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
-                              ? "You"
-                              : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-                          </span>
-                          {msg.repliedTo.content.startsWith('/chat-uploads') ? (
-                            <img
-                              src={`http://localhost:5002${msg.repliedTo.content}`}
-                              alt="Reply preview"
-                              className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
-                            />
-                          ) : (
-                            msg.repliedTo.content.length > 30
-                              ? msg.repliedTo.content.slice(0, 30) + "..."
-                              : msg.repliedTo.content
-                          )}
+                              {msg.wasForwarded && (
+                                <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                  <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                  Forwarded
+                                </div>
+                              )}
+
+                              {renderMessageContent(msg)}
+
+                              <small
+                                className={`block text-xs mt-1 text-right ${isMe ? 'text-white' : 'text-black'
+                                  }`}
+                              >
+                                {new Date(msg.timestamp).toLocaleString('en-GB', {
+                                  hour12: false,
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })}
+                              </small>
+
+                              <div
+                                className={`absolute top-2 ${isMe ? '-left-7' : '-right-7'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageSelection(msg);
+                                }}
+                                style={{
+                                  cursor: "pointer",
+                                  color: "#007BFF",
+                                  borderRadius: "50%",
+                                  width: "24px",
+                                  height: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                              </div>
+
+                              {isMe && (
+                                <div className="flex items-center justify-end mt-1">
+                                  {msg.status.toLowerCase() === 'sent' && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="tick-icon"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                  {msg.status.toLowerCase() === 'delivered' && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="16"
+                                      viewBox="0 0 32 16"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="tick-icon"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                      <polyline points="26 6 15 17 20 12" />
+                                    </svg>
+                                  )}
+                                  {msg.status.toLowerCase() === 'read' && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="16"
+                                      viewBox="0 0 32 16"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="tick-icon text-blue-900"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                      <polyline points="26 6 15 17 20 12" />
+                                    </svg>
+                                  )}
+                                </div>
+                              )}
+
+                              {isMe && <div className="chat-pointer"></div>}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {/* Grouped image messages */}
+                    {filterImageMessages(groupedMessages[timestamp])
+                      .filter((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
+                      }).length > 0 && (
+                        <div className="space-y-2 mt-2">
+                          {/* My images */}
+                          <div className="flex justify-end flex-wrap gap-2">
+                            {filterImageMessages(groupedMessages[timestamp])
+                              .filter((msg: any) => msg.sender?.id === userId)
+                              .map((msg: any) => {
+                                const isSelected = selectedMessages.includes(msg.id);
+                                return (
+                                  <div key={msg.id} className="relative group">
+                                    <img
+                                      src={`http://localhost:5002${msg.content}`}
+                                      alt=""
+                                      className="w-24 h-24 object-cover rounded-lg border shadow-md"
+                                      onClick={() => openImage(`http://localhost:5002${msg.content}`)}
+                                    />
+
+                                    {isSelected && (
+                                      <div
+                                        className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleMessageSelection(msg);
+                                        }}
+                                      ></div>
+                                    )}
+
+                                    <div
+                                       className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleMessageSelection(msg);
+                                      }}
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#007BFF",
+                                        borderRadius: "50%",
+                                        width: "24px",
+                                        height: "24px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                      </svg>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+
+                          {/* Other user's images */}
+                          <div className="flex justify-start flex-wrap gap-2">
+                            {filterImageMessages(groupedMessages[timestamp])
+                              .filter((msg: any) => msg.sender?.id !== userId)
+                              .map((msg: any) => {
+                                const isSelected = selectedMessages.includes(msg.id);
+                                return (
+                                  <div key={msg.id} className="relative group">
+                                    <img
+                                      src={`http://localhost:5002${msg.content}`}
+                                      alt=""
+                                      className="w-24 h-24 object-cover rounded-lg border shadow-md"
+                                      onClick={() => openImage(`http://localhost:5002${msg.content}`)}
+                                    />
+
+                                    {isSelected && (
+                                      <div
+                                        className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleMessageSelection(msg);
+                                        }}
+                                      ></div>
+                                    )}
+
+                                    <div
+                                       className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleMessageSelection(msg);
+                                      }}
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#007BFF",
+                                        borderRadius: "50%",
+                                        width: "24px",
+                                        height: "24px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                      </svg>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
                         </div>
                       )}
-
-                      {msg.wasForwarded && (
-                        <div className="flex items-center text-xs italic text-gray-700 mb-2">
-                          <FontAwesomeIcon icon={faShare} className="mr-1" />
-                          Forwarded
-                        </div>
-                      )}
-
-                      {renderMessageContent(msg)}
-                      <small
-                        className={`block text-xs mt-1 text-right ${isMe ? 'text-white' : 'text-black'
-                          }`}
-                      >
-                        {new Date(msg.timestamp).toLocaleString('en-GB', {
-                          hour12: false,
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })}
-                      </small>
-
-                      <div
-                        className={`absolute top-2 ${isMe ? '-left-7' : '-right-7'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMessageSelection(msg);
-                        }}
-                        style={{
-                          cursor: "pointer",
-                          color: "#007BFF",
-                          borderRadius: "50%",
-                          width: "24px",
-                          height: "24px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="8" y1="12" x2="16" y2="12"></line>
-                        </svg>
-                      </div>
-
-                      {isMe && (
-                        <div className="flex items-center justify-end mt-1">
-                          {msg.status.toLowerCase() === 'sent' && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="tick-icon"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                          {msg.status.toLowerCase() === 'delivered' && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="16"
-                              viewBox="0 0 32 16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="tick-icon"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                              <polyline points="26 6 15 17 20 12" />
-                            </svg>
-                          )}
-                          {msg.status.toLowerCase() === 'read' && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="16"
-                              viewBox="0 0 32 16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="tick-icon text-blue-900"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                              <polyline points="26 6 15 17 20 12" />
-                            </svg>
-                          )}
-                        </div>
-                      )}
-
-                      {isMe && (
-                        <div className="chat-pointer"></div>
-                      )}
-                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
 
               {newMessageCount > 0 && !isAtBottom && (
                 <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 bg-green-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between w-full max-w-xs">

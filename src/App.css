@@ -64,3 +64,13 @@ body {
     transform: rotate(360deg);
   }
 }
+
+.image-message-container {
+  margin-bottom: 8px;
+}
+
+.image-message-container img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: cover;
+}
