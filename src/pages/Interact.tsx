@@ -1578,11 +1578,16 @@ const InteractPage = () => {
                       })}
 
                     {/* Grouped image messages */}
-                    {filterImageMessages(groupedMessages[timestamp])
-                      .filter((msg: any) => {
-                        const isMe = msg.sender?.id === userId;
-                        return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
-                      }).length > 0 && (
+                    {groupedMessages[timestamp]
+                      ?.filter((msg: any) =>
+                        msg.sender?.id === userId &&
+                        msg.content?.startsWith("/chat-uploads") &&
+                        msg.content &&
+                        !((msg.sender?.id === userId && msg.senderDFM) ||
+                          (msg.sender?.id !== userId && msg.receiverDFM) ||
+                          msg.delForAll)
+                      ).length > 0 && (
+
                         <div className="space-y-2 mt-2">
                           {/* My images */}
                           <div className="w-full flex justify-end">
@@ -1720,7 +1725,20 @@ const InteractPage = () => {
                               )}
                             </div>
                           </div>
+                        </div>
+                      )}
 
+                    {groupedMessages[timestamp]
+                      ?.filter((msg: any) =>
+                        msg.sender?.id !== userId &&
+                        msg.content?.startsWith("/chat-uploads") &&
+                        msg.content &&
+                        !((msg.sender?.id === userId && msg.senderDFM) ||
+                          (msg.sender?.id !== userId && msg.receiverDFM) ||
+                          msg.delForAll)
+                      ).length > 0 && (
+
+                        <div className="space-y-2 mt-2">
                           {/* Other user's images */}
                           <div className={`w-full flex justify-start ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
                             <div className={`border-2 border-yellow-400 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
