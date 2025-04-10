@@ -726,6 +726,8 @@ const InteractPage = () => {
       });
 
       setSelectedImages([]);
+      localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
+      setShowReplyCard(false);
     } catch (err) {
       console.error('Image upload failed:', err);
     }
