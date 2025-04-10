@@ -55,6 +55,8 @@ const InteractPage = () => {
   const [currentSelectedMessages, setCurrentSelectedMessages] = useState<any[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [showAllImagesModal, setShowAllImagesModal] = useState(false);
+  const [activeImageGroup, setActiveImageGroup] = useState<any[]>([]);
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -1629,99 +1631,116 @@ const InteractPage = () => {
                                   : ""
                                   }`}
                               >
-                                {filterImageMessages(groupedMessages[timestamp])
-                                  .filter((msg: any) => msg.sender?.id === userId)
-                                  .map((msg: any) => {
-                                    const isSelected = selectedMessages.includes(msg.id);
-                                    const isGroup =
-                                      filterImageMessages(groupedMessages[timestamp]).length > 1;
+                                {(() => {
+                                  const allImages = filterImageMessages(groupedMessages[timestamp])
+                                    .filter((msg: any) => msg.sender?.id === userId);
 
-                                    return (
-                                      <div key={msg.id} className="relative group">
-                                        <img
-                                          src={`http://localhost:5002${msg.content}`}
-                                          alt=""
-                                          className="w-32 h-32 object-cover rounded-lg border shadow-md"
-                                          onClick={() =>
-                                            openImage(`http://localhost:5002${msg.content}`)
-                                          }
-                                        />
+                                  const firstFour = allImages.slice(0, 4);
+                                  const remainingCount = allImages.length - 4;
 
-                                        {isSelected && (
-                                          <div
-                                            className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              toggleMessageSelection(msg);
-                                            }}
-                                          ></div>
-                                        )}
+                                  return (
+                                    <>
+                                      {firstFour.map((msg: any, index: number) => {
+                                        const isSelected = selectedMessages.includes(msg.id);
+                                        const isGroup = allImages.length > 1;
 
-                                        {/* Plus icon */}
-                                        <div
-                                          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"
-                                            } group-hover:opacity-100`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleMessageSelection(msg);
-                                          }}
-                                          style={{
-                                            cursor: "pointer",
-                                            color: "#007BFF",
-                                            borderRadius: "50%",
-                                            width: "24px",
-                                            height: "24px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                          }}
-                                        >
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                                          </svg>
-                                        </div>
+                                        return (
+                                          <div key={msg.id} className="relative group">
+                                            <img
+                                              src={`http://localhost:5002${msg.content}`}
+                                              alt=""
+                                              className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                                              onClick={() =>
+                                                openImage(`http://localhost:5002${msg.content}`)
+                                              }
+                                            />
 
-                                        {/* Solo timestamp + status */}
-                                        {!isGroup && (
-                                          <div className="mt-1 text-right">
-                                            <small className="block text-xs text-zinc-950">
-                                              {new Date(msg.timestamp).toLocaleString("en-GB", {
-                                                hour12: false,
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                              })}
-                                            </small>
+                                            {isSelected && (
+                                              <div
+                                                className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleMessageSelection(msg);
+                                                }}
+                                              ></div>
+                                            )}
 
-                                            {msg.sender?.id === userId && (
-                                              <div className="flex justify-end mt-1">
-                                                {msg.status.toLowerCase() === "sent" && <SingleTick />}
-                                                {msg.status.toLowerCase() === "delivered" && (
-                                                  <DoubleTick />
-                                                )}
-                                                {msg.status.toLowerCase() === "read" && (
-                                                  <DoubleTick className="text-blue-900" />
+                                            {/* Plus icon */}
+                                            <div
+                                              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"
+                                                } group-hover:opacity-100`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleMessageSelection(msg);
+                                              }}
+                                              style={{
+                                                cursor: "pointer",
+                                                color: "#007BFF",
+                                                borderRadius: "50%",
+                                                width: "24px",
+                                                height: "24px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                              }}
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                                              </svg>
+                                            </div>
+
+                                            {/* Solo timestamp + status */}
+                                            {!isGroup && (
+                                              <div className="mt-1 text-right">
+                                                <small className="block text-xs text-zinc-950">
+                                                  {new Date(msg.timestamp).toLocaleString("en-GB", {
+                                                    hour12: false,
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    day: "2-digit",
+                                                    month: "2-digit",
+                                                    year: "numeric",
+                                                  })}
+                                                </small>
+
+                                                {msg.sender?.id === userId && (
+                                                  <div className="flex justify-end mt-1">
+                                                    {msg.status.toLowerCase() === "sent" && <SingleTick />}
+                                                    {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
+                                                    {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                                  </div>
                                                 )}
                                               </div>
                                             )}
                                           </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
+                                        );
+                                      })}
+
+                                      {remainingCount > 0 && (
+                                        <div
+                                          className="relative group w-32 h-32 bg-black bg-opacity-40 text-white flex items-center justify-center rounded-lg cursor-pointer"
+                                          onClick={() => {
+                                            setActiveImageGroup(allImages);
+                                            setShowAllImagesModal(true);
+                                          }}
+                                        >
+                                          <span className="text-lg font-semibold">+{remainingCount} more</span>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
 
                               {/* Grouped status + timestamp */}
@@ -1753,6 +1772,83 @@ const InteractPage = () => {
                           </div>
                         </div>
                       )}
+
+                    {showAllImagesModal && (
+                      <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-lg p-4 max-h-[90vh] overflow-y-auto max-w-[90vw]">
+                          <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold">Group Set Images</h2>
+                            <button
+                              className="text-red-600 text-sm"
+                              onClick={() => setShowAllImagesModal(false)}
+                            >
+                              Close
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {activeImageGroup.map((msg: any) => {
+                              const isSelected = selectedMessages.includes(msg.id);
+                              return (
+                                <div key={msg.id} className="relative group">
+                                  <img
+                                    src={`http://localhost:5002${msg.content}`}
+                                    alt=""
+                                    className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                                    onClick={() =>
+                                      openImage(`http://localhost:5002${msg.content}`)
+                                    }
+                                  />
+                                  {isSelected && (
+                                    <div
+                                      className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleMessageSelection(msg);
+                                      }}
+                                    ></div>
+                                  )}
+                                  {/* Plus icon */}
+                                  <div
+                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"
+                                      } group-hover:opacity-100`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleMessageSelection(msg);
+                                    }}
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#007BFF",
+                                      borderRadius: "50%",
+                                      width: "24px",
+                                      height: "24px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <circle cx="12" cy="12" r="10"></circle>
+                                      <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    </svg>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
 
                     {groupedMessages[timestamp]
                       ?.filter((msg: any) =>
