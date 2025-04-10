@@ -52,6 +52,7 @@ const InteractPage = () => {
   const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
+  const [currentSelectedMessages, setCurrentSelectedMessages] = useState<any[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
@@ -98,6 +99,15 @@ const InteractPage = () => {
       setCurrentSelectedMessage(selectedMessage);
     } else {
       setCurrentSelectedMessage(null);
+    }
+  }, [selectedMessages, messages]);
+
+  useEffect(() => {
+    if (selectedMessages.length > 0) {
+      const selectedMessagesArray = messages.filter(msg => selectedMessages.includes(msg.id));
+      setCurrentSelectedMessages(selectedMessagesArray);
+    } else {
+      setCurrentSelectedMessages([]);
     }
   }, [selectedMessages, messages]);
 
@@ -945,39 +955,43 @@ const InteractPage = () => {
   };
 
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
-    if (!currentSelectedMessage) return;
+    if (!currentSelectedMessage && currentSelectedMessages.length === 0) return;
 
-    selectedUsers.forEach((uid, index) => {
+    selectedUsers.forEach(uid => {
       socket.emit('joinRoom', { userId: userId, otherUserId: uid });
 
-      const message = {
-        sender: { id: userId },
-        receiver: { id: uid },
-        content: currentSelectedMessage.content,
-        repliedTo: null,
-        timestamp: new Date().toISOString(),
-        status: 'SENT',
-        senderDFM: false,
-        receiverDFM: false,
-        delForAll: false,
-        wasForwarded: true,
-      };
-
-      socket.emit('sendMessage', message);
-      setSelectedMessages([]);
-
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 500);
-
-      if (index === 0) {
-        navigate(`/chat/${uid}`);
-      }
+      currentSelectedMessages.forEach(msgToForward => {
+        const message = {
+          sender: { id: userId },
+          receiver: { id: uid },
+          content: msgToForward.content,
+          repliedTo: null,
+          timestamp: new Date().toISOString(),
+          status: 'SENT',
+          senderDFM: false,
+          receiverDFM: false,
+          delForAll: false,
+          wasForwarded: true,
+        };
+        socket.emit('sendMessage', message);
+      });
     });
 
+    setSelectedMessages([]);
+    setCurrentSelectedMessages([]);
     setShowForwardModal(false);
+
+    // Navigate to the chat with the first user in the list
+    if (selectedUsers.length > 0) {
+      navigate(`/chat/${selectedUsers[0]}`);
+    }
+
+    // Scroll to the bottom after a short delay
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 500);
   };
 
   const handleArrowBack = () => {
@@ -1407,7 +1421,7 @@ const InteractPage = () => {
                         return (
                           <div
                             key={msg.id}
-                            className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative`}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}
                           >
                             {isSelected && (
                               <div
@@ -1597,6 +1611,16 @@ const InteractPage = () => {
                                 : "inline-block"
                                 }`}
                             >
+                              {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
+                                <div className="mt-1 text-left w-full block">
+                                  {groupedMessages[timestamp][0].wasForwarded && (
+                                    <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                      <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                      Forwarded
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                               <div
                                 className={`${filterImageMessages(groupedMessages[timestamp]).length > 1
                                   ? "grid grid-cols-2 gap-2"
@@ -1669,7 +1693,7 @@ const InteractPage = () => {
                                         {/* Solo timestamp + status */}
                                         {!isGroup && (
                                           <div className="mt-1 text-right">
-                                            <small className="block text-xs text-gray-300">
+                                            <small className="block text-xs text-zinc-950">
                                               {new Date(msg.timestamp).toLocaleString("en-GB", {
                                                 hour12: false,
                                                 hour: "2-digit",
@@ -1701,7 +1725,7 @@ const InteractPage = () => {
                               {/* Grouped status + timestamp */}
                               {filterImageMessages(groupedMessages[timestamp]).length > 1 && (
                                 <div className="mt-2 text-right">
-                                  <small className="block text-xs text-gray-300">
+                                  <small className="block text-xs text-zinc-950">
                                     {new Date(timestamp).toLocaleString("en-GB", {
                                       hour12: false,
                                       hour: "2-digit",
@@ -1742,6 +1766,14 @@ const InteractPage = () => {
                           {/* Other user's images */}
                           <div className={`w-full flex justify-start ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
                             <div className={`border-2 border-yellow-400 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
+                              {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
+                                <div className="mt-1 text-left">
+                                  <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                    <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                    Forwarded
+                                  </div>
+                                </div>
+                              )}
                               <div className={`grid ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? 'grid-cols-2 gap-2' : ''}`}>
                                 {filterImageMessages(groupedMessages[timestamp])
                                   .filter((msg: any) => msg.sender?.id !== userId)
@@ -1802,7 +1834,7 @@ const InteractPage = () => {
                                           </svg>
                                         </div>
 
-                                        {/* Solo timestamp + status */}
+                                        {/* Solo timestamp */}
                                         {!isGroup && (
                                           <div className="mt-1 text-left">
                                             <small className="block text-xs text-gray-700">
@@ -1815,12 +1847,6 @@ const InteractPage = () => {
                                                 year: 'numeric',
                                               })}
                                             </small>
-
-                                            <div className="flex justify-start mt-1">
-                                              {msg.status.toLowerCase() === 'sent' && <SingleTick />}
-                                              {msg.status.toLowerCase() === 'delivered' && <DoubleTick />}
-                                              {msg.status.toLowerCase() === 'read' && <DoubleTick className="text-blue-900" />}
-                                            </div>
                                           </div>
                                         )}
                                       </div>
@@ -1828,7 +1854,7 @@ const InteractPage = () => {
                                   })}
                               </div>
 
-                              {/* Grouped status + timestamp */}
+                              {/* Grouped timestamp */}
                               {filterImageMessages(groupedMessages[timestamp]).length > 1 && (
                                 <div className="mt-2 text-left">
                                   <small className="block text-xs text-gray-700">
@@ -1841,11 +1867,6 @@ const InteractPage = () => {
                                       year: 'numeric',
                                     })}
                                   </small>
-                                  <div className="flex justify-start mt-1">
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === 'sent' && <SingleTick />}
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === 'delivered' && <DoubleTick />}
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === 'read' && <DoubleTick className="text-blue-900" />}
-                                  </div>
                                 </div>
                               )}
                             </div>
