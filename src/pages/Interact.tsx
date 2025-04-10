@@ -1058,13 +1058,16 @@ const InteractPage = () => {
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const groupMessagesByTimestamp = (messages: any[]) => {
+  const groupMessagesByTimestamp = (messages: any[], intervalInSeconds = 60) => {
     return messages.reduce((acc: any, message: any) => {
-      const timestamp = new Date(message.timestamp).toLocaleString();
-      if (!acc[timestamp]) {
-        acc[timestamp] = [];
+      const timestamp = new Date(message.timestamp).getTime();
+      const roundedTimestamp = Math.floor(timestamp / (intervalInSeconds * 1000)) * (intervalInSeconds * 1000);
+      const groupKey = new Date(roundedTimestamp).toISOString(); // consistent, sortable format
+
+      if (!acc[groupKey]) {
+        acc[groupKey] = [];
       }
-      acc[timestamp].push(message);
+      acc[groupKey].push(message);
       return acc;
     }, {});
   };
