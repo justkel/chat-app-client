@@ -1058,11 +1058,11 @@ const InteractPage = () => {
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const groupMessagesByTimestamp = (messages: any[], intervalInSeconds = 60) => {
+  const groupMessagesByTimestamp = (messages: any[]) => {
     return messages.reduce((acc: any, message: any) => {
       const timestamp = new Date(message.timestamp).getTime();
-      const roundedTimestamp = Math.floor(timestamp / (intervalInSeconds * 1000)) * (intervalInSeconds * 1000);
-      const groupKey = new Date(roundedTimestamp).toISOString(); // consistent, sortable format
+      const roundedTimestamp = Math.floor(timestamp / 2000) * 2000;
+      const groupKey = new Date(roundedTimestamp).toISOString();
 
       if (!acc[groupKey]) {
         acc[groupKey] = [];
@@ -1613,10 +1613,7 @@ const InteractPage = () => {
                           {/* My images */}
                           <div className="w-full flex justify-end">
                             <div
-                              className={`border-2 border-green-600 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1
-                                ? "max-w-full"
-                                : "inline-block"
-                                }`}
+                              className={`border-2 border-green-600 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "max-w-full" : "inline-block"}`}
                             >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
                                 <div className="mt-1 text-left w-full block">
@@ -1626,18 +1623,32 @@ const InteractPage = () => {
                                       Forwarded
                                     </div>
                                   )}
+                                  {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
+                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
+                                      <span className="block font-semibold text-blue-800 opacity-90">
+                                        {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
+                                          ? "You"
+                                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                                      </span>
+                                      {groupedMessages[timestamp][0].repliedTo.content.startsWith('/chat-uploads') ? (
+                                        <img
+                                          src={`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`}
+                                          alt="Reply preview"
+                                          className="w-full h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
+                                          onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
+                                        />
+                                      ) : (
+                                        <p className="text-gray-600 truncate">{groupedMessages[timestamp][0].repliedTo.content}</p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               <div
-                                className={`${filterImageMessages(groupedMessages[timestamp]).length > 1
-                                  ? "grid grid-cols-2 gap-2"
-                                  : ""
-                                  }`}
+                                className={`${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "grid grid-cols-2 gap-2" : ""}`}
                               >
                                 {(() => {
-                                  const allImages = filterImageMessages(groupedMessages[timestamp])
-                                    .filter((msg: any) => msg.sender?.id === userId);
-
+                                  const allImages = filterImageMessages(groupedMessages[timestamp]).filter((msg: any) => msg.sender?.id === userId);
                                   const firstFour = allImages.slice(0, 4);
                                   const remainingCount = allImages.length - 4;
 
@@ -1650,6 +1661,7 @@ const InteractPage = () => {
 
                                         return (
                                           <div key={msg.id} className="relative group">
+
                                             <img
                                               src={`http://localhost:5002${msg.content}`}
                                               alt=""
@@ -1669,8 +1681,7 @@ const InteractPage = () => {
 
                                             {/* Plus icon */}
                                             <div
-                                              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"
-                                                } group-hover:opacity-100`}
+                                              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggleMessageSelection(msg);
@@ -1733,9 +1744,7 @@ const InteractPage = () => {
                                                   <div className="flex justify-end mt-1">
                                                     {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                                     {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                                    {msg.status.toLowerCase() === "read" && (
-                                                      <DoubleTick className="text-blue-900" />
-                                                    )}
+                                                    {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
                                                   </div>
                                                 )}
                                               </div>
@@ -1762,14 +1771,9 @@ const InteractPage = () => {
                                     })}
                                   </small>
                                   <div className="flex justify-end mt-1">
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === "sent" && (
-                                      <SingleTick />
-                                    )}
-                                    {groupedMessages[timestamp][0].status.toLowerCase() ===
-                                      "delivered" && <DoubleTick />}
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === "read" && (
-                                      <DoubleTick className="text-blue-900" />
-                                    )}
+                                    {groupedMessages[timestamp][0].status.toLowerCase() === "sent" && <SingleTick />}
+                                    {groupedMessages[timestamp][0].status.toLowerCase() === "delivered" && <DoubleTick />}
+                                    {groupedMessages[timestamp][0].status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
                                   </div>
                                 </div>
                               )}
