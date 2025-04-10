@@ -1643,6 +1643,7 @@ const InteractPage = () => {
                                       {firstFour.map((msg: any, index: number) => {
                                         const isSelected = selectedMessages.includes(msg.id);
                                         const isGroup = allImages.length > 1;
+                                        const isLastVisible = index === 3 && allImages.length > 4;
 
                                         return (
                                           <div key={msg.id} className="relative group">
@@ -1650,9 +1651,7 @@ const InteractPage = () => {
                                               src={`http://localhost:5002${msg.content}`}
                                               alt=""
                                               className="w-32 h-32 object-cover rounded-lg border shadow-md"
-                                              onClick={() =>
-                                                openImage(`http://localhost:5002${msg.content}`)
-                                              }
+                                              onClick={() => openImage(`http://localhost:5002${msg.content}`)}
                                             />
 
                                             {isSelected && (
@@ -1700,6 +1699,19 @@ const InteractPage = () => {
                                               </svg>
                                             </div>
 
+                                            {/* "+X more" overlay ON 4th image */}
+                                            {isLastVisible && (
+                                              <div
+                                                className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg text-white font-semibold text-sm cursor-pointer"
+                                                onClick={() => {
+                                                  setActiveImageGroup(allImages);
+                                                  setShowAllImagesModal(true);
+                                                }}
+                                              >
+                                                +{remainingCount} more
+                                              </div>
+                                            )}
+
                                             {/* Solo timestamp + status */}
                                             {!isGroup && (
                                               <div className="mt-1 text-right">
@@ -1718,7 +1730,9 @@ const InteractPage = () => {
                                                   <div className="flex justify-end mt-1">
                                                     {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                                     {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                                    {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                                    {msg.status.toLowerCase() === "read" && (
+                                                      <DoubleTick className="text-blue-900" />
+                                                    )}
                                                   </div>
                                                 )}
                                               </div>
@@ -1726,18 +1740,6 @@ const InteractPage = () => {
                                           </div>
                                         );
                                       })}
-
-                                      {remainingCount > 0 && (
-                                        <div
-                                          className="relative group w-32 h-32 bg-black bg-opacity-40 text-white flex items-center justify-center rounded-lg cursor-pointer"
-                                          onClick={() => {
-                                            setActiveImageGroup(allImages);
-                                            setShowAllImagesModal(true);
-                                          }}
-                                        >
-                                          <span className="text-lg font-semibold">+{remainingCount} more</span>
-                                        </div>
-                                      )}
                                     </>
                                   );
                                 })()}
@@ -1862,22 +1864,40 @@ const InteractPage = () => {
 
                         <div className="space-y-2 mt-2">
                           {/* Other user's images */}
-                          <div className={`w-full flex justify-start ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
-                            <div className={`border-2 border-yellow-400 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? '' : 'max-w-full'}`}>
+                          <div
+                            className={`w-full flex justify-start ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
+                              }`}
+                          >
+                            <div
+                              className={`border-2 border-yellow-400 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
+                                }`}
+                            >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
                                 <div className="mt-1 text-left">
-                                  <div className="flex items-center text-xs italic text-gray-700 mb-2">
-                                    <FontAwesomeIcon icon={faShare} className="mr-1" />
-                                    Forwarded
-                                  </div>
+                                  {groupedMessages[timestamp][0].wasForwarded && (
+                                    <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                      <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                      Forwarded
+                                    </div>
+                                  )}
                                 </div>
                               )}
-                              <div className={`grid ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? 'grid-cols-2 gap-2' : ''}`}>
+                              <div
+                                className={`grid ${filterImageMessages(groupedMessages[timestamp]).length > 1
+                                  ? "grid-cols-2 gap-2"
+                                  : ""
+                                  }`}
+                              >
                                 {filterImageMessages(groupedMessages[timestamp])
                                   .filter((msg: any) => msg.sender?.id !== userId)
-                                  .map((msg: any) => {
+                                  .slice(0, 4)
+                                  .map((msg: any, index: number, arr: any[]) => {
+                                    const allImages = filterImageMessages(groupedMessages[timestamp]).filter(
+                                      (msg: any) => msg.sender?.id !== userId
+                                    );
                                     const isSelected = selectedMessages.includes(msg.id);
-                                    const isGroup = filterImageMessages(groupedMessages[timestamp]).length > 1;
+                                    const isGroup = allImages.length > 1;
+                                    const isLastVisible = index === 3 && allImages.length > 4;
 
                                     return (
                                       <div key={msg.id} className="relative group">
@@ -1900,7 +1920,8 @@ const InteractPage = () => {
 
                                         {/* Plus icon */}
                                         <div
-                                          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                                          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[42%] transition-opacity ${isSelected ? "opacity-100" : "opacity-0"
+                                            } group-hover:opacity-100`}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             toggleMessageSelection(msg);
@@ -1932,17 +1953,30 @@ const InteractPage = () => {
                                           </svg>
                                         </div>
 
+                                        {/* "+X more" overlay */}
+                                        {isLastVisible && (
+                                          <div
+                                            className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg text-white font-semibold text-sm cursor-pointer"
+                                            onClick={() => {
+                                              setActiveImageGroup(allImages);
+                                              setShowAllImagesModal(true);
+                                            }}
+                                          >
+                                            +{allImages.length - 4} more
+                                          </div>
+                                        )}
+
                                         {/* Solo timestamp */}
                                         {!isGroup && (
                                           <div className="mt-1 text-left">
                                             <small className="block text-xs text-gray-700">
-                                              {new Date(msg.timestamp).toLocaleString('en-GB', {
+                                              {new Date(msg.timestamp).toLocaleString("en-GB", {
                                                 hour12: false,
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                day: '2-digit',
-                                                month: '2-digit',
-                                                year: 'numeric',
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
                                               })}
                                             </small>
                                           </div>
@@ -1956,13 +1990,13 @@ const InteractPage = () => {
                               {filterImageMessages(groupedMessages[timestamp]).length > 1 && (
                                 <div className="mt-2 text-left">
                                   <small className="block text-xs text-gray-700">
-                                    {new Date(timestamp).toLocaleString('en-GB', {
+                                    {new Date(timestamp).toLocaleString("en-GB", {
                                       hour12: false,
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                      day: '2-digit',
-                                      month: '2-digit',
-                                      year: 'numeric',
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
                                     })}
                                   </small>
                                 </div>
