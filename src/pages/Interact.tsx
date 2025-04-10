@@ -1708,7 +1708,7 @@ const InteractPage = () => {
                                                   setShowAllImagesModal(true);
                                                 }}
                                               >
-                                                +{remainingCount} more
+                                                +{remainingCount}
                                               </div>
                                             )}
 
@@ -1962,7 +1962,7 @@ const InteractPage = () => {
                                               setShowAllImagesModal(true);
                                             }}
                                           >
-                                            +{allImages.length - 4} more
+                                            +{allImages.length - 4}
                                           </div>
                                         )}
 
