@@ -3,7 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
-import { ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PaperClipOutlined, CloseOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, CloseOutlined, PlusOutlined,
+  PictureOutlined,
+  CameraOutlined,
+  AudioOutlined,
+  FileOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
+import { Modal, Button } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
 import socket from '../socket';
@@ -57,6 +65,8 @@ const InteractPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showAllImagesModal, setShowAllImagesModal] = useState(false);
   const [activeImageGroup, setActiveImageGroup] = useState<any[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -1054,6 +1064,11 @@ const InteractPage = () => {
     }
   };
 
+  const triggerGalleryUpload = () => {
+    fileInputRef.current?.click();
+    setIsModalVisible(false);
+  };
+
   const removeImage = (index: number) => {
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -1613,7 +1628,7 @@ const InteractPage = () => {
                           {/* My images */}
                           <div className="w-full flex justify-end">
                             <div
-                              className={`border-2 border-blue-700 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "max-w-full" : "inline-block"}`}
+                              className={`border-2 border-blue-300 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "max-w-full" : "inline-block"}`}
                             >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
                                 <div className="mt-1 text-left w-full block">
@@ -1876,7 +1891,7 @@ const InteractPage = () => {
                               }`}
                           >
                             <div
-                              className={`border-2 border-green-500 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
+                              className={`border-2 border-green-300 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
                                 }`}
                             >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
@@ -2216,13 +2231,67 @@ const InteractPage = () => {
                     type="file"
                     accept="image/*"
                     multiple
+                    ref={fileInputRef}
                     className="hidden"
-                    id="image-upload"
                     onChange={handleImageChange}
                   />
-                  <label htmlFor="image-upload" className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition duration-200 ease-in-out cursor-pointer">
-                    <PaperClipOutlined className="text-xl" />
-                  </label>
+
+                  <Button
+                    shape="circle"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsModalVisible(true)}
+                    className="flex items-center justify-center shadow-md"
+                  />
+
+                  <Modal
+                    title={<span className="text-lg font-semibold">Choose upload method</span>}
+                    open={isModalVisible}
+                    onCancel={() => setIsModalVisible(false)}
+                    footer={null}
+                    centered
+                    width={360}
+                    styles={{ body: { padding: '1.5rem' } }}
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      <div
+                        onClick={triggerGalleryUpload}
+                        className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md"
+                      >
+                        <div className="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
+                          <PictureOutlined className="text-xl" />
+                        </div>
+                        <span className="text-sm font-medium">Gallery</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
+                        <div className="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
+                          <CameraOutlined className="text-xl" />
+                        </div>
+                        <span className="text-sm font-medium">Camera</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
+                        <div className="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
+                          <AudioOutlined className="text-xl" />
+                        </div>
+                        <span className="text-sm font-medium">Audio</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
+                        <div className="bg-yellow-100 text-yellow-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
+                          <FileOutlined className="text-xl" />
+                        </div>
+                        <span className="text-sm font-medium">File</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md col-span-2">
+                        <div className="bg-red-100 text-red-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
+                          <CalendarOutlined className="text-xl" />
+                        </div>
+                        <span className="text-sm font-medium">Calendar</span>
+                      </div>
+                    </div>
+                  </Modal>
                 </div>
 
                 <button
