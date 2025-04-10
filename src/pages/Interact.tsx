@@ -1613,7 +1613,7 @@ const InteractPage = () => {
                           {/* My images */}
                           <div className="w-full flex justify-end">
                             <div
-                              className={`border-2 border-green-600 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "max-w-full" : "inline-block"}`}
+                              className={`border-2 border-blue-700 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length > 1 ? "max-w-full" : "inline-block"}`}
                             >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
                                 <div className="mt-1 text-left w-full block">
@@ -1876,7 +1876,7 @@ const InteractPage = () => {
                               }`}
                           >
                             <div
-                              className={`border-2 border-yellow-400 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
+                              className={`border-2 border-green-500 p-2 rounded-lg ${filterImageMessages(groupedMessages[timestamp]).length === 1 ? "" : "max-w-full"
                                 }`}
                             >
                               {filterImageMessages(groupedMessages[timestamp]).length > 0 && (
