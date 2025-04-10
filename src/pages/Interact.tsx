@@ -1887,6 +1887,25 @@ const InteractPage = () => {
                                       Forwarded
                                     </div>
                                   )}
+                                  {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
+                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
+                                      <span className="block font-semibold text-blue-800 opacity-90">
+                                        {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
+                                          ? "You"
+                                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                                      </span>
+                                      {groupedMessages[timestamp][0].repliedTo.content.startsWith('/chat-uploads') ? (
+                                        <img
+                                          src={`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`}
+                                          alt="Reply preview"
+                                          className="w-full h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
+                                          onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
+                                        />
+                                      ) : (
+                                        <p className="text-gray-600 truncate">{groupedMessages[timestamp][0].repliedTo.content}</p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               <div
