@@ -22,6 +22,7 @@ export type ChatMessage = {
   sender: User;
   receiver: User;
   content: string;
+  caption?: string | null;
   timestamp: Date;
   status: MessageStatus;
   senderDFM: boolean;

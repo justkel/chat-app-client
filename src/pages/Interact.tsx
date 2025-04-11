@@ -4,7 +4,7 @@ import { Input, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import {
-  ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, CloseOutlined, PlusOutlined,
+  ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PlusOutlined,
   PictureOutlined,
   CameraOutlined,
   AudioOutlined,
@@ -25,6 +25,7 @@ import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
 import { ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 import ForwardModal from '../components/ForwardModal';
+import { ImagePreviewModal } from '../components/ImagePreviewModal';
 import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare } from '@fortawesome/free-solid-svg-icons';
@@ -65,6 +66,8 @@ const InteractPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showAllImagesModal, setShowAllImagesModal] = useState(false);
   const [activeImageGroup, setActiveImageGroup] = useState<any[]>([]);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [captions, setCaptions] = useState<string[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -714,8 +717,9 @@ const InteractPage = () => {
 
     const formData = new FormData();
 
-    selectedImages.forEach((file) => {
-      formData.append('images', file); // Key must match backend interceptor field name
+    selectedImages.forEach((file, index) => {
+      formData.append('images', file);
+      formData.append('captions', captions[index] || '');
     });
 
     formData.append('senderId', userId ?? '');
@@ -738,6 +742,8 @@ const InteractPage = () => {
       });
 
       setSelectedImages([]);
+      setCaptions([]);
+      setShowPreviewModal(false);
       localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
       setShowReplyCard(false);
     } catch (err) {
@@ -1061,16 +1067,13 @@ const InteractPage = () => {
     if (files) {
       const fileArray = Array.from(files);
       setSelectedImages((prev) => [...prev, ...fileArray]);
+      setShowPreviewModal(true);
     }
   };
 
   const triggerGalleryUpload = () => {
     fileInputRef.current?.click();
     setIsModalVisible(false);
-  };
-
-  const removeImage = (index: number) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const groupMessagesByTimestamp = (messages: any[]) => {
@@ -2301,7 +2304,7 @@ const InteractPage = () => {
                   <span role="img" aria-label="emoji" className="text-xl">😊</span>
                 </button>
 
-                {selectedImages.length === 0 ? (
+                {selectedImages.length === 0 && (
                   <button
                     onClick={sendMessage}
                     className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
@@ -2310,38 +2313,18 @@ const InteractPage = () => {
                     <SendOutlined style={{ fontSize: '20px' }} />
                     Send
                   </button>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      uploadImageAndSend();
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-                  >
-                    <SendOutlined style={{ fontSize: '20px' }} />
-                    Send
-                  </button>
                 )}
               </div>
 
-              {selectedImages.length > 0 && (
-                <div className="flex flex-wrap gap-3 px-6 pb-2">
-                  {selectedImages.map((image, index) => (
-                    <div key={index} className="relative w-20 h-20 border rounded-lg overflow-hidden shadow-sm">
-                      <img
-                        src={URL.createObjectURL(image)}
-                        alt={`preview-${index}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => removeImage(index)}
-                        className="absolute top-0 right-0 bg-white bg-opacity-80 p-1 rounded-bl"
-                      >
-                        <CloseOutlined className="text-xs text-red-600" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              {showPreviewModal && (
+                <ImagePreviewModal
+                  selectedImages={selectedImages}
+                  setSelectedImages={setSelectedImages}
+                  captions={captions}
+                  setCaptions={setCaptions}
+                  onClose={() => setShowPreviewModal(false)}
+                  onSend={uploadImageAndSend}
+                />
               )}
 
               {isEmojiPickerVisible && (
