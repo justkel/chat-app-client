@@ -35,7 +35,8 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 
     const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
         const newCaptions = [...captions];
-        newCaptions[index] = e.target.value;
+        const caption = e.target.value;
+        newCaptions[index] = caption.length <= 100 ? caption : caption.slice(0, 100);
         setCaptions(newCaptions);
     };
 
@@ -112,10 +113,11 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 <div className="mt-6 mb-6">
                     <input
                         type="text"
-                        placeholder="Enter caption for this image"
+                        placeholder="Enter caption (max 100 characters)"
                         value={captions[activeIndex] || ""}
                         onChange={(e) => handleCaptionChange(e, activeIndex)}
                         className="w-full border p-3 rounded-md"
+                        maxLength={100}
                     />
                 </div>
 

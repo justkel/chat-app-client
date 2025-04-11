@@ -1133,131 +1133,155 @@ const InteractPage = () => {
               ✖
             </button>
 
-            <p className="font-semibold text-center text-xl mb-5">Message info</p>
-            <p className="font-semibold text-center text-md">
+            <p className="font-semibold text-center text-3xl mb-5">Message info</p>
+            <p className="font-semibold text-center text-xl">
               {currentSelectedMessage.timestamp && formatTimestamp(currentSelectedMessage.timestamp)}
             </p>
 
             <div className="flex justify-end mt-5 mr-10">
-              <div
-                className="relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform bg-gradient-to-r from-blue-500 to-blue-700 text-white break-words hover:scale-105 hover:shadow-xl"
-                style={{
-                  wordBreak: 'break-word',
-                  borderRadius: '16px 0 16px 16px',
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                  padding: '12px 6px',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
-                  <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
-                    <span className="block font-semibold opacity-80">
-                      {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
-                        ? "You"
-                        : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-                    </span>
-                    {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads')
-                      ? (
+              {currentSelectedMessage.content.startsWith('/chat-uploads') ? (
+                <div className="relative max-w-xs p-2 rounded-lg border border-blue-400 shadow-md transition-transform hover:scale-105">
+                  {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
+                    <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-100 text-blue-900">
+                      <span className="block font-semibold opacity-80">
+                        {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
+                          ? "You"
+                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                      </span>
+                      {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads') ? (
                         <img
                           src={`http://localhost:5002${currentSelectedMessage.repliedTo.content}`}
                           alt="reply"
-                          className="w-20 h-20 object-cover rounded-md shadow"
+                          className="w-20 h-20 object-cover object-top rounded-md shadow"
                         />
-                      )
-                      : (
+                      ) : (
                         currentSelectedMessage.repliedTo.content.length > 30
                           ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
                           : currentSelectedMessage.repliedTo.content
-                      )
-                    }
+                      )}
+                    </div>
+                  )}
+
+                  <img
+                    src={`http://localhost:5002${currentSelectedMessage.content}`}
+                    alt=""
+                    className="w-full h-32 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
+                  />
+
+                  <small className="block text-xs mt-1 text-right text-gray-600">
+                    {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
+                      hour12: false,
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </small>
+
+                  <div className="flex items-center justify-end mt-1">
+                    {currentSelectedMessage.status.toLowerCase() === 'sent' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="26 6 15 17 20 12" />
+                      </svg>
+                    )}
+                    {currentSelectedMessage.status.toLowerCase() === 'read' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-900">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="26 6 15 17 20 12" />
+                      </svg>
+                    )}
                   </div>
-                )}
-
-                {currentSelectedMessage.wasForwarded && (
-                  <div className="flex items-center text-xs italic text-gray-700 mb-2">
-                    <FontAwesomeIcon icon={faShare} className="mr-1" />
-                    Forwarded
-                  </div>
-                )}
-
-                <p className="font-semibold text-center">
-                  {currentSelectedMessage.content.startsWith('/chat-uploads') ? (
-                    <img
-                      src={`http://localhost:5002${currentSelectedMessage.content}`}
-                      alt="Reply preview"
-                      className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
-                    />
-                  ) : (
-                    currentSelectedMessage.content.length > 150
-                      ? `${currentSelectedMessage.content.slice(0, 150)}...`
-                      : currentSelectedMessage.content
-                  )}
-                </p>
-
-                <small className="block text-xs mt-1 text-right text-white">
-                  {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
-                    hour12: false,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })}
-                </small>
-
-                <div className="flex items-center justify-end mt-1">
-                  {currentSelectedMessage.status.toLowerCase() === 'sent' && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="tick-icon"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                  {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="16"
-                      viewBox="0 0 32 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="tick-icon"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                      <polyline points="26 6 15 17 20 12" />
-                    </svg>
-                  )}
-                  {currentSelectedMessage.status.toLowerCase() === 'read' && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="16"
-                      viewBox="0 0 32 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="tick-icon text-blue-900"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                      <polyline points="26 6 15 17 20 12" />
-                    </svg>
-                  )}
                 </div>
-              </div>
+              ) : (
+                <div
+                  className="relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform bg-gradient-to-r from-blue-500 to-blue-700 text-white break-words hover:scale-105 hover:shadow-xl"
+                  style={{
+                    wordBreak: 'break-word',
+                    borderRadius: '16px 0 16px 16px',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                    padding: '12px 6px',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
+                    <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
+                      <span className="block font-semibold opacity-80">
+                        {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
+                          ? "You"
+                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                      </span>
+                      {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads') ? (
+                        <img
+                          src={`http://localhost:5002${currentSelectedMessage.repliedTo.content}`}
+                          alt="reply"
+                          className="w-20 h-20 object-cover object-top rounded-md shadow"
+                        />
+                      ) : (
+                        currentSelectedMessage.repliedTo.content.length > 30
+                          ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
+                          : currentSelectedMessage.repliedTo.content
+                      )}
+                    </div>
+                  )}
+
+                  {currentSelectedMessage.wasForwarded && (
+                    <div className="flex items-center text-xs italic text-gray-300 mb-2">
+                      <FontAwesomeIcon icon={faShare} className="mr-1" />
+                      Forwarded
+                    </div>
+                  )}
+
+                  <p className="font-semibold text-center">
+                    {currentSelectedMessage.content.length > 150
+                      ? `${currentSelectedMessage.content.slice(0, 150)}...`
+                      : currentSelectedMessage.content}
+                  </p>
+
+                  <small className="block text-xs mt-1 text-right text-white">
+                    {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
+                      hour12: false,
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </small>
+
+                  <div className="flex items-center justify-end mt-1">
+                    {currentSelectedMessage.status.toLowerCase() === 'sent' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="26 6 15 17 20 12" />
+                      </svg>
+                    )}
+                    {currentSelectedMessage.status.toLowerCase() === 'read' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-900">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="26 6 15 17 20 12" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col text-lg font-semibold mt-2 mr-10">
@@ -1280,7 +1304,7 @@ const InteractPage = () => {
                   </svg>
                   Read
                 </span>
-                <span className="ml-auto text-sm">
+                <span className="ml-auto text-md">
                   {currentSelectedMessage.status.toLowerCase() === "read" ? "Yes" : "-"}
                 </span>
               </span>
@@ -1304,7 +1328,7 @@ const InteractPage = () => {
                   </svg>
                   Delivered
                 </span>
-                <span className="text-sm ml-auto">
+                <span className="text-md ml-auto">
                   {currentSelectedMessage.status.toLowerCase() !== "sent" &&
                     currentSelectedMessage.deliveredAt ? (
                     formatTimestampV2(currentSelectedMessage.deliveredAt)
@@ -1495,7 +1519,7 @@ const InteractPage = () => {
                                     <img
                                       src={`http://localhost:5002${msg.repliedTo.content}`}
                                       alt="Reply preview"
-                                      className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
+                                      className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
                                     />
                                   ) : (
                                     msg.repliedTo.content.length > 30
@@ -1658,11 +1682,15 @@ const InteractPage = () => {
                                         <img
                                           src={`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`}
                                           alt="Reply preview"
-                                          className="w-full h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
+                                          className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
                                           onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
                                         />
                                       ) : (
-                                        <p className="text-gray-600 truncate">{groupedMessages[timestamp][0].repliedTo.content}</p>
+                                        <p className="text-gray-600">
+                                          {groupedMessages[timestamp][0].repliedTo.content.length > 20
+                                            ? groupedMessages[timestamp][0].repliedTo.content.slice(0, 20) + "..."
+                                            : groupedMessages[timestamp][0].repliedTo.content}
+                                        </p>
                                       )}
                                     </div>
                                   )}
@@ -1689,7 +1717,7 @@ const InteractPage = () => {
                                             <img
                                               src={`http://localhost:5002${msg.content}`}
                                               alt=""
-                                              className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                                              className="w-32 h-32 object-cover object-top rounded-lg border shadow-md"
                                               onClick={() => openImage(`http://localhost:5002${msg.content}`)}
                                             />
 
@@ -1826,7 +1854,7 @@ const InteractPage = () => {
                                   <img
                                     src={`http://localhost:5002${msg.content}`}
                                     alt=""
-                                    className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                                    className="w-32 h-32 object-cover object-top rounded-lg border shadow-md"
                                     onClick={() =>
                                       openImage(`http://localhost:5002${msg.content}`)
                                     }
@@ -1922,11 +1950,15 @@ const InteractPage = () => {
                                         <img
                                           src={`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`}
                                           alt="Reply preview"
-                                          className="w-full h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
+                                          className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
                                           onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
                                         />
                                       ) : (
-                                        <p className="text-gray-600 truncate">{groupedMessages[timestamp][0].repliedTo.content}</p>
+                                        <p className="text-gray-600">
+                                          {groupedMessages[timestamp][0].repliedTo.content.length > 20
+                                            ? groupedMessages[timestamp][0].repliedTo.content.slice(0, 20) + "..."
+                                            : groupedMessages[timestamp][0].repliedTo.content}
+                                        </p>
                                       )}
                                     </div>
                                   )}
@@ -1954,7 +1986,7 @@ const InteractPage = () => {
                                         <img
                                           src={`http://localhost:5002${msg.content}`}
                                           alt=""
-                                          className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                                          className="w-32 h-32 object-cover object-top rounded-lg border shadow-md"
                                           onClick={() => openImage(`http://localhost:5002${msg.content}`)}
                                         />
 
@@ -2215,7 +2247,7 @@ const InteractPage = () => {
                     <img
                       src={`http://localhost:5002${storedReplyMessage.content}`}
                       alt="Reply preview"
-                      className="w-20 h-10 object-cover rounded-lg border border-gray-300 shadow-md cursor-pointer transition-transform hover:scale-105"
+                      className="w-20 h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md cursor-pointer transition-transform hover:scale-105"
                       onClick={() => openImage(`http://localhost:5002${storedReplyMessage.content}`)}
                     />
                   ) : (
