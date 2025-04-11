@@ -1354,7 +1354,12 @@ const InteractPage = () => {
           <div ref={cardRef} className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
             <ul className="space-y-8">
               {selectedMessages.length === 1 && (() => {
-                const firstSelectedMessage = messages.find(msg => msg.id === selectedMessages[0]);
+                const firstSelectedMessage = messages.find(
+                  (msg) =>
+                    msg.id === selectedMessages[0] &&
+                    !currentSelectedMessage.content.startsWith("/chat-uploads")
+                );
+                
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
               })() && (
                   <li className="cursor-pointer hover:text-blue-500" onClick={messageEdit}>

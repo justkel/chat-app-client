@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { CloseOutlined, LeftOutlined, RightOutlined, SendOutlined } from "@ant-design/icons";
 
 type ImagePreviewModalProps = {
@@ -32,6 +32,12 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             setActiveIndex(Math.max(0, newImages.length - 1));
         }
     };
+
+    useEffect(() => {
+        if (selectedImages.length === 0) {
+            onClose();
+        }
+    }, [selectedImages, onClose]);
 
     const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
         const newCaptions = [...captions];
