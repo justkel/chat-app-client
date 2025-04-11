@@ -1062,6 +1062,12 @@ const InteractPage = () => {
     setSelectedMessages([]);
   };
 
+  const closeImagePreviewModal = () => {
+    setShowPreviewModal(false);
+    setSelectedImages([]);
+    setCaptions([]);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -2143,37 +2149,46 @@ const InteractPage = () => {
 
           {selectedImageIndex !== null && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
-              <div className="relative flex items-center">
-                {selectedImageIndex > 0 && (
+              <div className="relative flex flex-col items-center space-y-4">
+                <div className="relative flex items-center">
+                  {selectedImageIndex > 0 && (
+                    <button
+                      onClick={goPrev}
+                      className="absolute left-4 text-white text-4xl hover:scale-110 transition-transform"
+                    >
+                      ❮
+                    </button>
+                  )}
+
+                  <img
+                    src={selectedImage}
+                    alt="preview"
+                    className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
+                  />
+
+                  {selectedImageIndex < imageMessages.length - 1 && (
+                    <button
+                      onClick={goNext}
+                      className="absolute right-4 text-white text-4xl hover:scale-110 transition-transform"
+                    >
+                      ❯
+                    </button>
+                  )}
+
                   <button
-                    onClick={goPrev}
-                    className="absolute left-4 text-white text-4xl hover:scale-110 transition-transform"
+                    onClick={closeImage}
+                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
                   >
-                    ❮
+                    ❌
                   </button>
+                </div>
+
+                {/* Caption */}
+                {imageMessages[selectedImageIndex]?.caption && (
+                  <p className="text-white text-center max-w-[90vw] px-4 text-lg">
+                    {imageMessages[selectedImageIndex].caption}
+                  </p>
                 )}
-
-                <img
-                  src={selectedImage}
-                  alt="preview"
-                  className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
-                />
-
-                {selectedImageIndex < imageMessages.length - 1 && (
-                  <button
-                    onClick={goNext}
-                    className="absolute right-4 text-white text-4xl hover:scale-110 transition-transform"
-                  >
-                    ❯
-                  </button>
-                )}
-
-                <button
-                  onClick={closeImage}
-                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
-                >
-                  ❌
-                </button>
               </div>
             </div>
           )}
@@ -2322,7 +2337,7 @@ const InteractPage = () => {
                   setSelectedImages={setSelectedImages}
                   captions={captions}
                   setCaptions={setCaptions}
-                  onClose={() => setShowPreviewModal(false)}
+                  onClose={closeImagePreviewModal}
                   onSend={uploadImageAndSend}
                 />
               )}
