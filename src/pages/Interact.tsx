@@ -1,17 +1,8 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Input, Spin, notification } from 'antd';
+import { Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
-import {
-  ArrowLeftOutlined, DeleteOutlined, MoreOutlined, SendOutlined, StarOutlined, PlusOutlined,
-  PictureOutlined,
-  CameraOutlined,
-  AudioOutlined,
-  FileOutlined,
-  CalendarOutlined
-} from '@ant-design/icons';
-import { Modal, Button } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
 import socket from '../socket';
@@ -26,11 +17,17 @@ import { ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 import ForwardModal from '../components/ForwardModal';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
+import InfoCard from '../components/InfoCard';
+// import MessageActionCard from '../components/MessageActionCard';
+import EditMessageModal from '../components/EditingMessageModal';
+import ReplyCard from '../components/ReplyCard';
+import ImagePreviewCard from '../components/ImagePreviewCard';
+import MessageInputBar from '../components/MessageInputBar';
+import DeleteMessageModal from '../components/DeleteMessageModal';
+import SelectedMessagesBar from '../components/SelectedMessagesBar';
 import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare } from '@fortawesome/free-solid-svg-icons';
-
-const { TextArea } = Input;
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -1122,224 +1119,18 @@ const InteractPage = () => {
 
   return (
     <div>
-      {showInfoCard && (
-        <div className="fixed inset-0 h-screen w-screen bg-black/50 flex justify-center z-[9999]">
-          <div className="relative bg-gray-100 p-3 rounded-lg shadow-md w-screen mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
-            <button
-              onClick={closeInfoCard}
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-xl sm:text-2xl text-gray-500 mr-10 hover:text-gray-700 transition duration-200 ease-in-out"
-            >
-              ✖
-            </button>
+      <InfoCard
+        showInfoCard={showInfoCard}
+        closeInfoCard={closeInfoCard}
+        currentSelectedMessage={currentSelectedMessage}
+        messagesAll={messagesAll}
+        userId={userId}
+        chatSettings={chatSettings}
+        otherUserData={otherUserData}
+        formatTimestamp={formatTimestamp}
+        formatTimestampV2={formatTimestampV2}
+      />
 
-            <p className="font-semibold text-center text-3xl mb-5">Message info</p>
-            <p className="font-semibold text-center text-xl">
-              {currentSelectedMessage.timestamp && formatTimestamp(currentSelectedMessage.timestamp)}
-            </p>
-
-            <div className="flex justify-end mt-5 mr-10">
-              {currentSelectedMessage.content.startsWith('/chat-uploads') ? (
-                <div className="relative max-w-xs p-2 rounded-lg border border-blue-400 shadow-md transition-transform hover:scale-105">
-                  {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
-                    <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-100 text-blue-900">
-                      <span className="block font-semibold opacity-80">
-                        {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
-                          ? "You"
-                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-                      </span>
-                      {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads') ? (
-                        <img
-                          src={`http://localhost:5002${currentSelectedMessage.repliedTo.content}`}
-                          alt="reply"
-                          className="w-20 h-20 object-cover object-top rounded-md shadow"
-                        />
-                      ) : (
-                        currentSelectedMessage.repliedTo.content.length > 30
-                          ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
-                          : currentSelectedMessage.repliedTo.content
-                      )}
-                    </div>
-                  )}
-
-                  <img
-                    src={`http://localhost:5002${currentSelectedMessage.content}`}
-                    alt=""
-                    className="w-full h-32 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
-                  />
-
-                  <small className="block text-xs mt-1 text-right text-gray-600">
-                    {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
-                      hour12: false,
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })}
-                  </small>
-
-                  <div className="flex items-center justify-end mt-1">
-                    {currentSelectedMessage.status.toLowerCase() === 'sent' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                    {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="26 6 15 17 20 12" />
-                      </svg>
-                    )}
-                    {currentSelectedMessage.status.toLowerCase() === 'read' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-900">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="26 6 15 17 20 12" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="relative max-w-xs p-4 rounded-lg shadow-lg transition-all ease-in-out transform bg-gradient-to-r from-blue-500 to-blue-700 text-white break-words hover:scale-105 hover:shadow-xl"
-                  style={{
-                    wordBreak: 'break-word',
-                    borderRadius: '16px 0 16px 16px',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    padding: '12px 6px',
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  {currentSelectedMessage.repliedTo && currentSelectedMessage.repliedTo.content && (
-                    <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
-                      <span className="block font-semibold opacity-80">
-                        {messagesAll.find((m) => m.id === currentSelectedMessage.repliedTo.id)?.sender?.id === userId
-                          ? "You"
-                          : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-                      </span>
-                      {currentSelectedMessage.repliedTo.content.startsWith('/chat-uploads') ? (
-                        <img
-                          src={`http://localhost:5002${currentSelectedMessage.repliedTo.content}`}
-                          alt="reply"
-                          className="w-20 h-20 object-cover object-top rounded-md shadow"
-                        />
-                      ) : (
-                        currentSelectedMessage.repliedTo.content.length > 30
-                          ? currentSelectedMessage.repliedTo.content.slice(0, 30) + "..."
-                          : currentSelectedMessage.repliedTo.content
-                      )}
-                    </div>
-                  )}
-
-                  {currentSelectedMessage.wasForwarded && (
-                    <div className="flex items-center text-xs italic text-gray-300 mb-2">
-                      <FontAwesomeIcon icon={faShare} className="mr-1" />
-                      Forwarded
-                    </div>
-                  )}
-
-                  <p className="font-semibold text-center">
-                    {currentSelectedMessage.content.length > 150
-                      ? `${currentSelectedMessage.content.slice(0, 150)}...`
-                      : currentSelectedMessage.content}
-                  </p>
-
-                  <small className="block text-xs mt-1 text-right text-white">
-                    {new Date(currentSelectedMessage.timestamp).toLocaleString('en-GB', {
-                      hour12: false,
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })}
-                  </small>
-
-                  <div className="flex items-center justify-end mt-1">
-                    {currentSelectedMessage.status.toLowerCase() === 'sent' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                    {currentSelectedMessage.status.toLowerCase() === 'delivered' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="26 6 15 17 20 12" />
-                      </svg>
-                    )}
-                    {currentSelectedMessage.status.toLowerCase() === 'read' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-900">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="26 6 15 17 20 12" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col text-lg font-semibold mt-2 mr-10">
-              <span className="flex items-center mb-7 justify-between gap-4">
-                <span className="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="16"
-                    viewBox="0 0 32 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="tick-icon text-green-600 mb-1"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                    <polyline points="26 6 15 17 20 12" />
-                  </svg>
-                  Read
-                </span>
-                <span className="ml-auto text-md">
-                  {currentSelectedMessage.status.toLowerCase() === "read" ? "Yes" : "-"}
-                </span>
-              </span>
-
-              <span className="flex items-center mb-7 justify-between gap-4">
-                <span className="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="16"
-                    viewBox="0 0 32 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="tick-icon mb-1"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                    <polyline points="26 6 15 17 20 12" />
-                  </svg>
-                  Delivered
-                </span>
-                <span className="text-md ml-auto">
-                  {currentSelectedMessage.status.toLowerCase() !== "sent" &&
-                    currentSelectedMessage.deliveredAt ? (
-                    formatTimestampV2(currentSelectedMessage.deliveredAt)
-                  ) : (
-                    "-"
-                  )}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
       <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
       <ForwardModal
         showModal={showForwardModal}
@@ -1356,7 +1147,9 @@ const InteractPage = () => {
                 const firstSelectedMessage = messages.find(
                   (msg) =>
                     msg.id === selectedMessages[0] &&
-                    !currentSelectedMessage.content.startsWith("/chat-uploads")
+                    !currentSelectedMessage.content.startsWith("/chat-uploads") &&
+                    !currentSelectedMessage.wasForwarded
+
                 );
 
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
@@ -1382,69 +1175,23 @@ const InteractPage = () => {
         </div>
       )}
 
-      {isEditing && currentSelectedMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-xl shadow-xl w-[95%] max-w-lg">
-            <p className="text-gray-500 text-sm mb-3">Editing message...</p>
+      <EditMessageModal
+        isEditing={isEditing}
+        currentSelectedMessage={currentSelectedMessage}
+        editMessage={editMessage}
+        setEditMessage={setEditMessage}
+        setSelectedMessages={setSelectedMessages}
+        setIsEditing={setIsEditing}
+        handleEditMessage={handleEditMessage}
+      />
 
-            <div className="bg-gray-100 p-4 rounded text-gray-700 mb-4 opacity-60 max-h-32 overflow-y-auto">
-              {currentSelectedMessage.content.length > 100
-                ? `${currentSelectedMessage.content.substring(0, 100)}...`
-                : currentSelectedMessage.content}
-            </div>
-
-            <textarea
-              value={editMessage !== undefined ? editMessage : currentSelectedMessage.content.trim()}
-              onChange={(e) => setEditMessage(e.target.value)}
-              className="w-full h-32 border border-gray-300 p-3 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <div className="flex justify-end gap-4 mt-4">
-
-              <button
-                onClick={() => {
-                  setSelectedMessages([]);
-                  setIsEditing(false);
-                }}
-                className="text-gray-500 hover:text-red-500 text-lg"
-              >
-                ❌
-              </button>
-
-              <button
-                className="text-green-500 hover:text-green-600 text-2xl disabled:text-gray-400 disabled:cursor-not-allowed"
-                disabled={editMessage === "" || !currentSelectedMessage.content.trim()}
-                onClick={handleEditMessage}
-              >
-                ✔
-              </button>
-
-            </div>
-          </div>
-        </div>
-      )}
-
-      {selectedMessages.length > 0 && (
-        <div>
-          <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-50 w-full overflow-hidden">
-            <ArrowLeftOutlined className="text-xl cursor-pointer" onClick={handleArrowBack} />
-            <p className='text-bold text-xl mr-36'>
-              {selectedMessages.length}
-            </p>
-            <div>
-              <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
-              <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={handleDelete} />
-              <FontAwesomeIcon
-                icon={faShare}
-                size="lg"
-                className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12"
-                onClick={handleForward}
-              />
-              <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
-            </div>
-          </div>
-        </div>
-      )}
+      <SelectedMessagesBar
+        count={selectedMessages.length}
+        onBack={handleArrowBack}
+        onDelete={handleDelete}
+        onForward={handleForward}
+        onMore={toggleCard}
+      />
 
       <div className="flex flex-col h-screen pt-12">
         <div className="flex-1 p-4 overflow-hidden"
@@ -2134,238 +1881,48 @@ const InteractPage = () => {
             </div>
           </div>
 
-          {showDeleteModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white w-1/3 rounded-lg shadow-lg p-6 relative">
-                <h4 className="text-lg font-bold">
-                  Delete {selectedMessages.length} Message(s)
-                </h4>
+          <DeleteMessageModal
+            show={showDeleteModal}
+            selectedCount={selectedMessages.length}
+            canDeleteForEveryone={canDeleteForEveryone}
+            onClose={closeDeleteModal}
+            onDeleteForMe={deleteMessagess}
+            onDeleteForEveryone={handleDeleteForEveryone}
+          />
 
-                <div className="mt-6 text-right">
-                  <button
-                    className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
-                    onClick={deleteMessagess}
-                  >
-                    Delete for me
-                  </button>
-                  <button
-                    className={`block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded ${!canDeleteForEveryone ? 'hidden' : ''}`}
-                    onClick={handleDeleteForEveryone}
-                  >
-                    Delete for everyone
-                  </button>
-                  <button
-                    className="block w-full text-left text-gray-600 py-2 px-4 hover:bg-gray-100 rounded mt-4"
-                    onClick={closeDeleteModal}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* {selectedImage && (
-            <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
-              <div className="relative">
-                <img
-                  src={selectedImage}
-                  alt="preview"
-                  className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
-                />
-                <button
-                  onClick={closeImage}
-                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
-                >
-                  ❌
-                </button>
-              </div>
-            </div>
-          )} */}
-
-          {selectedImageIndex !== null && (
-            <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
-              <div className="relative flex flex-col items-center space-y-4">
-                <div className="relative flex items-center">
-                  {selectedImageIndex > 0 && (
-                    <button
-                      onClick={goPrev}
-                      className="absolute left-4 text-white text-4xl hover:scale-110 transition-transform"
-                    >
-                      ❮
-                    </button>
-                  )}
-
-                  <img
-                    src={selectedImage}
-                    alt="preview"
-                    className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
-                  />
-
-                  {selectedImageIndex < imageMessages.length - 1 && (
-                    <button
-                      onClick={goNext}
-                      className="absolute right-4 text-white text-4xl hover:scale-110 transition-transform"
-                    >
-                      ❯
-                    </button>
-                  )}
-
-                  <button
-                    onClick={closeImage}
-                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
-                  >
-                    ❌
-                  </button>
-                </div>
-
-                {/* Caption */}
-                {imageMessages[selectedImageIndex]?.caption && (
-                  <p className="text-white text-center max-w-[90vw] px-4 text-lg">
-                    {imageMessages[selectedImageIndex].caption}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          <ImagePreviewCard
+            selectedImageIndex={selectedImageIndex}
+            selectedImage={selectedImage}
+            imageMessages={imageMessages}
+            goPrev={goPrev}
+            goNext={goNext}
+            closeImage={closeImage}
+          />
 
           <div className="relative pb-16">
-            {showReplyCard && storedReplyMessage && (
-              <div className="absolute bottom-16 w-full flex justify-center">
-                <div className="relative bg-gray-100 p-3 rounded-lg shadow-md max-w-4xl w-full mx-auto text-sm text-gray-700 opacity-70 pointer-events-auto">
-
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
-                      setShowReplyCard(false);
-                    }}
-                    className="absolute top-2 right-2 text-xl text-gray-500 hover:text-gray-700 transition duration-200 ease-in-out"
-                  >
-                    ✖
-                  </button>
-
-                  <p className="font-semibold">
-                    {storedReplyMessage.senderId === userId ? "You" : "Other User"}
-                  </p>
-                  {storedReplyMessage.content.startsWith('/chat-uploads') ? (
-                    <img
-                      src={`http://localhost:5002${storedReplyMessage.content}`}
-                      alt="Reply preview"
-                      className="w-20 h-10 object-cover object-top rounded-lg border border-gray-300 shadow-md cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => openImage(`http://localhost:5002${storedReplyMessage.content}`)}
-                    />
-                  ) : (
-                    <p>{storedReplyMessage.content}</p>
-                  )}
-                </div>
-              </div>
-            )}
+            <ReplyCard
+              showReplyCard={showReplyCard}
+              storedReplyMessage={storedReplyMessage}
+              userId={userId}
+              otherUserId={otherUserId || null}
+              setShowReplyCard={setShowReplyCard}
+              openImage={openImage}
+            />
 
             <div className="fixed bottom-0 w-full shadow-lg">
-              <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
-                <TextArea
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    handleTyping();
-                  }}
-                  placeholder={
-                    selectedImages.length > 0
-                      ? "Remove image(s) to type a message..."
-                      : "Type your message..."
-                  }
-                  aria-label="Message Input"
-                  className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
-                  rows={2}
-                  disabled={selectedImages.length > 0}
-                />
-
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
-
-                  <Button
-                    shape="circle"
-                    icon={<PlusOutlined />}
-                    onClick={() => setIsModalVisible(true)}
-                    className="flex items-center justify-center shadow-md"
-                  />
-
-                  <Modal
-                    title={<span className="text-lg font-semibold">Choose upload method</span>}
-                    open={isModalVisible}
-                    onCancel={() => setIsModalVisible(false)}
-                    footer={null}
-                    centered
-                    width={360}
-                    styles={{ body: { padding: '1.5rem' } }}
-                  >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div
-                        onClick={triggerGalleryUpload}
-                        className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md"
-                      >
-                        <div className="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
-                          <PictureOutlined className="text-xl" />
-                        </div>
-                        <span className="text-sm font-medium">Gallery</span>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
-                        <div className="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
-                          <CameraOutlined className="text-xl" />
-                        </div>
-                        <span className="text-sm font-medium">Camera</span>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
-                        <div className="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
-                          <AudioOutlined className="text-xl" />
-                        </div>
-                        <span className="text-sm font-medium">Audio</span>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
-                        <div className="bg-yellow-100 text-yellow-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
-                          <FileOutlined className="text-xl" />
-                        </div>
-                        <span className="text-sm font-medium">File</span>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md col-span-2">
-                        <div className="bg-red-100 text-red-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
-                          <CalendarOutlined className="text-xl" />
-                        </div>
-                        <span className="text-sm font-medium">Calendar</span>
-                      </div>
-                    </div>
-                  </Modal>
-                </div>
-
-                <button
-                  onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
-                  className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition duration-200 ease-in-out"
-                >
-                  <span role="img" aria-label="emoji" className="text-xl">😊</span>
-                </button>
-
-                {selectedImages.length === 0 && (
-                  <button
-                    onClick={sendMessage}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-                    disabled={!newMessage.trim()}
-                  >
-                    <SendOutlined style={{ fontSize: '20px' }} />
-                    Send
-                  </button>
-                )}
-              </div>
+              <MessageInputBar
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                handleTyping={handleTyping}
+                selectedImages={selectedImages}
+                fileInputRef={fileInputRef}
+                handleImageChange={handleImageChange}
+                isModalVisible={isModalVisible}
+                setIsModalVisible={setIsModalVisible}
+                triggerGalleryUpload={triggerGalleryUpload}
+                setIsEmojiPickerVisible={setIsEmojiPickerVisible}
+                sendMessage={sendMessage}
+              />
 
               {showPreviewModal && (
                 <ImagePreviewModal
