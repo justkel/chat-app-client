@@ -205,7 +205,7 @@ const InteractPage = () => {
       if (otherUserData) {
         otherUserRefetch();
       }
-    }, 5000);
+    }, 25000);
 
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
@@ -314,22 +314,25 @@ const InteractPage = () => {
   useEffect(() => {
     if (!otherUserId || !userId) return;
 
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    const pollInterval = 10000;
+    const interval = intervalRef.current;
 
-    intervalRef.current = setInterval(async () => {
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
 
-      if (onlineLoading) return;
-      if (onlineError) {
-        console.error('Error checking user online status:', onlineError);
-        return;
-      }
+      intervalRef.current = setInterval(async () => {
+        if (document.visibilityState !== 'visible') return; // Only poll if tab is visible
+        if (onlineLoading || onlineError) return;
 
-      try {
-        await isOnlineRefetch();
-      } catch (err) {
-        console.error('Error refetching online status:', err);
-      }
-    }, 2000);
+        try {
+          await isOnlineRefetch();
+        } catch (err) {
+          console.error('Error refetching online status:', err);
+        }
+      }, pollInterval);
+    };
+
+    startPolling();
 
     return () => {
       if (intervalRef.current) {
@@ -338,13 +341,23 @@ const InteractPage = () => {
     };
   }, [otherUserId, userId, onlineLoading, onlineError, isOnlineRefetch]);
 
+  const updatedMessageIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (onlineData?.status.toLowerCase() === 'yes') {
-      const sentMessages = messages.filter((msg) => msg.status.toLowerCase() === 'sent');
+      const sentMessages = messages.filter(
+        (msg) =>
+          msg.status.toLowerCase() === 'sent' &&
+          !updatedMessageIds.current.has(msg.id)
+      );
+
+      if (sentMessages.length === 0) return;
 
       sentMessages.forEach(async (msg) => {
         try {
           await updateMessageStatus(msg.id, 'DELIVERED');
+
+          updatedMessageIds.current.add(msg.id); // track updated msg
 
           setMessages((prev) =>
             prev.map((message) =>
@@ -366,26 +379,35 @@ const InteractPage = () => {
 
           socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
         } catch (err) {
-          console.error('Error updating message statuses:', err);
+          console.error('Error updating message status:', err);
         }
       });
     }
-  }, [messages, onlineData, otherUserId, updateMessageStatus, userId]);
+  }, [onlineData?.status, messages, otherUserId, updateMessageStatus, userId]);
+
+  const readMessageIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!isReceiverOnPage) {
-        console.log("Receiver is not on the page, skipping message status update.");
+      if (!isReceiverOnPage || !isAtBottom) {
+        console.log("Receiver not on page or not at bottom, skipping read update.");
         return;
       }
 
-      const ReUpdatingMessages = messages.filter(
-        (msg) => msg.receiver.id === userId && isAtBottom,
+      const messagesToUpdate = messages.filter(
+        (msg) =>
+          (msg.status.toLowerCase() === 'delivered' || msg.status.toLowerCase() === 'read') &&
+          msg.receiver.id === userId &&
+          !readMessageIds.current.has(msg.id)
       );
 
-      if (ReUpdatingMessages.length > 0) {
-        ReUpdatingMessages.forEach(async (msg) => {
+      if (messagesToUpdate.length === 0) return;
+
+      messagesToUpdate.forEach(async (msg) => {
+        try {
           await updateMessageStatus(msg.id, 'READ');
+
+          readMessageIds.current.add(msg.id); // prevent re-updating
 
           const transformedMessage = {
             sender: { id: msg.sender.id },
@@ -398,36 +420,13 @@ const InteractPage = () => {
           };
 
           socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
-        })
-      }
+        } catch (error) {
+          console.error('Error updating message statuses:', error);
+        }
+      });
+    }, 1000); // debounce duration
 
-      const receivedMessages = messages.filter(
-        (msg) => msg.status.toLowerCase() === 'delivered' && msg.receiver.id === userId && isAtBottom
-      );
-      if (receivedMessages.length > 0) {
-        receivedMessages.forEach(async (msg) => {
-          try {
-            await updateMessageStatus(msg.id, 'READ');
-
-            const transformedMessage = {
-              sender: { id: msg.sender.id },
-              receiver: { id: msg.receiver.id },
-              content: msg.content,
-              timestamp: msg.timestamp,
-              status: 'READ',
-              id: msg.id,
-              deliveredAt: msg.deliveredAt,
-            };
-
-            socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
-          } catch (error) {
-            console.error('Error updating message statuses:', error);
-          }
-        });
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer); // Cleanup on unmount
+    return () => clearTimeout(timer);
   }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage, isAtBottom]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -1359,7 +1358,7 @@ const InteractPage = () => {
                     msg.id === selectedMessages[0] &&
                     !currentSelectedMessage.content.startsWith("/chat-uploads")
                 );
-                
+
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
               })() && (
                   <li className="cursor-pointer hover:text-blue-500" onClick={messageEdit}>
