@@ -24,6 +24,7 @@ export type ChatMessage = {
   content: string;
   caption?: string | null;
   fileOriginalName?: string | null;
+  timestamp: Date;
   status: MessageStatus;
   senderDFM: boolean;
   receiverDFM: boolean;
