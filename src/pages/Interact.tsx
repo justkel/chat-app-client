@@ -67,6 +67,7 @@ const InteractPage = () => {
   const [captions, setCaptions] = useState<string[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -1078,6 +1079,14 @@ const InteractPage = () => {
     setIsModalVisible(false);
   };
 
+  const triggerCamera = () => { //CURRENTLY NOT USED
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+    setIsModalVisible(false);
+  };
+
+
   const groupMessagesByTimestamp = (messages: any[]) => {
     return messages.reduce((acc: any, message: any) => {
       const timestamp = new Date(message.timestamp).getTime();
@@ -1149,9 +1158,7 @@ const InteractPage = () => {
                     msg.id === selectedMessages[0] &&
                     !currentSelectedMessage.content.startsWith("/chat-uploads") &&
                     !currentSelectedMessage.wasForwarded
-
                 );
-
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
               })() && (
                   <li className="cursor-pointer hover:text-blue-500" onClick={messageEdit}>
@@ -1166,10 +1173,30 @@ const InteractPage = () => {
               )}
 
               {selectedMessages.length === 1 && messages.find(msg => msg.id === selectedMessages[0] && msg.sender.id === userId) && (
-                <li className="cursor-pointer hover:text-blue-500" onClick={viewMessageInfo}>Info</li>
+                <li className="cursor-pointer hover:text-blue-500" onClick={viewMessageInfo}>
+                  Info
+                </li>
               )}
-              <li className="cursor-pointer hover:text-blue-500">Copy</li>
-              <li className="cursor-pointer hover:text-blue-500">Pin</li>
+
+              {!currentSelectedMessages.some(msg => msg.content.startsWith('/chat-uploads')) && (
+                <li className="cursor-pointer hover:text-blue-500">Copy</li>
+              )}
+
+              {selectedMessages.length === 1 && (
+                <li className="cursor-pointer hover:text-blue-500">Pin</li>
+              )}
+
+              {/* Fallback message if no conditions are met */}
+              {(selectedMessages.length !== 1 ||
+                !(
+                  (messages.find(msg => msg.id === selectedMessages[0] && !currentSelectedMessage.content.startsWith("/chat-uploads") && !currentSelectedMessage.wasForwarded) && (currentSelectedMessage && isWithinTimeLimit(currentSelectedMessage.timestamp))) ||
+                  messages.find(msg => msg.id === selectedMessages[0]) ||
+                  messages.find(msg => msg.id === selectedMessages[0] && msg.sender.id === userId) ||
+                  !currentSelectedMessages.some(msg => msg.content.startsWith('/chat-uploads')) ||
+                  selectedMessages.length === 1
+                )) && (
+                  <li className="text-gray-500">No actions available for the selected message(s)</li>
+                )}
             </ul>
           </div>
         </div>
@@ -1916,10 +1943,12 @@ const InteractPage = () => {
                 handleTyping={handleTyping}
                 selectedImages={selectedImages}
                 fileInputRef={fileInputRef}
+                cameraInputRef={cameraInputRef}
                 handleImageChange={handleImageChange}
                 isModalVisible={isModalVisible}
                 setIsModalVisible={setIsModalVisible}
                 triggerGalleryUpload={triggerGalleryUpload}
+                triggerCamera={triggerCamera}
                 setIsEmojiPickerVisible={setIsEmojiPickerVisible}
                 sendMessage={sendMessage}
               />
