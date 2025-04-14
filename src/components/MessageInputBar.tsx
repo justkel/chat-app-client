@@ -19,10 +19,13 @@ interface MessageInputBarProps {
     selectedImages: File[];
     fileInputRef: React.RefObject<HTMLInputElement>;
     cameraInputRef: React.RefObject<HTMLInputElement>;
+    actualFileInputRef: React.RefObject<HTMLInputElement>;
     handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isModalVisible: boolean;
     setIsModalVisible: (val: boolean) => void;
     triggerGalleryUpload: () => void;
+    triggerFileUpload: () => void;
     triggerCamera: () => void;
     setIsEmojiPickerVisible: (val: boolean | ((prev: boolean) => boolean)) => void;
     sendMessage: () => void;
@@ -35,10 +38,13 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     selectedImages,
     fileInputRef,
     cameraInputRef,
+    actualFileInputRef,
     handleImageChange,
+    handleFileChange,
     isModalVisible,
     setIsModalVisible,
     triggerGalleryUpload,
+    triggerFileUpload,
     triggerCamera,
     setIsEmojiPickerVisible,
     sendMessage,
@@ -146,6 +152,14 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     style={{ display: 'none' }}
                 /> */}
 
+                <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    ref={actualFileInputRef}
+                    className="hidden"
+                    onChange={handleFileChange}
+                />
+
                 <Button
                     shape="circle"
                     icon={<PlusOutlined />}
@@ -187,7 +201,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                             <span className="text-sm font-medium">Audio</span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
+                        <div onClick={triggerFileUpload} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
                             <div className="bg-yellow-100 text-yellow-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <FileOutlined className="text-xl" />
                             </div>

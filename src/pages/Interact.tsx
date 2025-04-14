@@ -25,6 +25,7 @@ import ImagePreviewCard from '../components/ImagePreviewCard';
 import MessageInputBar from '../components/MessageInputBar';
 import DeleteMessageModal from '../components/DeleteMessageModal';
 import SelectedMessagesBar from '../components/SelectedMessagesBar';
+import { FilePreviewModal } from '../components/FilePreviewModal';
 import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare } from '@fortawesome/free-solid-svg-icons';
@@ -60,6 +61,9 @@ const InteractPage = () => {
   const [currentSelectedMessage, setCurrentSelectedMessage] = useState<any>(null);
   const [currentSelectedMessages, setCurrentSelectedMessages] = useState<any[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileCaption, setFileCaption] = useState<string>("");
+  const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showAllImagesModal, setShowAllImagesModal] = useState(false);
   const [activeImageGroup, setActiveImageGroup] = useState<any[]>([]);
@@ -67,6 +71,7 @@ const InteractPage = () => {
   const [captions, setCaptions] = useState<string[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const actualFileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const imageMessages = useMemo(() => {
@@ -748,6 +753,41 @@ const InteractPage = () => {
     }
   };
 
+  const uploadFileAndSend = async () => {
+    if (!selectedFile || !userId || !otherUserId) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append("caption", fileCaption);
+    formData.append('senderId', userId);
+    formData.append('receiverId', otherUserId);
+    formData.append('fileOriginalName', selectedFile.name);
+
+    const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
+    const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
+    formData.append('repliedTo', repliedTo.toString());
+
+    try {
+      const response = await fetch('http://localhost:5002/chat-control/upload-file', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+
+      const messages = await response.json();
+      messages.forEach((msg: any) => {
+        socket.emit('sendMessage', msg);
+      });
+
+      localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
+      setShowReplyCard(false);
+      setSelectedFile(null);
+    } catch (err) {
+      console.error('File upload failed:', err);
+    }
+  };
 
   const truncateMessage = (content: string) => {
     if (content.length > maxLength) {
@@ -1074,8 +1114,27 @@ const InteractPage = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setShowFilePreviewModal(true);
+    }
+  };
+
+  const closeFilePreviewModal = () => {
+    setShowFilePreviewModal(false);
+    setSelectedFile(null);
+    setFileCaption("");
+  };
+
   const triggerGalleryUpload = () => {
     fileInputRef.current?.click();
+    setIsModalVisible(false);
+  };
+
+  const triggerFileUpload = () => {
+    actualFileInputRef.current?.click();
     setIsModalVisible(false);
   };
 
@@ -1944,10 +2003,13 @@ const InteractPage = () => {
                 selectedImages={selectedImages}
                 fileInputRef={fileInputRef}
                 cameraInputRef={cameraInputRef}
+                actualFileInputRef={actualFileInputRef}
                 handleImageChange={handleImageChange}
+                handleFileChange={handleFileChange}
                 isModalVisible={isModalVisible}
                 setIsModalVisible={setIsModalVisible}
                 triggerGalleryUpload={triggerGalleryUpload}
+                triggerFileUpload={triggerFileUpload}
                 triggerCamera={triggerCamera}
                 setIsEmojiPickerVisible={setIsEmojiPickerVisible}
                 sendMessage={sendMessage}
@@ -1961,6 +2023,17 @@ const InteractPage = () => {
                   setCaptions={setCaptions}
                   onClose={closeImagePreviewModal}
                   onSend={uploadImageAndSend}
+                />
+              )}
+
+              {showFilePreviewModal && (
+                <FilePreviewModal
+                  selectedFile={selectedFile}
+                  setSelectedFile={setSelectedFile}
+                  caption={fileCaption}
+                  setCaption={setFileCaption}
+                  onClose={closeFilePreviewModal}
+                  onSend={uploadFileAndSend}
                 />
               )}
 

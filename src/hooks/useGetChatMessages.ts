@@ -22,6 +22,7 @@ const GET_CHAT_MESSAGES = gql`
       delForAll
       deliveredAt
       wasForwarded
+      fileOriginalName
       caption
     }
   }
@@ -59,6 +60,7 @@ const GET_CHAT_MESSAGES_ALL = gql`
       delForAll
       deliveredAt
       wasForwarded
+      fileOriginalName
       caption
     }
   }

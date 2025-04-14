@@ -23,7 +23,7 @@ export type ChatMessage = {
   receiver: User;
   content: string;
   caption?: string | null;
-  timestamp: Date;
+  fileOriginalName?: string | null;
   status: MessageStatus;
   senderDFM: boolean;
   receiverDFM: boolean;
