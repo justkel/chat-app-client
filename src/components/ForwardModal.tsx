@@ -34,6 +34,7 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
         // Call the parent's callback and send the selected users
         onSendForwardedMessage(selectedUsers);
         setShowModal(false);
+        setSelectedUsers([]);
     };
 
     const filteredUsers = data?.filter(user =>
