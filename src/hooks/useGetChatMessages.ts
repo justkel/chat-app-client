@@ -15,6 +15,7 @@ const GET_CHAT_MESSAGES = gql`
       repliedTo {
         id
         content
+        fileOriginalName
       }
       status
       senderDFM
@@ -53,6 +54,7 @@ const GET_CHAT_MESSAGES_ALL = gql`
       repliedTo {
         id
         content
+        fileOriginalName
       }
       status
       senderDFM
