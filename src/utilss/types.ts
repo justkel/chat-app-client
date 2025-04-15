@@ -41,3 +41,4 @@ export type UserTypingEvent = {
 
 export const CHAT_UPLOAD_PREFIX = "/chat-uploads/";
 export const CHAT_UPLOAD_FILE_PREFIX = "/chat-files/";
+export const CHAT_UPLOAD_AUDIO_PREFIX = "/chat-audios/";

@@ -13,7 +13,7 @@ import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
-import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, ChatMessage, UserTypingEvent } from '../utilss/types';
+import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX, ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 import ForwardModal from '../components/ForwardModal';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
@@ -28,7 +28,9 @@ import SelectedMessagesBar from '../components/SelectedMessagesBar';
 import { FilePreviewModal } from '../components/FilePreviewModal';
 import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShare, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
+import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
+import AudioPlayerCustom from '../components/AudioPlayerCustom';
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -64,6 +66,7 @@ const InteractPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileCaption, setFileCaption] = useState<string>("");
   const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
+  const [showAudioPreviewModal, setShowAudioPreviewModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showAllImagesModal, setShowAllImagesModal] = useState(false);
   const [activeImageGroup, setActiveImageGroup] = useState<any[]>([]);
@@ -73,6 +76,8 @@ const InteractPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const actualFileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [selectedAudio, setSelectedAudio] = useState<File | null>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -790,6 +795,41 @@ const InteractPage = () => {
     }
   };
 
+  const uploadAudioAndSend = async () => {
+    if (!selectedAudio || !userId || !otherUserId) return;
+    console.log(selectedAudio);
+
+    const formData = new FormData();
+    formData.append('audio', selectedAudio);
+    formData.append('senderId', userId);
+    formData.append('receiverId', otherUserId);
+    formData.append('fileOriginalName', selectedAudio.name);
+
+    const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
+    const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
+    formData.append('repliedTo', repliedTo.toString());
+
+    try {
+      const response = await fetch('http://localhost:5002/chat-control/upload-audio', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+
+      const messages = await response.json();
+      messages.forEach((msg: any) => {
+        socket.emit('sendMessage', msg);
+      });
+
+      localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
+      setSelectedAudio(null);
+      setShowReplyCard(false);
+    } catch (err) {
+      console.error('Audio upload failed:', err);
+    }
+  };
+
   const truncateMessage = (content: string) => {
     if (content.length > maxLength) {
       return {
@@ -1126,10 +1166,27 @@ const InteractPage = () => {
     }
   };
 
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setSelectedAudio(e.target.files[0]);
+      setShowAudioPreviewModal(true);
+    }
+  };
+
+  const triggerAudioUpload = () => {
+    audioInputRef.current?.click();
+    setIsModalVisible(false);
+  };
+
   const closeFilePreviewModal = () => {
     setShowFilePreviewModal(false);
     setSelectedFile(null);
     setFileCaption("");
+  };
+
+  const closeAudioPreviewModal = () => {
+    setShowAudioPreviewModal(false);
+    setSelectedAudio(null);
   };
 
   const triggerGalleryUpload = () => {
@@ -1221,6 +1278,7 @@ const InteractPage = () => {
                     msg.id === selectedMessages[0] &&
                     !currentSelectedMessage.content.startsWith(CHAT_UPLOAD_PREFIX) &&
                     !currentSelectedMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
+                    !currentSelectedMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) &&
                     !currentSelectedMessage.wasForwarded
                 );
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
@@ -1245,7 +1303,8 @@ const InteractPage = () => {
               {!currentSelectedMessages.some(
                 msg =>
                   msg.content.startsWith(CHAT_UPLOAD_PREFIX) ||
-                  msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX)
+                  msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ||
+                  msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX)
               ) && (
                   <li className="cursor-pointer hover:text-blue-500">Copy</li>
                 )}
@@ -1262,6 +1321,7 @@ const InteractPage = () => {
                   messages.find(msg => msg.id === selectedMessages[0] && msg.sender.id === userId) ||
                   !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_PREFIX)) ||
                   !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX)) ||
+                  !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX)) ||
                   selectedMessages.length === 1
                 )) && (
                   <li className="text-gray-500">No actions available for the selected message(s)</li>
@@ -1315,6 +1375,7 @@ const InteractPage = () => {
                         return (
                           !msg.content.startsWith(CHAT_UPLOAD_PREFIX) &&
                           !msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
+                          !msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) &&
                           !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
                         );
                       })
@@ -1378,6 +1439,11 @@ const InteractPage = () => {
                                       >
                                         {msg.repliedTo.fileOriginalName || "View File"}
                                       </span>
+                                    </div>
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <FontAwesomeIcon icon={faHeadphones} className="text-white text-xl" />
+                                      <span className="text-sm text-white">Audio - {msg.repliedTo.fileOriginalName}</span>
                                     </div>
                                   ) : (
                                     msg.repliedTo.content.length > 30
@@ -1554,6 +1620,11 @@ const InteractPage = () => {
                                           </span>
                                         </div>
 
+                                      ) : groupedMessages[timestamp][0].repliedTo.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                          <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                          <span className="text-sm text-white">Audio - {groupedMessages[timestamp][0].repliedTo.fileOriginalName}</span>
+                                        </div>
                                       ) : (
                                         <p className="text-gray-600">
                                           {groupedMessages[timestamp][0].repliedTo.content.length > 20
@@ -1832,6 +1903,11 @@ const InteractPage = () => {
                                             {groupedMessages[timestamp][0].repliedTo.fileOriginalName || "View File"}
                                           </span>
                                         </div>
+                                      ) : groupedMessages[timestamp][0].repliedTo.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                          <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                          <span className="text-sm text-gray-600">Audio - {groupedMessages[timestamp][0].repliedTo.fileOriginalName}</span>
+                                        </div>
                                       ) : (
                                         <p className="text-gray-600">
                                           {groupedMessages[timestamp][0].repliedTo.content.length > 20
@@ -2055,6 +2131,11 @@ const InteractPage = () => {
                                     >
                                       {msg.repliedTo.fileOriginalName}
                                     </button>
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                      <span className="text-sm text-gray-600">Audio - {msg.repliedTo.fileOriginalName}</span>
+                                    </div>
                                   ) : (
                                     <p className="text-gray-600 mt-1">
                                       {msg.repliedTo.content.length > 20
@@ -2078,6 +2159,140 @@ const InteractPage = () => {
                                 </div>
 
                                 <div className="text-right">
+                                  <small className="block text-xs text-zinc-950">
+                                    {new Date(msg.timestamp).toLocaleString("en-GB", {
+                                      hour12: false,
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    })}
+                                  </small>
+                                  {isMe && (
+                                    <div className="flex justify-end mt-1">
+                                      {msg.status.toLowerCase() === "sent" && <SingleTick />}
+                                      {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
+                                      {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {groupedMessages[timestamp]
+                      .filter((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        return (
+                          msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) &&
+                          !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
+                        );
+                      })
+                      .map((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        const isSelected = selectedMessages.includes(msg.id);
+
+                        return (
+                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
+                            <div className="my-4 w-full max-w-md relative">
+
+                              {isSelected && (
+                                <div
+                                  className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMessageSelection(msg);
+                                  }}
+                                ></div>
+                              )}
+
+                              <div
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-10`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageSelection(msg);
+                                }}
+                                style={{
+                                  cursor: "pointer",
+                                  color: "#007BFF",
+                                  borderRadius: "50%",
+                                  width: "24px",
+                                  height: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                              </div>
+
+                              {msg.wasForwarded && (
+                                <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                  <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                  Forwarded
+                                </div>
+                              )}
+
+                              {msg.repliedTo && msg.repliedTo.content && (
+                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50">
+                                  <span className="block font-semibold text-blue-800 opacity-90 mb-2">
+                                    {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
+                                      ? "You"
+                                      : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                                  </span>
+
+                                  {msg.repliedTo.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
+                                    <img
+                                      src={`http://localhost:5002${msg.repliedTo.content}`}
+                                      alt="Replied preview"
+                                      className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform mt-1"
+                                      onClick={() => openImage(`http://localhost:5002${msg.repliedTo.content}`)}
+                                    />
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <span className="text-sm text-gray-600">Audio - {msg.repliedTo.fileOriginalName}</span>
+                                    </div>
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                    <button
+                                      onClick={() => window.open(`http://localhost:5002${msg.repliedTo.content}`, '_blank')}
+                                      className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                    >
+                                      {msg.repliedTo.fileOriginalName}
+                                    </button>
+                                  ) : (
+                                    <p className="text-gray-600 mt-1">
+                                      {msg.repliedTo.content.length > 20
+                                        ? msg.repliedTo.content.slice(0, 20) + "..."
+                                        : msg.repliedTo.content}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Audio Display */}
+                              <div className="border-2 border-dashed border-blue-400 bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow flex items-center">
+                                <div className="flex items-center gap-3 w-[70%]">
+                                  <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                  <AudioPlayerCustom src={`http://localhost:5002${msg.content}`} />
+                                </div>
+
+                                <div className="text-right ml-5">
                                   <small className="block text-xs text-zinc-950">
                                     {new Date(msg.timestamp).toLocaleString("en-GB", {
                                       hour12: false,
@@ -2180,14 +2395,17 @@ const InteractPage = () => {
                 selectedImages={selectedImages}
                 fileInputRef={fileInputRef}
                 cameraInputRef={cameraInputRef}
+                audioInputRef={audioInputRef}
                 actualFileInputRef={actualFileInputRef}
                 handleImageChange={handleImageChange}
                 handleFileChange={handleFileChange}
+                handleAudioChange={handleAudioChange}
                 isModalVisible={isModalVisible}
                 setIsModalVisible={setIsModalVisible}
                 triggerGalleryUpload={triggerGalleryUpload}
                 triggerFileUpload={triggerFileUpload}
                 triggerCamera={triggerCamera}
+                triggerAudioUpload={triggerAudioUpload}
                 setIsEmojiPickerVisible={setIsEmojiPickerVisible}
                 sendMessage={sendMessage}
               />
@@ -2211,6 +2429,14 @@ const InteractPage = () => {
                   setCaption={setFileCaption}
                   onClose={closeFilePreviewModal}
                   onSend={uploadFileAndSend}
+                />
+              )}
+
+              {showAudioPreviewModal && (
+                <FilePreviewModalAudio
+                  selectedFile={selectedAudio}
+                  onClose={closeAudioPreviewModal}
+                  onSend={uploadAudioAndSend}
                 />
               )}
 

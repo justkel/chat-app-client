@@ -74,3 +74,35 @@ body {
   max-height: 120px;
   object-fit: cover;
 }
+
+/* Outer container styling */
+.custom-audio-player {
+  border-radius: 0.75rem;
+  background-color: #f9fafb; /* Tailwind's gray-50 */
+  height: 5rem;
+}
+
+/* Control buttons */
+.custom-audio-player .rhap_main-controls-button {
+  color: #3b82f6 !important; /* Tailwind's blue-500 */
+  font-size: 1.5rem !important;
+}
+
+/* Progress bar */
+.custom-audio-player .rhap_progress-bar {
+  background-color: #e5e7eb; /* gray-200 */
+  height: 6px;
+  border-radius: 9999px;
+}
+.custom-audio-player .rhap_progress-filled {
+  background-color: #3b82f6 !important;
+}
+.custom-audio-player .rhap_progress-indicator {
+  background-color: #3b82f6 !important;
+}
+
+/* Hide skip buttons */
+.custom-audio-player .rhap_jump-forward-button,
+.custom-audio-player .rhap_jump-backward-button {
+  display: none;
+}

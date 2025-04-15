@@ -20,13 +20,16 @@ interface MessageInputBarProps {
     fileInputRef: React.RefObject<HTMLInputElement>;
     cameraInputRef: React.RefObject<HTMLInputElement>;
     actualFileInputRef: React.RefObject<HTMLInputElement>;
+    audioInputRef: React.RefObject<HTMLInputElement>;
     handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleAudioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isModalVisible: boolean;
     setIsModalVisible: (val: boolean) => void;
     triggerGalleryUpload: () => void;
     triggerFileUpload: () => void;
     triggerCamera: () => void;
+    triggerAudioUpload: () => void;
     setIsEmojiPickerVisible: (val: boolean | ((prev: boolean) => boolean)) => void;
     sendMessage: () => void;
 }
@@ -39,13 +42,16 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     fileInputRef,
     cameraInputRef,
     actualFileInputRef,
+    audioInputRef,
     handleImageChange,
     handleFileChange,
+    handleAudioChange,
     isModalVisible,
     setIsModalVisible,
     triggerGalleryUpload,
     triggerFileUpload,
     triggerCamera,
+    triggerAudioUpload,
     setIsEmojiPickerVisible,
     sendMessage,
 }) => {
@@ -160,6 +166,14 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     onChange={handleFileChange}
                 />
 
+                <input
+                    type="file"
+                    accept="audio/*"
+                    style={{ display: 'none' }}
+                    ref={audioInputRef}
+                    onChange={handleAudioChange}
+                />
+
                 <Button
                     shape="circle"
                     icon={<PlusOutlined />}
@@ -194,7 +208,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                             <span className="text-sm font-medium">Camera</span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
+                        <div onClick={triggerAudioUpload} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
                             <div className="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <AudioOutlined className="text-xl" />
                             </div>
