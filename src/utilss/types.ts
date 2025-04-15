@@ -38,3 +38,6 @@ export type UserTypingEvent = {
   userId: string | number;
   typing: boolean;
 };
+
+export const CHAT_UPLOAD_PREFIX = "/chat-uploads/";
+export const CHAT_UPLOAD_FILE_PREFIX = "/chat-files/";

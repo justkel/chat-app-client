@@ -13,7 +13,7 @@ import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
-import { ChatMessage, UserTypingEvent } from '../utilss/types';
+import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, ChatMessage, UserTypingEvent } from '../utilss/types';
 import '../App.css';
 import ForwardModal from '../components/ForwardModal';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
@@ -73,8 +73,6 @@ const InteractPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const actualFileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const CHAT_UPLOAD_PREFIX = "/chat-uploads/";
-  const CHAT_UPLOAD_FILE_PREFIX = "/chat-files/";
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -474,6 +472,7 @@ const InteractPage = () => {
 
           if (repliedMessage) {
             message.repliedTo.content = repliedMessage.content;
+            message.repliedTo.fileOriginalName = repliedMessage.fileOriginalName;
           }
         }
 
@@ -1071,6 +1070,7 @@ const InteractPage = () => {
         id: currentSelectedMessage.id,
         senderId: currentSelectedMessage.sender.id,
         content: currentSelectedMessage.content,
+        fileOriginalName: currentSelectedMessage.fileOriginalName,
       };
 
       localStorage.setItem(
@@ -1220,6 +1220,7 @@ const InteractPage = () => {
                   (msg) =>
                     msg.id === selectedMessages[0] &&
                     !currentSelectedMessage.content.startsWith(CHAT_UPLOAD_PREFIX) &&
+                    !currentSelectedMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
                     !currentSelectedMessage.wasForwarded
                 );
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
@@ -1241,9 +1242,13 @@ const InteractPage = () => {
                 </li>
               )}
 
-              {!currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_PREFIX)) && (
-                <li className="cursor-pointer hover:text-blue-500">Copy</li>
-              )}
+              {!currentSelectedMessages.some(
+                msg =>
+                  msg.content.startsWith(CHAT_UPLOAD_PREFIX) ||
+                  msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX)
+              ) && (
+                  <li className="cursor-pointer hover:text-blue-500">Copy</li>
+                )}
 
               {selectedMessages.length === 1 && (
                 <li className="cursor-pointer hover:text-blue-500">Pin</li>
@@ -1256,6 +1261,7 @@ const InteractPage = () => {
                   messages.find(msg => msg.id === selectedMessages[0]) ||
                   messages.find(msg => msg.id === selectedMessages[0] && msg.sender.id === userId) ||
                   !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_PREFIX)) ||
+                  !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX)) ||
                   selectedMessages.length === 1
                 )) && (
                   <li className="text-gray-500">No actions available for the selected message(s)</li>
@@ -1352,7 +1358,7 @@ const InteractPage = () => {
                                   className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
                                     }`}
                                 >
-                                  <span className="block font-semibold opacity-80">
+                                  <span className="block font-semibold opacity-80 mb-2">
                                     {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
                                       ? "You"
                                       : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
@@ -1363,6 +1369,16 @@ const InteractPage = () => {
                                       alt="Reply preview"
                                       className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md transition-transform hover:scale-105"
                                     />
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <FontAwesomeIcon icon={faFileAlt} className="text-white text-xl" />
+                                      <span
+                                        onClick={() => window.open(`http://localhost:5002${msg.repliedTo.content}`, "_blank")}
+                                        className="text-sm text-white truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left cursor-pointer"
+                                      >
+                                        {msg.repliedTo.fileOriginalName || "View File"}
+                                      </span>
+                                    </div>
                                   ) : (
                                     msg.repliedTo.content.length > 30
                                       ? msg.repliedTo.content.slice(0, 30) + "..."
@@ -1515,7 +1531,7 @@ const InteractPage = () => {
                                   )}
                                   {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
                                     <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
-                                      <span className="block font-semibold text-blue-800 opacity-90">
+                                      <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                         {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
                                           ? "You"
                                           : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
@@ -1527,6 +1543,17 @@ const InteractPage = () => {
                                           className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
                                           onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
                                         />
+                                      ) : groupedMessages[timestamp][0].repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                          <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
+                                          <span
+                                            onClick={() => window.open(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`, "_blank")}
+                                            className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                          >
+                                            {groupedMessages[timestamp][0].repliedTo.fileOriginalName || "View File"}
+                                          </span>
+                                        </div>
+
                                       ) : (
                                         <p className="text-gray-600">
                                           {groupedMessages[timestamp][0].repliedTo.content.length > 20
@@ -1783,7 +1810,7 @@ const InteractPage = () => {
                                   )}
                                   {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
                                     <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
-                                      <span className="block font-semibold text-blue-800 opacity-90">
+                                      <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                         {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
                                           ? "You"
                                           : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
@@ -1795,6 +1822,16 @@ const InteractPage = () => {
                                           className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform"
                                           onClick={() => openImage(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`)}
                                         />
+                                      ) : groupedMessages[timestamp][0].repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                          <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />                                        <span
+                                            onClick={() => window.open(`http://localhost:5002${groupedMessages[timestamp][0].repliedTo.content}`, "_blank")}
+                                            className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                          >
+                                            {groupedMessages[timestamp][0].repliedTo.fileOriginalName || "View File"}
+                                          </span>
+                                        </div>
                                       ) : (
                                         <p className="text-gray-600">
                                           {groupedMessages[timestamp][0].repliedTo.content.length > 20
@@ -1929,143 +1966,143 @@ const InteractPage = () => {
                           </div>
                         </div>
                       )}
-                  </div>
-                ))}
 
-                {messages
-                  .filter((msg: any) => {
-                    const isMe = msg.sender?.id === userId;
-                    return (
-                      msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
-                      !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
-                    );
-                  })
-                  .map((msg: any) => {
-                    const isMe = msg.sender?.id === userId;
-                    const isSelected = selectedMessages.includes(msg.id);
+                    {groupedMessages[timestamp]
+                      .filter((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        return (
+                          msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
+                          !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
+                        );
+                      })
+                      .map((msg: any) => {
+                        const isMe = msg.sender?.id === userId;
+                        const isSelected = selectedMessages.includes(msg.id);
 
-                    return (
-                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
-                        <div className="my-4 w-full max-w-md relative">
+                        return (
+                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
+                            <div className="my-4 w-full max-w-md relative">
 
-                          {isSelected && (
-                            <div
-                              className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleMessageSelection(msg);
-                              }}
-                            ></div>
-                          )}
-
-                          <div
-                            className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-10`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleMessageSelection(msg);
-                            }}
-                            style={{
-                              cursor: "pointer",
-                              color: "#007BFF",
-                              borderRadius: "50%",
-                              width: "24px",
-                              height: "24px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                          </div>
-
-                          {msg.wasForwarded && (
-                            <div className="flex items-center text-xs italic text-gray-700 mb-2">
-                              <FontAwesomeIcon icon={faShare} className="mr-1" />
-                              Forwarded
-                            </div>
-                          )}
-
-                          {msg.repliedTo && msg.repliedTo.content && (
-                            <div className="p-2 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50">
-                              <span className="block font-semibold text-blue-800 opacity-90">
-                                {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
-                                  ? "You"
-                                  : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-                              </span>
-
-                              {msg.repliedTo.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
-                                <img
-                                  src={`http://localhost:5002${msg.repliedTo.content}`}
-                                  alt="Replied preview"
-                                  className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform mt-1"
-                                  onClick={() => openImage(`http://localhost:5002${msg.repliedTo.content}`)}
-                                />
-                              ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
-                                <button
-                                  onClick={() => window.open(`http://localhost:5002${msg.repliedTo.content}`, '_blank')}
-                                  className="text-blue-700 font-medium mt-1 block truncate max-w-xs bg-transparent border-none p-0 text-left hover:underline focus:outline-none"
-                                >
-                                  {msg.repliedTo.fileOriginalName}
-                                </button>
-                              ) : (
-                                <p className="text-gray-600 mt-1">
-                                  {msg.repliedTo.content.length > 20
-                                    ? msg.repliedTo.content.slice(0, 20) + "..."
-                                    : msg.repliedTo.content}
-                                </p>
+                              {isSelected && (
+                                <div
+                                  className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMessageSelection(msg);
+                                  }}
+                                ></div>
                               )}
-                            </div>
-                          )}
 
-                          {/* File Display */}
-                          <div className="flex items-center justify-between bg-white border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
-                              <button
-                                onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
-                                className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                              <div
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-10`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageSelection(msg);
+                                }}
+                                style={{
+                                  cursor: "pointer",
+                                  color: "#007BFF",
+                                  borderRadius: "50%",
+                                  width: "24px",
+                                  height: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
                               >
-                                {msg.fileOriginalName}
-                              </button>
-                            </div>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                              </div>
 
-                            <div className="text-right">
-                              <small className="block text-xs text-zinc-950">
-                                {new Date(msg.timestamp).toLocaleString("en-GB", {
-                                  hour12: false,
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                })}
-                              </small>
-                              {isMe && (
-                                <div className="flex justify-end mt-1">
-                                  {msg.status.toLowerCase() === "sent" && <SingleTick />}
-                                  {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                  {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                              {msg.wasForwarded && (
+                                <div className="flex items-center text-xs italic text-gray-700 mb-2">
+                                  <FontAwesomeIcon icon={faShare} className="mr-1" />
+                                  Forwarded
                                 </div>
                               )}
+
+                              {msg.repliedTo && msg.repliedTo.content && (
+                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50">
+                                  <span className="block font-semibold text-blue-800 opacity-90 mb-2">
+                                    {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
+                                      ? "You"
+                                      : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                                  </span>
+
+                                  {msg.repliedTo.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
+                                    <img
+                                      src={`http://localhost:5002${msg.repliedTo.content}`}
+                                      alt="Replied preview"
+                                      className="w-20 h-20 object-cover object-top rounded-lg border border-gray-300 shadow-md hover:scale-105 transition-transform mt-1"
+                                      onClick={() => openImage(`http://localhost:5002${msg.repliedTo.content}`)}
+                                    />
+                                  ) : msg.repliedTo.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                    <button
+                                      onClick={() => window.open(`http://localhost:5002${msg.repliedTo.content}`, '_blank')}
+                                      className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                    >
+                                      {msg.repliedTo.fileOriginalName}
+                                    </button>
+                                  ) : (
+                                    <p className="text-gray-600 mt-1">
+                                      {msg.repliedTo.content.length > 20
+                                        ? msg.repliedTo.content.slice(0, 20) + "..."
+                                        : msg.repliedTo.content}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* File Display */}
+                              <div className="flex items-center justify-between bg-white border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                  <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
+                                  <button
+                                    onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
+                                    className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                  >
+                                    {msg.fileOriginalName}
+                                  </button>
+                                </div>
+
+                                <div className="text-right">
+                                  <small className="block text-xs text-zinc-950">
+                                    {new Date(msg.timestamp).toLocaleString("en-GB", {
+                                      hour12: false,
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    })}
+                                  </small>
+                                  {isMe && (
+                                    <div className="flex justify-end mt-1">
+                                      {msg.status.toLowerCase() === "sent" && <SingleTick />}
+                                      {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
+                                      {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                  </div>
+                ))}
               </div>
 
 
