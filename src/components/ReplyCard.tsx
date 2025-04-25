@@ -1,7 +1,7 @@
 import React from "react";
-import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX } from "../utilss/types";
+import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from "../utilss/types";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import { faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 
 interface ReplyCardProps {
     showReplyCard: boolean;
@@ -65,6 +65,12 @@ const ReplyCard: React.FC<ReplyCardProps> = ({
                         >
                             {storedReplyMessage.fileOriginalName || "View File"}
                         </span>
+                    </div>
+
+                ) : storedReplyMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                        <span className="text-sm text-gray-600">Audio - {storedReplyMessage.fileOriginalName}</span>
                     </div>
 
                 ) : (

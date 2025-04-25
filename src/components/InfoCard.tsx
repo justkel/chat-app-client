@@ -1,8 +1,9 @@
 // components/InfoCard.tsx
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShare } from "@fortawesome/free-solid-svg-icons";
-import { CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_PREFIX } from "../utilss/types";
+import { faFileAlt, faHeadphones, faShare } from "@fortawesome/free-solid-svg-icons";
+import { CHAT_UPLOAD_AUDIO_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_PREFIX } from "../utilss/types";
+import AudioPlayerCustom from "./AudioPlayerCustom";
 
 interface RepliedTo {
     id: string;
@@ -61,6 +62,7 @@ const InfoCard: React.FC<Props> = ({
 
     const isImage = currentSelectedMessage.content.startsWith("/chat-uploads");
     const isFile = currentSelectedMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX);
+    const isAudio = currentSelectedMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX);
 
     const repliedToContent = currentSelectedMessage.repliedTo?.content;
     const repliedToSenderId = messagesAll.find(
@@ -131,6 +133,11 @@ const InfoCard: React.FC<Props> = ({
                                         >
                                             {currentSelectedMessage.repliedTo?.fileOriginalName || "View File"}
                                         </span>
+                                    ) : repliedToContent.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                            <span className="text-sm text-gray-600">Audio - {currentSelectedMessage.repliedTo?.fileOriginalName}</span>
+                                        </div>
                                     ) : repliedToContent.length > 30 ? (
                                         repliedToContent.slice(0, 30) + "..."
                                     ) : (
@@ -158,7 +165,7 @@ const InfoCard: React.FC<Props> = ({
 
                             <div className="flex items-center justify-end mt-1">{renderStatusIcon()}</div>
                         </div>
-                    ) : isFile ? (
+                    ) : isAudio ? (
                         <div className="relative max-w-xs text-black shadow-lg border-2 border-green-300 p-2 rounded-lg break-words hover:scale-105 hover:shadow-xl">
                             {repliedToContent && (
                                 <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
@@ -176,6 +183,10 @@ const InfoCard: React.FC<Props> = ({
                                         >
                                             {currentSelectedMessage.repliedTo?.fileOriginalName || "View File"}
                                         </span>
+                                    ) : repliedToContent.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <span className="text-sm text-gray-600">Audio - {currentSelectedMessage.repliedTo?.fileOriginalName}</span>
+                                        </div>
                                     ) : repliedToContent.length > 30 ? (
                                         repliedToContent.slice(0, 30) + "..."
                                     ) : (
@@ -184,12 +195,68 @@ const InfoCard: React.FC<Props> = ({
                                 </div>
                             )}
 
-                            <button
-                                onClick={() => window.open(`http://localhost:5002${currentSelectedMessage.content}`, "_blank")}
-                                className="text-black font-medium mt-1 block truncate max-w-xs bg-transparent border-none p-0 text-left hover:underline focus:outline-none"
-                            >
-                                {currentSelectedMessage.fileOriginalName || "View File"}
-                            </button>
+                            <div className="flex items-center gap-3 w-full">
+                                <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                <AudioPlayerCustom src={`http://localhost:5002${currentSelectedMessage.content}`} />
+                            </div>
+
+                            <small className="block text-xs mt-1 text-right text-black">
+                                {new Date(currentSelectedMessage.timestamp).toLocaleString("en-GB", {
+                                    hour12: false,
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                })}
+                            </small>
+
+                            <div className="flex items-center justify-end mt-1">{renderStatusIcon()}</div>
+                        </div>
+                    ) : isFile ? (
+                        <div className="relative max-w-xs text-black shadow-lg border-2 border-green-300 p-2 rounded-lg break-words hover:scale-105 hover:shadow-xl">
+                            {repliedToContent && (
+                                <div className="p-1 mb-2 border-l-4 rounded-md text-sm w-full bg-blue-600/50 text-white">
+                                    <span className="block font-semibold opacity-80">{repliedToUsername}</span>
+                                    {repliedToContent.startsWith(CHAT_UPLOAD_PREFIX) ? (
+                                        <img
+                                            src={`http://localhost:5002${repliedToContent}`}
+                                            alt="reply"
+                                            className="w-20 h-20 object-cover object-top rounded-md shadow"
+                                        />
+                                    ) : repliedToContent.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
+                                            <span
+                                                onClick={() => window.open(`http://localhost:5002${repliedToContent}`, "_blank")}
+                                                className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left"
+                                            >
+                                                {currentSelectedMessage.repliedTo?.fileOriginalName || "View File"}
+                                            </span>
+                                        </div>
+
+                                    ) : repliedToContent.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                            <span className="text-sm text-gray-600">Audio - {currentSelectedMessage.repliedTo?.fileOriginalName}</span>
+                                        </div>
+                                    ) : repliedToContent.length > 30 ? (
+                                        repliedToContent.slice(0, 30) + "..."
+                                    ) : (
+                                        repliedToContent
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <FontAwesomeIcon icon={faFileAlt} className="ml-1 text-blue-600 text-xl" />
+                                <button
+                                    onClick={() => window.open(`http://localhost:5002${currentSelectedMessage.content}`, "_blank")}
+                                    className="text-black font-medium mt-1 block truncate max-w-xs bg-transparent border-none p-0 text-left hover:underline focus:outline-none"
+                                >
+                                    {currentSelectedMessage.fileOriginalName || "View File"}
+                                </button>
+                            </div>
 
                             <small className="block text-xs mt-1 text-right text-black">
                                 {new Date(currentSelectedMessage.timestamp).toLocaleString("en-GB", {
@@ -229,6 +296,11 @@ const InfoCard: React.FC<Props> = ({
                                         >
                                             {currentSelectedMessage.repliedTo?.fileOriginalName || "View File"}
                                         </span>
+                                    ) : repliedToContent.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <FontAwesomeIcon icon={faHeadphones} className="text-white text-xl" />
+                                            <span className="text-sm text-white">Audio - {currentSelectedMessage.repliedTo?.fileOriginalName}</span>
+                                        </div>
                                     ) : repliedToContent.length > 30 ? (
                                         repliedToContent.slice(0, 30) + "..."
                                     ) : (
@@ -244,7 +316,7 @@ const InfoCard: React.FC<Props> = ({
                                 </div>
                             )}
 
-                            <p className="font-semibold text-center">
+                            <p className="font-semibold text-left mt-2">
                                 {currentSelectedMessage.content.length > 150
                                     ? currentSelectedMessage.content.slice(0, 150) + "..."
                                     : currentSelectedMessage.content}
