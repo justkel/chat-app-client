@@ -8,8 +8,9 @@ import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
-import { CameraOutlined } from '@ant-design/icons';
+import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
 import socket from '../socket';
+import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 
 const ChatPage = () => {
     const { user } = useAuth();
@@ -458,15 +459,25 @@ const ChatPage = () => {
                                                                             </span>
                                                                         )}
                                                                         <span className="truncate block max-w-full">
-                                                                            {lastMessage.content.startsWith('/chat-uploads') ? (
+                                                                            {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
                                                                                 <span className="flex items-center gap-1 text-gray-600">
                                                                                     <CameraOutlined />
                                                                                     <span>Photo</span>
                                                                                 </span>
+                                                                            ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                                                                <span className="flex items-center gap-1 text-gray-600">
+                                                                                    <PaperClipOutlined />
+                                                                                    <span>File</span>
+                                                                                </span>
+                                                                            ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                                                                <span className="flex items-center gap-1 text-gray-600">
+                                                                                    <AudioOutlined />
+                                                                                    <span>Audio</span>
+                                                                                </span>
+                                                                            ) : lastMessage.content.length > 100 ? (
+                                                                                lastMessage.content.slice(0, 100) + "..."
                                                                             ) : (
-                                                                                lastMessage.content.length > 100
-                                                                                    ? lastMessage.content.slice(0, 100) + "..."
-                                                                                    : lastMessage.content
+                                                                                lastMessage.content
                                                                             )}
                                                                         </span>
 
@@ -474,15 +485,25 @@ const ChatPage = () => {
                                                                 </>
                                                             ) : (
                                                                 <span className="truncate block max-w-full">
-                                                                    {lastMessage.content.startsWith('/chat-uploads') ? (
+                                                                    {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
                                                                         <span className="flex items-center gap-1 text-gray-600">
                                                                             <CameraOutlined />
                                                                             <span>Photo</span>
                                                                         </span>
+                                                                    ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                                                        <span className="flex items-center gap-1 text-gray-600">
+                                                                            <PaperClipOutlined />
+                                                                            <span>File</span>
+                                                                        </span>
+                                                                    ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                                                        <span className="flex items-center gap-1 text-gray-600">
+                                                                            <AudioOutlined />
+                                                                            <span>Audio</span>
+                                                                        </span>
+                                                                    ) : lastMessage.content.length > 100 ? (
+                                                                        lastMessage.content.slice(0, 100) + "..."
                                                                     ) : (
-                                                                        lastMessage.content.length > 100
-                                                                            ? lastMessage.content.slice(0, 100) + "..."
-                                                                            : lastMessage.content
+                                                                        lastMessage.content
                                                                     )}
                                                                 </span>
 
