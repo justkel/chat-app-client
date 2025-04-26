@@ -2,6 +2,7 @@ import React from "react";
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from "../utilss/types";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
+import { useChatSettings } from "../hooks/useGetOtherUserContactDetails";
 
 interface ReplyCardProps {
     showReplyCard: boolean;
@@ -14,6 +15,7 @@ interface ReplyCardProps {
     otherUserId: string | null;
     setShowReplyCard: (val: boolean) => void;
     openImage: (url: string) => void;
+    otherUserData: any;
 }
 
 const ReplyCard: React.FC<ReplyCardProps> = ({
@@ -23,13 +25,22 @@ const ReplyCard: React.FC<ReplyCardProps> = ({
     otherUserId,
     setShowReplyCard,
     openImage,
+    otherUserData,
 }) => {
+    const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
+
     if (!showReplyCard || !storedReplyMessage) return null;
 
     const handleClose = () => {
         localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
         setShowReplyCard(false);
     };
+
+    const senderLabel =
+        storedReplyMessage.senderId === userId
+            ? "You"
+            : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username;
+
 
     return (
         <div className="absolute bottom-16 w-full flex justify-center">
@@ -42,7 +53,7 @@ const ReplyCard: React.FC<ReplyCardProps> = ({
                 </button>
 
                 <p className="font-semibold mb-2">
-                    {storedReplyMessage.senderId === userId ? "You" : "Other User"}
+                    {senderLabel}
                 </p>
 
                 {storedReplyMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin, notification } from 'antd';
+import { Avatar, Spin, notification } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { jwtDecode } from 'jwt-decode';
@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useGetChatMessagesAll, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
-import { useGetOtherUserById } from '../hooks/useGetOtherUser';
+import { useGetOtherUserById, useGetUserById } from '../hooks/useGetOtherUser';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
@@ -141,6 +141,7 @@ const InteractPage = () => {
   const { data: dataAll, loading: loadingMsgAll } = useGetChatMessagesAll(userId, otherUserId ?? null);
   const { isOnline: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
+  const { data: userData, loading: userLoading } = useGetUserById(userId);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
   const { data: usersForForward } = useGetUsersToForwardTo(userId);
   const { updateMessageStatus } = useUpdateMessageStatus();
@@ -1243,7 +1244,7 @@ const InteractPage = () => {
 
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (otherUserLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (otherUserLoading || userLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -2288,11 +2289,17 @@ const InteractPage = () => {
                               {/* Audio Display */}
                               <div className="border-2 border-dashed border-blue-400 bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow flex items-center">
                                 <div className="flex items-center gap-3 w-[70%]">
-                                  <FontAwesomeIcon icon={faHeadphones} className="text-blue-600 text-xl" />
+                                  <Avatar
+                                    className="w-16 h-12"
+                                    src={`http://localhost:5002${msg.sender?.id === userId
+                                      ? userData?.getUserById?.profilePicture
+                                      : otherUserData?.getOtherUserById?.profilePicture
+                                      }`}
+                                  />
                                   <AudioPlayerCustom src={`http://localhost:5002${msg.content}`} />
                                 </div>
 
-                                <div className="text-right ml-5">
+                                <div className="text-right ml-3">
                                   <small className="block text-xs text-zinc-950">
                                     {new Date(msg.timestamp).toLocaleString("en-GB", {
                                       hour12: false,
@@ -2385,6 +2392,7 @@ const InteractPage = () => {
               otherUserId={otherUserId || null}
               setShowReplyCard={setShowReplyCard}
               openImage={openImage}
+              otherUserData={otherUserData}
             />
 
             <div className="fixed bottom-0 w-full shadow-lg">

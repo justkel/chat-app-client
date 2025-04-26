@@ -59,6 +59,10 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+
 
     useEffect(() => {
         if (isCameraModalOpen) {
@@ -119,6 +123,74 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
         setIsCameraModalOpen(true);
         setIsModalVisible(false);
     };
+
+    // const startRecording = async () => {
+    //     try {
+    //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    //         const recorder = new MediaRecorder(stream);
+    //         setMediaRecorder(recorder);
+    //         audioChunksRef.current = [];
+
+    //         recorder.ondataavailable = (e) => {
+    //             audioChunksRef.current.push(e.data);
+    //         };
+
+    //         recorder.onstop = () => {
+    //             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+    //             const audioFile = new File([audioBlob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
+
+    //             const fakeEvent = {
+    //                 target: { files: [audioFile] },
+    //             } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+    //             handleAudioChange(fakeEvent);
+    //         };
+
+    //         recorder.start();
+    //         setIsRecording(true);
+    //     } catch (error) {
+    //         console.error("Failed to start recording:", error);
+    //     }
+    // };
+
+    const toggleRecording = async () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(stream);
+                setMediaRecorder(recorder);
+                audioChunksRef.current = [];
+
+                recorder.ondataavailable = (e) => {
+                    audioChunksRef.current.push(e.data);
+                };
+
+                recorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    const audioFile = new File([audioBlob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
+
+                    const fakeEvent = {
+                        target: { files: [audioFile] },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+                    handleAudioChange(fakeEvent);
+                };
+
+                recorder.start();
+                setIsRecording(true);
+            } catch (error) {
+                console.error("Failed to start recording:", error);
+            }
+        }
+    };
+
+    const stopRecording = () => {
+        mediaRecorder?.stop();
+        setIsRecording(false);
+    };
+
 
     return (
         <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
@@ -253,23 +325,33 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                 </Modal>
             </div>
 
-            <button
-                onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
-                className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition duration-200 ease-in-out"
-            >
-                <span role="img" aria-label="emoji" className="text-xl">😊</span>
-            </button>
-
-            {selectedImages.length === 0 && (
+            <div className="flex items-center gap-2">
                 <button
-                    onClick={sendMessage}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-                    disabled={!newMessage.trim()}
+                    onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
+                    className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg"
                 >
-                    <SendOutlined style={{ fontSize: '20px' }} />
-                    Send
+                    <span role="img" aria-label="emoji" className="text-xl">😊</span>
                 </button>
-            )}
+
+                <button
+                    onClick={toggleRecording}
+                    className={`flex items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-gray-200'} w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition`}
+                    title={isRecording ? "Click to stop recording" : "Click to start recording"}
+                >
+                    <AudioOutlined className="text-xl text-black" />
+                </button>
+
+                {selectedImages.length === 0 && (
+                    <button
+                        onClick={sendMessage}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition"
+                        disabled={!newMessage.trim()}
+                    >
+                        <SendOutlined style={{ fontSize: '20px' }} />
+                        Send
+                    </button>
+                )}
+            </div>
         </div>
     );
 };
