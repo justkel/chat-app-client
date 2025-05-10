@@ -25,6 +25,7 @@ interface MessageInputBarProps {
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleAudioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isModalVisible: boolean;
+    isOtherUserBlocked: boolean;
     setIsModalVisible: (val: boolean) => void;
     triggerGalleryUpload: () => void;
     triggerFileUpload: () => void;
@@ -47,6 +48,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     handleFileChange,
     handleAudioChange,
     isModalVisible,
+    isOtherUserBlocked,
     setIsModalVisible,
     triggerGalleryUpload,
     triggerFileUpload,
@@ -194,22 +196,26 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
 
     return (
         <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
-            <TextArea
-                value={newMessage}
-                onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    handleTyping();
-                }}
-                placeholder={
-                    selectedImages.length > 0
-                        ? "Remove image(s) to type a message..."
-                        : "Type your message..."
-                }
-                aria-label="Message Input"
-                className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
-                rows={2}
-                disabled={selectedImages.length > 0}
-            />
+            {!isOtherUserBlocked && (
+                <TextArea
+                    value={newMessage}
+                    onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        handleTyping();
+                    }}
+                    placeholder={
+                        selectedImages.length > 0
+                            ? "Remove image(s) to type a message..."
+                            : "Type your message..."
+                    }
+                    aria-label="Message Input"
+                    className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
+                    rows={2}
+                    disabled={selectedImages.length > 0}
+                />
+
+
+            )}
 
             <div className="relative">
                 <input
@@ -246,12 +252,14 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     onChange={handleAudioChange}
                 />
 
-                <Button
-                    shape="circle"
-                    icon={<PlusOutlined />}
-                    onClick={() => setIsModalVisible(true)}
-                    className="flex items-center justify-center shadow-md"
-                />
+                {!isOtherUserBlocked && (
+                    <Button
+                        shape="circle"
+                        icon={<PlusOutlined />}
+                        onClick={() => setIsModalVisible(true)}
+                        className="flex items-center justify-center shadow-md"
+                    />
+                )}
 
                 <Modal
                     title={<span className="text-lg font-semibold">Choose upload method</span>}
@@ -325,33 +333,35 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                 </Modal>
             </div>
 
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
-                    className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg"
-                >
-                    <span role="img" aria-label="emoji" className="text-xl">😊</span>
-                </button>
-
-                <button
-                    onClick={toggleRecording}
-                    className={`flex items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-gray-200'} w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition`}
-                    title={isRecording ? "Click to stop recording" : "Click to start recording"}
-                >
-                    <AudioOutlined className="text-xl text-black" />
-                </button>
-
-                {selectedImages.length === 0 && (
+            {!isOtherUserBlocked && (
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={sendMessage}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition"
-                        disabled={!newMessage.trim()}
+                        onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
+                        className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg"
                     >
-                        <SendOutlined style={{ fontSize: '20px' }} />
-                        Send
+                        <span role="img" aria-label="emoji" className="text-xl">😊</span>
                     </button>
-                )}
-            </div>
+
+                    <button
+                        onClick={toggleRecording}
+                        className={`flex items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-gray-200'} w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition`}
+                        title={isRecording ? "Click to stop recording" : "Click to start recording"}
+                    >
+                        <AudioOutlined className="text-xl text-black" />
+                    </button>
+
+                    {selectedImages.length === 0 && (
+                        <button
+                            onClick={sendMessage}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition"
+                            disabled={!newMessage.trim()}
+                        >
+                            <SendOutlined style={{ fontSize: '20px' }} />
+                            Send
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

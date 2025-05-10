@@ -9,7 +9,7 @@ import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useGetChatMessagesAll, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById, useGetUserById } from '../hooks/useGetOtherUser';
-import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
+import { useChatSettings, useGetOtherUserChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useDeleteMessages } from '../hooks/useDeleteMessages';
 import { useDeleteMessagesForEveryone } from '../hooks/useDeleteMessages';
 import { useFetchLastValidMessages } from '../hooks/useGetLastMessage';
@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
+import { AudioOutlined } from '@ant-design/icons';
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -54,6 +55,8 @@ const InteractPage = () => {
   const [showInfoCard, setShowInfoCard] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [errorOccurred, setErrorOccurred] = useState(false);
+  const [isOtherUserBlocked, setIsOtherUserBlocked] = useState(false);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
   const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
@@ -114,8 +117,6 @@ const InteractPage = () => {
     setSelectedImageIndex(null);
   };
 
-
-
   useEffect(() => {
     if (selectedMessages.length === 1) {
       const selectedMessage = messages.find(msg => msg.id === selectedMessages[0]) || null;
@@ -143,6 +144,7 @@ const InteractPage = () => {
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: userData, loading: userLoading } = useGetUserById(userId);
   const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
+  const { data: otherUserChatSettings, loading: otherUserChatLoading } = useGetOtherUserChatSettings(userId!, otherUserId!);
   const { data: usersForForward } = useGetUsersToForwardTo(userId);
   const { updateMessageStatus } = useUpdateMessageStatus();
   const { deleteMessages } = useDeleteMessages();
@@ -170,6 +172,26 @@ const InteractPage = () => {
       setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
     }
   }, [chatSettings?.customWallpaper]);
+
+  useEffect(() => {
+    if (chatSettings?.isOtherUserBlocked === true) {
+      setIsOtherUserBlocked(true);
+    }
+  }, [chatSettings
+  ]);
+
+  useEffect(() => {
+    if (otherUserChatSettings?.isOtherUserBlocked === true) {
+      setIsUserBlocked(true);
+    }
+  }, [otherUserChatSettings
+  ]);
+
+  // useEffect(() => {
+  //   console.log('DID OTHER USER BLOCK ME', isUserBlocked);
+  //   console.log('DID I BLOCK OTHER USER', isOtherUserBlocked);
+  // }, [isOtherUserBlocked, isUserBlocked])
+
 
   useEffect(() => {
     if (dataAll?.getChatMessages) {
@@ -353,11 +375,12 @@ const InteractPage = () => {
   const updatedMessageIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (onlineData?.status.toLowerCase() === 'yes') {
+    if (onlineData?.status.toLowerCase() === 'yes' && (isUserBlocked === false) && (isOtherUserBlocked === false)) {
       const sentMessages = messages.filter(
         (msg) =>
           msg.status.toLowerCase() === 'sent' &&
-          !updatedMessageIds.current.has(msg.id)
+          !updatedMessageIds.current.has(msg.id) &&
+          msg.wasSentWhileCurrentlyBlocked === false
       );
 
       if (sentMessages.length === 0) return;
@@ -384,6 +407,7 @@ const InteractPage = () => {
             status: 'DELIVERED',
             deliveredAt: new Date(),
             id: msg.id,
+            wasSentWhileCurrentlyBlocked: msg.wasSentWhileCurrentlyBlocked || false,
           };
 
           socket.emit('otherUserOnline', { userId, otherUserId, transformedMessage });
@@ -392,7 +416,7 @@ const InteractPage = () => {
         }
       });
     }
-  }, [onlineData?.status, messages, otherUserId, updateMessageStatus, userId]);
+  }, [onlineData?.status, messages, otherUserId, updateMessageStatus, userId, isUserBlocked, isOtherUserBlocked]);
 
   const readMessageIds = useRef<Set<string>>(new Set());
 
@@ -410,7 +434,7 @@ const InteractPage = () => {
           !readMessageIds.current.has(msg.id)
       );
 
-      if (messagesToUpdate.length === 0) return;
+      if (messagesToUpdate.length === 0 || isOtherUserBlocked) return;
 
       messagesToUpdate.forEach(async (msg) => {
         try {
@@ -426,6 +450,7 @@ const InteractPage = () => {
             status: 'READ',
             id: msg.id,
             deliveredAt: msg.deliveredAt,
+            wasSentWhileCurrentlyBlocked: msg.wasSentWhileCurrentlyBlocked || false,
           };
 
           socket.emit('updateMessageStatusRead', { userId, otherUserId, transformedMessage });
@@ -436,7 +461,7 @@ const InteractPage = () => {
     }, 1000); // debounce duration
 
     return () => clearTimeout(timer);
-  }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage, isAtBottom]);
+  }, [messages, userId, updateMessageStatus, otherUserId, isReceiverOnPage, isAtBottom, isOtherUserBlocked]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -472,6 +497,12 @@ const InteractPage = () => {
 
   useEffect(() => {
     socket.on('receiveMessage', (message: ChatMessage) => {
+      if (message.sender.id !== userId) {
+        if (isUserBlocked === true) {
+          return;
+        }
+      }
+      
       setMessages((prevMessages) => {
         if (message.repliedTo?.id) {
           const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo?.id);
@@ -510,10 +541,21 @@ const InteractPage = () => {
     });
 
     socket.on('userTyping', ({ userId: typingUserId, typing }: UserTypingEvent) => {
-      if (typingUserId !== userId) {
+      if (typingUserId !== userId && (isOtherUserBlocked === false)) {
         setIsOtherUserTyping(typing);
       }
     });
+
+    socket.on('userBlocked', ({ userId: uId, otherUserId: othId, isOtherUserBlocked: othBlocked, isUserBlocked: isB }) => {
+      if (uId !== userId) {
+        setIsUserBlocked(othBlocked);
+        setIsOtherUserBlocked(isB);
+      } else {
+        setIsOtherUserBlocked(othBlocked);
+        setIsUserBlocked(isB)
+      }
+    });
+    
 
     // socket.on('messageDelivered', ({ message }) => {
     //   setMessages((prevMessages) =>
@@ -554,8 +596,9 @@ const InteractPage = () => {
       socket.off('messageStatusUpdatedToRead');
       socket.off('messagesDeletedForEveryone');
       socket.off('messageEdited');
+      socket.off('userBlocked');
     };
-  }, [userId, otherUserId, isAtBottom]);
+  }, [userId, otherUserId, isAtBottom, isOtherUserBlocked, isUserBlocked]);
 
   useEffect(() => {
     if (data && data.getChatMessages) {
@@ -643,29 +686,31 @@ const InteractPage = () => {
     }
 
     // Emit typing signal
-    socket.emit('typing', { userId, otherUserId, typing: true });
+    if (isUserBlocked === false) {
+      socket.emit('typing', { userId, otherUserId, typing: true });
 
-    socket.emit('userActivity', { userId, otherUserId, isActive: true });
+      socket.emit('userActivity', { userId, otherUserId, isActive: true });
 
-    typingTimeoutR.current = setTimeout(() => {
-      socket.emit('userActivity', { userId, otherUserId, isActive: false });
-      typingTimeoutR.current = null;
-    }, 2000);
+      typingTimeoutR.current = setTimeout(() => {
+        socket.emit('userActivity', { userId, otherUserId, isActive: false });
+        typingTimeoutR.current = null;
+      }, 2000);
 
-    // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing', { userId, otherUserId, typing: false });
-      typingTimeoutRef.current = null; // Clear the ref
-    }, 1000);
+      // Set a timeout to stop showing the typing indicator after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit('typing', { userId, otherUserId, typing: false });
+        typingTimeoutRef.current = null; // Clear the ref
+      }, 1000);
 
-    // typingTimeoutRef.current = setTimeout(() => {
-    //   if (newMessage.trim()) {
-    //     localStorage.setItem(
-    //       `message_${userId}_${otherUserId}`,
-    //       newMessage
-    //     );
-    //   }
-    // }, 2000);
+      // typingTimeoutRef.current = setTimeout(() => {
+      //   if (newMessage.trim()) {
+      //     localStorage.setItem(
+      //       `message_${userId}_${otherUserId}`,
+      //       newMessage
+      //     );
+      //   }
+      // }, 2000);
+    }
   };
 
   socket.on('disconnect', () => {
@@ -706,9 +751,11 @@ const InteractPage = () => {
       senderDFM: false,
       receiverDFM: false,
       delForAll: false,
+      wasSentWhileCurrentlyBlocked: isUserBlocked,
     };
 
     socket.emit('sendMessage', message);
+
     setNewMessage('');
 
     localStorage.removeItem(`replyMessage_${userId}_${otherUserId}`);
@@ -1029,6 +1076,22 @@ const InteractPage = () => {
     setEditMessage(undefined);
   };
 
+  const handleBlockOtherUser = async (action: 'block' | 'unblock') => {
+    socket.emit('joinRoom', { userId, otherUserId });
+
+    // Update the local state based on action
+    // setIsOtherUserBlocked(action === 'block'); //REPLACED
+
+    // Add new field, and endpoint, and messages state update: Before event is emitted, check for all messages that are delivered, but not read, and add a field deliveredButBlocked. Then update the filter to update mesage read status
+
+    socket.emit('sendBlockEvent', {
+      userId,
+      otherUserId,
+      action, // send the action explicitly
+      isOtherUserBlocked: action === 'block',
+      isUserBlocked,
+    });
+  };
 
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
@@ -1244,7 +1307,7 @@ const InteractPage = () => {
 
 
   if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (otherUserLoading || userLoading || chatLoading || loadingMsgAll) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (otherUserLoading || userLoading || chatLoading || loadingMsgAll || otherUserChatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -1261,7 +1324,7 @@ const InteractPage = () => {
         formatTimestampV2={formatTimestampV2}
       />
 
-      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} />;
+      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} handleBlockOtherUser={handleBlockOtherUser} isOtherUserBlocked={isOtherUserBlocked} />;
       <ForwardModal
         showModal={showForwardModal}
         setShowModal={setShowForwardModal}
@@ -1377,7 +1440,8 @@ const InteractPage = () => {
                           !msg.content.startsWith(CHAT_UPLOAD_PREFIX) &&
                           !msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
                           !msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) &&
-                          !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
+                          !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll) &&
+                          !((msg.wasSentWhileCurrentlyBlocked === true) && msg.sender.id !== userId)
                         );
                       })
                       .map((msg: any) => {
@@ -1577,6 +1641,7 @@ const InteractPage = () => {
                         msg.sender?.id === userId &&
                         msg.content?.startsWith(CHAT_UPLOAD_PREFIX) &&
                         msg.content &&
+                        !((msg.wasSentWhileCurrentlyBlocked === true) && msg.sender.id !== userId) &&
                         !((msg.sender?.id === userId && msg.senderDFM) ||
                           (msg.sender?.id !== userId && msg.receiverDFM) ||
                           msg.delForAll)
@@ -1857,6 +1922,7 @@ const InteractPage = () => {
                         msg.sender?.id !== userId &&
                         msg.content?.startsWith(CHAT_UPLOAD_PREFIX) &&
                         msg.content &&
+                        !((msg.wasSentWhileCurrentlyBlocked === true) && msg.sender.id !== userId) &&
                         !((msg.sender?.id === userId && msg.senderDFM) ||
                           (msg.sender?.id !== userId && msg.receiverDFM) ||
                           msg.delForAll)
@@ -2049,6 +2115,7 @@ const InteractPage = () => {
                         const isMe = msg.sender?.id === userId;
                         return (
                           msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) &&
+                          !((msg.wasSentWhileCurrentlyBlocked === true) && msg.sender.id !== userId) &&
                           !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
                         );
                       })
@@ -2189,6 +2256,7 @@ const InteractPage = () => {
                         const isMe = msg.sender?.id === userId;
                         return (
                           msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) &&
+                          !((msg.wasSentWhileCurrentlyBlocked === true) && msg.sender.id !== userId) &&
                           !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll)
                         );
                       })
@@ -2289,13 +2357,16 @@ const InteractPage = () => {
                               {/* Audio Display */}
                               <div className="border-2 border-dashed border-blue-400 bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow flex items-center">
                                 <div className="flex items-center gap-3 w-[70%]">
-                                  <Avatar
-                                    className="w-16 h-12"
-                                    src={`http://localhost:5002${msg.sender?.id === userId
-                                      ? userData?.getUserById?.profilePicture
-                                      : otherUserData?.getOtherUserById?.profilePicture
-                                      }`}
-                                  />
+                                  <div className="relative inline-block">
+                                    <Avatar
+                                      className="w-16 h-16"
+                                      src={`http://localhost:5002${msg.sender?.id === userId
+                                        ? userData?.getUserById?.profilePicture
+                                        : otherUserData?.getOtherUserById?.profilePicture
+                                        }`}
+                                    />
+                                    <AudioOutlined className="absolute bottom-0 right-0 text-blue-500 bg-white rounded-full p-1" style={{ fontSize: '16px' }} />
+                                  </div>
                                   <AudioPlayerCustom src={`http://localhost:5002${msg.content}`} />
                                 </div>
 
@@ -2416,6 +2487,7 @@ const InteractPage = () => {
                 triggerAudioUpload={triggerAudioUpload}
                 setIsEmojiPickerVisible={setIsEmojiPickerVisible}
                 sendMessage={sendMessage}
+                isOtherUserBlocked={isOtherUserBlocked}
               />
 
               {showPreviewModal && (

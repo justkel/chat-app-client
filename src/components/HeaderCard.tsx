@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
-import { Avatar } from 'antd';
+import { Avatar, Modal } from 'antd';
 import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 
 interface HeaderWithInlineCardProps {
   otherUserData: any;
   userId: string | null;
   otherUserId: string | null | undefined;
+  handleBlockOtherUser: (action: 'block' | 'unblock') => void;
+  isOtherUserBlocked: boolean;
 }
 
-const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserData, userId, otherUserId }) => {
+const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserData, userId, otherUserId, handleBlockOtherUser, isOtherUserBlocked }) => {
   const [showCard, setShowCard] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
@@ -32,6 +34,32 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
     if (userId && otherUserId) {
       navigate(`/view-wallpaper/${userId}/${otherUserId}`);
     }
+  };
+
+  const showBlockConfirmModal = () => {
+    const action = isOtherUserBlocked ? 'unblock' : 'block';
+
+    Modal.confirm({
+      title: <span style={{ fontFamily: 'Montserrat, sans-serif' }}>
+        {isOtherUserBlocked ? 'Unblock User' : 'Block User'}
+      </span>,
+      content: <span style={{ fontFamily: 'Montserrat, sans-serif' }}>
+        {isOtherUserBlocked
+          ? 'Are you sure you want to unblock this user?'
+          : 'Are you sure you want to block this user?'}
+      </span>,
+      okText: <span style={{ fontFamily: 'Montserrat, sans-serif' }}>
+        {isOtherUserBlocked ? 'Unblock' : 'Block'}
+      </span>,
+      cancelText: <span style={{ fontFamily: 'Montserrat, sans-serif' }}>Cancel</span>,
+      okType: 'danger',
+      centered: true,
+      onOk: () => {
+        handleBlockOtherUser(action);
+        setShowCard(false);
+      },
+      onCancel: () => { },
+    });
   };
 
   useEffect(() => {
@@ -84,7 +112,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewWallPaper}>
               Wallpaper
             </li>
-            <li className="cursor-pointer hover:text-blue-500">Block</li>
+            <li className="cursor-pointer hover:text-blue-500" onClick={showBlockConfirmModal}>{isOtherUserBlocked ? 'Unblock' : 'Block'}</li>
           </ul>
         </div>
       )}

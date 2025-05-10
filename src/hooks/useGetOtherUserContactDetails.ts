@@ -16,6 +16,7 @@ const GET_CHAT_SETTINGS = gql`
     getChatSettings(ownerId: $ownerId, otherUserId: $otherUserId) {
       customUsername
       customWallpaper
+      isOtherUserBlocked
     }
   }
 `;
@@ -26,6 +27,24 @@ export const useChatSettings = (ownerId: string, otherUserId: string) => {
   });
 
   return { data: data?.getChatSettings, loading, error, refetch };
+};
+
+const GET_OTHER_USER_CHAT_SETTINGS = gql`
+  query GetOtherUserChatSettings($ownerId: ID!, $otherUserId: ID!) {
+    getOtherUserChatSettings(ownerId: $ownerId, otherUserId: $otherUserId) {
+      customUsername
+      customWallpaper
+      isOtherUserBlocked
+    }
+  }
+`;
+
+export const useGetOtherUserChatSettings = (ownerId: string, otherUserId: string) => {
+  const { data, loading, error, refetch } = useQuery(GET_OTHER_USER_CHAT_SETTINGS, {
+    variables: { ownerId, otherUserId },
+  });
+
+  return { data: data?.getOtherUserChatSettings, loading, error, refetch };
 };
 
 export const useOtherUserDetails = (userId: string, otherUserId: string) => {
