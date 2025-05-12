@@ -1658,21 +1658,40 @@ const InteractPage = () => {
                                     </svg>
                                   )}
                                   {msg.status.toLowerCase() === 'read' && (
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="16"
-                                      viewBox="0 0 32 16"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="tick-icon text-blue-900"
-                                    >
-                                      <polyline points="20 6 9 17 4 12" />
-                                      <polyline points="26 6 15 17 20 12" />
-                                    </svg>
+                                    (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                      ? (
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="16"
+                                          viewBox="0 0 32 16"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          className="tick-icon text-blue-900"
+                                        >
+                                          <polyline points="20 6 9 17 4 12" />
+                                          <polyline points="26 6 15 17 20 12" />
+                                        </svg>
+                                      ) : (
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="16"
+                                          viewBox="0 0 32 16"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          className="tick-icon"
+                                        >
+                                          <polyline points="20 6 9 17 4 12" />
+                                          <polyline points="26 6 15 17 20 12" />
+                                        </svg>
+                                      )
                                   )}
                                 </div>
                               )}
@@ -1850,7 +1869,13 @@ const InteractPage = () => {
                                                   <div className="flex justify-end mt-1">
                                                     {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                                     {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                                    {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                                    {msg.status.toLowerCase() === "read" &&
+                                                      (
+                                                        (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                                          ? <DoubleTick className="text-blue-900" />
+                                                          : <DoubleTick />
+                                                      )
+                                                    }
                                                   </div>
                                                 )}
                                               </div>
@@ -1879,7 +1904,12 @@ const InteractPage = () => {
                                   <div className="flex justify-end mt-1">
                                     {groupedMessages[timestamp][0].status.toLowerCase() === "sent" && <SingleTick />}
                                     {groupedMessages[timestamp][0].status.toLowerCase() === "delivered" && <DoubleTick />}
-                                    {groupedMessages[timestamp][0].status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                    {groupedMessages[timestamp][0].status.toLowerCase() === "read" && (
+                                      (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                        ? <DoubleTick className="text-blue-900" />
+                                        : <DoubleTick />
+                                    )}
+
                                   </div>
                                 </div>
                               )}
@@ -2289,7 +2319,13 @@ const InteractPage = () => {
                                     <div className="flex justify-end mt-1">
                                       {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                       {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                      {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                      {msg.status.toLowerCase() === "read" &&
+                                        (
+                                          (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                            ? <DoubleTick className="text-blue-900" />
+                                            : <DoubleTick />
+                                        )
+                                      }
                                     </div>
                                   )}
                                 </div>
@@ -2433,7 +2469,13 @@ const InteractPage = () => {
                                     <div className="flex justify-end mt-1">
                                       {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                       {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                      {msg.status.toLowerCase() === "read" && <DoubleTick className="text-blue-900" />}
+                                      {msg.status.toLowerCase() === "read" &&
+                                        (
+                                          (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                            ? <DoubleTick className="text-blue-900" />
+                                            : <DoubleTick />
+                                        )
+                                      }
                                     </div>
                                   )}
                                 </div>
@@ -2462,7 +2504,7 @@ const InteractPage = () => {
                 </div>
               )}
 
-              {!isAtBottom && (
+              {newMessageCount === 0 && !isAtBottom && (
                 <div className="fixed top-14 left-1/2 transform -translate-x-1/2 z-50">
                   <button
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}

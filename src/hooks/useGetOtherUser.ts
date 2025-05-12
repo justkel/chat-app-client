@@ -9,6 +9,7 @@ const GET_OTHER_USER_BY_ID = gql`
       username
       profilePicture
       isOnline
+      readReceipts
     }
   }
 `;
@@ -22,6 +23,7 @@ const GET_USER_BY_ID = gql`
       username
       profilePicture
       isOnline
+      readReceipts
     }
   }
 `;
