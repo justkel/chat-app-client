@@ -23,6 +23,7 @@ const GET_CHAT_MESSAGES = gql`
       delForAll
       deliveredAt
       wasForwarded
+      isStarred
       wasSentWhileCurrentlyBlocked
       deliveredThenBlocked
       fileOriginalName
@@ -64,6 +65,7 @@ const GET_CHAT_MESSAGES_ALL = gql`
       delForAll
       deliveredAt
       wasForwarded
+      isStarred
       wasSentWhileCurrentlyBlocked
       deliveredThenBlocked
       fileOriginalName

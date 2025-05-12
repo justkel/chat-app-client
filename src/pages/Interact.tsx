@@ -1126,8 +1126,19 @@ const InteractPage = () => {
       );
     });
 
+    socket.on('messagesStarred', ({ messageIds }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          messageIds.includes(msg.id)
+            ? { ...msg, isStarred: true }
+            : msg
+        )
+      );
+    });
+
     return () => {
       socket.off('messagesMarkedDeliveredThenBlocked');
+      socket.off('messagesStarred');
     };
   }, []);
 
@@ -1152,6 +1163,23 @@ const InteractPage = () => {
 
   const handleForward = () => {
     setShowForwardModal(true);
+  };
+
+  const starMessages = (action: 'star' | 'unstar') => {
+    if (!selectedMessages || selectedMessages.length === 0) {
+      return;
+    }
+
+    const messageIds = selectedMessages;
+
+    socket.emit('starMessages', {
+      userId,
+      otherUserId,
+      messageIds,
+      action,
+    });
+
+    setSelectedMessages([]);
   };
 
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
@@ -1459,6 +1487,8 @@ const InteractPage = () => {
         onDelete={handleDelete}
         onForward={handleForward}
         onMore={toggleCard}
+        starMessages={starMessages}
+        currentSelectedMessages={currentSelectedMessages}
       />
 
       <div className="flex flex-col h-screen pt-12">
