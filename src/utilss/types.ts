@@ -32,6 +32,8 @@ export type ChatMessage = {
   isEdited: boolean;
   deliveredAt?: Date | null;
   wasForwarded: boolean;
+  isStarredByCurrentUser: boolean;
+  isStarredByOtherUser: boolean;
   isStarred: boolean;
   wasSentWhileCurrentlyBlocked: boolean;
   deliveredThenBlocked: boolean;

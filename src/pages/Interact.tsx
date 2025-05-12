@@ -31,7 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
-import { AudioOutlined } from '@ant-design/icons';
+import { AudioOutlined, StarFilled } from '@ant-design/icons';
 
 const InteractPage = () => {
   const { id: otherUserId } = useParams();
@@ -1126,13 +1126,23 @@ const InteractPage = () => {
       );
     });
 
-    socket.on('messagesStarred', ({ messageIds }) => {
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          messageIds.includes(msg.id)
-            ? { ...msg, isStarred: true }
-            : msg
-        )
+    socket.on('messagesStarred', ({ messageIds, userId: uId, action }) => {
+      setMessages(prevMessages =>
+        prevMessages.map(msg => {
+          if (!messageIds.includes(msg.id)) return msg;
+
+          const isSender = msg.sender.id === uId;
+
+          return {
+            ...msg,
+            isStarredByCurrentUser: isSender
+              ? action === 'star'
+              : msg.isStarredByCurrentUser,
+            isStarredByOtherUser: !isSender
+              ? action === 'star'
+              : msg.isStarredByOtherUser,
+          };
+        })
       );
     });
 
@@ -1140,7 +1150,7 @@ const InteractPage = () => {
       socket.off('messagesMarkedDeliveredThenBlocked');
       socket.off('messagesStarred');
     };
-  }, []);
+  }, [userId]);
 
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
@@ -1166,9 +1176,7 @@ const InteractPage = () => {
   };
 
   const starMessages = (action: 'star' | 'unstar') => {
-    if (!selectedMessages || selectedMessages.length === 0) {
-      return;
-    }
+    if (!selectedMessages || selectedMessages.length === 0) return;
 
     const messageIds = selectedMessages;
 
@@ -1179,7 +1187,26 @@ const InteractPage = () => {
       action,
     });
 
+    setMessages(prevMessages =>
+      prevMessages.map(msg => {
+        if (!messageIds.includes(msg.id)) return msg;
+
+        const isSender = msg.sender.id === userId;
+
+        return {
+          ...msg,
+          isStarredByCurrentUser: isSender
+            ? action === 'star'
+            : msg.isStarredByCurrentUser,
+          isStarredByOtherUser: !isSender
+            ? action === 'star'
+            : msg.isStarredByOtherUser,
+        };
+      })
+    );
+
     setSelectedMessages([]);
+    setCurrentSelectedMessage([]);
   };
 
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
@@ -1489,6 +1516,7 @@ const InteractPage = () => {
         onMore={toggleCard}
         starMessages={starMessages}
         currentSelectedMessages={currentSelectedMessages}
+        userId={userId ?? null}
       />
 
       <div className="flex flex-col h-screen pt-12">
@@ -1653,75 +1681,104 @@ const InteractPage = () => {
                               </div>
 
                               {isMe && (
-                                <div className="flex items-center justify-end mt-1">
-                                  {msg.status.toLowerCase() === 'sent' && (
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="16"
-                                      height="16"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="tick-icon"
+                                <div className='flex mt-2 justify-between w-full'>
+                                  <div>
+                                    {msg.isStarredByCurrentUser && (
+                                      <span
+                                        className="mt-3 text-black font-semibold transition-transform duration-200 ease-in-out
+                                                 hover:scale-110 focus:scale-110
+                                                 text-[10px] sm:text-[12px] md:text-[14px]"
+                                      >
+                                        <StarFilled />
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    {msg.status.toLowerCase() === 'sent' && (
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="tick-icon"
+                                      >
+                                        <polyline points="20 6 9 17 4 12" />
+                                      </svg>
+                                    )}
+                                    {msg.status.toLowerCase() === 'delivered' && (
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="16"
+                                        viewBox="0 0 32 16"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="tick-icon"
+                                      >
+                                        <polyline points="20 6 9 17 4 12" />
+                                        <polyline points="26 6 15 17 20 12" />
+                                      </svg>
+                                    )}
+                                    {msg.status.toLowerCase() === 'read' && (
+                                      (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                        ? (
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="16"
+                                            viewBox="0 0 32 16"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="tick-icon text-blue-900"
+                                          >
+                                            <polyline points="20 6 9 17 4 12" />
+                                            <polyline points="26 6 15 17 20 12" />
+                                          </svg>
+                                        ) : (
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="16"
+                                            viewBox="0 0 32 16"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="tick-icon"
+                                          >
+                                            <polyline points="20 6 9 17 4 12" />
+                                            <polyline points="26 6 15 17 20 12" />
+                                          </svg>
+                                        )
+                                    )}
+                                  </div>
+                                </div>
+
+                              )}
+
+                              {!isMe && (
+                                <div>
+                                  {msg.isStarredByOtherUser && (
+                                    <span
+                                      className="mt-3 text-black font-semibold transition-transform duration-200 ease-in-out
+                                             hover:scale-110 focus:scale-110
+                                             text-[10px] sm:text-[12px] md:text-[14px]"
                                     >
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                  )}
-                                  {msg.status.toLowerCase() === 'delivered' && (
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="16"
-                                      viewBox="0 0 32 16"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      className="tick-icon"
-                                    >
-                                      <polyline points="20 6 9 17 4 12" />
-                                      <polyline points="26 6 15 17 20 12" />
-                                    </svg>
-                                  )}
-                                  {msg.status.toLowerCase() === 'read' && (
-                                    (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
-                                      ? (
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="16"
-                                          viewBox="0 0 32 16"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          className="tick-icon text-blue-900"
-                                        >
-                                          <polyline points="20 6 9 17 4 12" />
-                                          <polyline points="26 6 15 17 20 12" />
-                                        </svg>
-                                      ) : (
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="16"
-                                          viewBox="0 0 32 16"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          className="tick-icon"
-                                        >
-                                          <polyline points="20 6 9 17 4 12" />
-                                          <polyline points="26 6 15 17 20 12" />
-                                        </svg>
-                                      )
+                                      <StarFilled />
+                                    </span>
                                   )}
                                 </div>
                               )}

@@ -12,6 +12,7 @@ interface SelectedMessagesBarProps {
   onMore: () => void;
   starMessages: (action: 'star' | 'unstar') => void;
   currentSelectedMessages: ChatMessage[];
+  userId: string | null;
 }
 
 const SelectedMessagesBar: React.FC<SelectedMessagesBarProps> = ({
@@ -22,10 +23,16 @@ const SelectedMessagesBar: React.FC<SelectedMessagesBarProps> = ({
   onMore,
   starMessages,
   currentSelectedMessages,
+  userId,
 }) => {
   if (count <= 0) return null;
 
-  const allStarred = currentSelectedMessages.every(msg => msg.isStarred);
+  const allStarred = currentSelectedMessages.every(
+    msg =>
+      (msg.sender.id === userId && msg.isStarredByCurrentUser) ||
+      (msg.sender.id !== userId && msg.isStarredByOtherUser)
+  );
+  
   const shouldUnstar = allStarred;
 
   return (

@@ -19,7 +19,8 @@ const GET_LAST_MESSAGES = gql`
       receiverDFM
       delForAll
       wasForwarded
-      isStarred
+      isStarredByCurrentUser
+      isStarredByOtherUser
       wasSentWhileCurrentlyBlocked
       deliveredThenBlocked
       fileOriginalName
@@ -76,7 +77,8 @@ const GET_LAST_VALID_MESSAGES = gql`
         receiverDFM
         delForAll
         wasForwarded
-        isStarred
+        isStarredByCurrentUser
+        isStarredByOtherUser
         wasSentWhileCurrentlyBlocked
         deliveredThenBlocked
         fileOriginalName
