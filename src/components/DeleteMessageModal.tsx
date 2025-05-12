@@ -4,6 +4,8 @@ interface DeleteMessageModalProps {
   show: boolean;
   selectedCount: number;
   canDeleteForEveryone: boolean;
+  isOtherUserBlocked: boolean;
+  isUserBlocked: boolean;
   onClose: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
@@ -16,6 +18,8 @@ const DeleteMessageModal: React.FC<DeleteMessageModalProps> = ({
   onClose,
   onDeleteForMe,
   onDeleteForEveryone,
+  isOtherUserBlocked,
+  isUserBlocked,
 }) => {
   if (!show) return null;
 
@@ -36,11 +40,14 @@ const DeleteMessageModal: React.FC<DeleteMessageModalProps> = ({
 
           {canDeleteForEveryone && (
             <button
-              className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded"
+              className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded
+                       disabled:text-gray-400 disabled:bg-transparent disabled:cursor-not-allowed"
               onClick={onDeleteForEveryone}
+              disabled={isOtherUserBlocked || isUserBlocked}
             >
               Delete for everyone
             </button>
+
           )}
 
           <button

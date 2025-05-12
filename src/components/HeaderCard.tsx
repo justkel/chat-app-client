@@ -10,9 +10,10 @@ interface HeaderWithInlineCardProps {
   otherUserId: string | null | undefined;
   handleBlockOtherUser: (action: 'block' | 'unblock') => void;
   isOtherUserBlocked: boolean;
+  isUserBlocked: boolean;
 }
 
-const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserData, userId, otherUserId, handleBlockOtherUser, isOtherUserBlocked }) => {
+const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserData, userId, otherUserId, handleBlockOtherUser, isOtherUserBlocked, isUserBlocked }) => {
   const [showCard, setShowCard] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
@@ -88,9 +89,11 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({ otherUserDa
           <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
           <div className="flex flex-col">
             <span className="font-semibold">{chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}</span>
-            <span className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
-              {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
-            </span>
+            {(!isUserBlocked && !isOtherUserBlocked) && (
+              <span className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
+                {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
+              </span>
+            )}
           </div>
         </div>
         <div>

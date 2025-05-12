@@ -21,23 +21,28 @@ const SelectedMessagesBar: React.FC<SelectedMessagesBarProps> = ({
   if (count <= 0) return null;
 
   return (
-    <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-50 w-full overflow-hidden">
-      <ArrowLeftOutlined className="text-xl cursor-pointer" onClick={onBack} />
+    <div className="bg-white p-4 shadow-md fixed top-0 left-0 z-50 w-full">
+      <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-4">
 
-      <p className="text-bold text-xl mr-36">
-        {count}
-      </p>
+        <div className="flex items-center">
+          <ArrowLeftOutlined className="text-2xl cursor-pointer" onClick={onBack} />
+        </div>
 
-      <div>
-        <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer mx-12" />
-        <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer mx-12" onClick={onDelete} />
-        <FontAwesomeIcon
-          icon={faShare}
-          size="lg"
-          className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer mx-12"
-          onClick={onForward}
-        />
-        <MoreOutlined className="text-3xl cursor-pointer" onClick={onMore} />
+        <div className="flex-grow text-center sm:text-left">
+          <p className="font-bold text-lg sm:text-xl">{count}</p>
+        </div>
+
+        <div className="flex items-center gap-8 sm:gap-16">
+          <StarOutlined className="text-2xl text-gray-600 hover:text-yellow-500 cursor-pointer" />
+          <DeleteOutlined className="text-2xl text-gray-600 hover:text-red-500 cursor-pointer" onClick={onDelete} />
+          <FontAwesomeIcon
+            icon={faShare}
+            className="text-2xl text-gray-600 hover:text-blue-500 cursor-pointer"
+            onClick={onForward}
+          />
+          <MoreOutlined className="text-3xl cursor-pointer" onClick={onMore} />
+        </div>
+
       </div>
     </div>
   );

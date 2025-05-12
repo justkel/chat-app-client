@@ -502,7 +502,7 @@ const InteractPage = () => {
           return;
         }
       }
-      
+
       setMessages((prevMessages) => {
         if (message.repliedTo?.id) {
           const repliedMessage = prevMessages.find(msg => msg.id === message.repliedTo?.id);
@@ -555,7 +555,7 @@ const InteractPage = () => {
         setIsUserBlocked(isB)
       }
     });
-    
+
 
     // socket.on('messageDelivered', ({ message }) => {
     //   setMessages((prevMessages) =>
@@ -981,7 +981,7 @@ const InteractPage = () => {
         .reverse()
         .find((msg) => {
           const isMe = msg.sender?.id === userId;
-          return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll);
+          return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll || msg.wasSentWhileCurrentlyBlocked);
         });
 
       socket.emit("lastValidMessageForMe", {
@@ -1324,7 +1324,7 @@ const InteractPage = () => {
         formatTimestampV2={formatTimestampV2}
       />
 
-      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} handleBlockOtherUser={handleBlockOtherUser} isOtherUserBlocked={isOtherUserBlocked} />;
+      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} handleBlockOtherUser={handleBlockOtherUser} isOtherUserBlocked={isOtherUserBlocked} isUserBlocked={isUserBlocked} />;
       <ForwardModal
         showModal={showForwardModal}
         setShowModal={setShowForwardModal}
@@ -1347,14 +1347,22 @@ const InteractPage = () => {
                 );
                 return firstSelectedMessage && isWithinTimeLimit(firstSelectedMessage.timestamp);
               })() && (
-                  <li className="cursor-pointer hover:text-blue-500" onClick={messageEdit}>
-                    Edit
+                  <li>
+                    <button
+                      className="cursor-pointer hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      onClick={messageEdit}
+                      disabled={isOtherUserBlocked || isUserBlocked}
+                    >
+                      Edit
+                    </button>
                   </li>
                 )}
 
               {selectedMessages.length === 1 && messages.find(msg => msg.id === selectedMessages[0]) && (
-                <li className="cursor-pointer hover:text-blue-500" onClick={messageReply}>
-                  Reply
+                <li>
+                  <button className="cursor-pointer hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed" onClick={messageReply} disabled={isOtherUserBlocked || isUserBlocked}>
+                    Reply
+                  </button>
                 </li>
               )}
 
@@ -2444,6 +2452,8 @@ const InteractPage = () => {
             onClose={closeDeleteModal}
             onDeleteForMe={deleteMessagess}
             onDeleteForEveryone={handleDeleteForEveryone}
+            isOtherUserBlocked={isOtherUserBlocked}
+            isUserBlocked={isUserBlocked}
           />
 
           <ImagePreviewCard
