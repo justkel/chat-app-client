@@ -24,6 +24,7 @@ const GET_CHAT_MESSAGES = gql`
       deliveredAt
       wasForwarded
       wasSentWhileCurrentlyBlocked
+      deliveredThenBlocked
       fileOriginalName
       caption
     }
@@ -64,6 +65,7 @@ const GET_CHAT_MESSAGES_ALL = gql`
       deliveredAt
       wasForwarded
       wasSentWhileCurrentlyBlocked
+      deliveredThenBlocked
       fileOriginalName
       caption
     }

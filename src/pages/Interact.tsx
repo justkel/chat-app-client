@@ -431,7 +431,8 @@ const InteractPage = () => {
         (msg) =>
           (msg.status.toLowerCase() === 'delivered' || msg.status.toLowerCase() === 'read') &&
           msg.receiver.id === userId &&
-          !readMessageIds.current.has(msg.id)
+          !readMessageIds.current.has(msg.id) &&
+          !msg.deliveredThenBlocked
       );
 
       if (messagesToUpdate.length === 0 || isOtherUserBlocked) return;
@@ -1079,19 +1080,56 @@ const InteractPage = () => {
   const handleBlockOtherUser = async (action: 'block' | 'unblock') => {
     socket.emit('joinRoom', { userId, otherUserId });
 
-    // Update the local state based on action
-    // setIsOtherUserBlocked(action === 'block'); //REPLACED
+    if (action === 'block') {
+      const updatedMessages = messages.map((msg) => {
+        if (
+          msg.status.toLowerCase() === 'delivered' &&
+          !msg.deliveredThenBlocked
+        ) {
+          return { ...msg, deliveredThenBlocked: true };
+        }
+        return msg;
+      });
 
-    // Add new field, and endpoint, and messages state update: Before event is emitted, check for all messages that are delivered, but not read, and add a field deliveredButBlocked. Then update the filter to update mesage read status
+      setMessages(updatedMessages);
+
+      const deliveredThenBlockedMessages = updatedMessages.filter(
+        (msg) => msg.deliveredThenBlocked
+      );
+
+      if (deliveredThenBlockedMessages.length > 0) {
+        socket.emit('markMessagesDeliveredThenBlocked', {
+          userId,
+          otherUserId,
+          messageIds: deliveredThenBlockedMessages.map((msg) => msg.id),
+        });
+      }
+    }
 
     socket.emit('sendBlockEvent', {
       userId,
       otherUserId,
-      action, // send the action explicitly
+      action,
       isOtherUserBlocked: action === 'block',
       isUserBlocked,
     });
   };
+
+  useEffect(() => {
+    socket.on('messagesMarkedDeliveredThenBlocked', ({ messageIds }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          messageIds.includes(msg.id)
+            ? { ...msg, deliveredThenBlocked: true }
+            : msg
+        )
+      );
+    });
+
+    return () => {
+      socket.off('messagesMarkedDeliveredThenBlocked');
+    };
+  }, []);
 
   const isWithinTimeLimit = (timestamp: string | number | Date) => {
     const fifteenMinutes = 15 * 60 * 1000;
@@ -1306,7 +1344,7 @@ const InteractPage = () => {
   );
 
 
-  if (loading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (loading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   if (otherUserLoading || userLoading || chatLoading || loadingMsgAll || otherUserChatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
   // if (error) return <p>Error: {error.message}</p>;
 

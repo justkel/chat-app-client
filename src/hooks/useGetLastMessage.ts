@@ -20,6 +20,7 @@ const GET_LAST_MESSAGES = gql`
       delForAll
       wasForwarded
       wasSentWhileCurrentlyBlocked
+      deliveredThenBlocked
       fileOriginalName
       caption
     }
@@ -75,6 +76,7 @@ const GET_LAST_VALID_MESSAGES = gql`
         delForAll
         wasForwarded
         wasSentWhileCurrentlyBlocked
+        deliveredThenBlocked
         fileOriginalName
         caption
       }

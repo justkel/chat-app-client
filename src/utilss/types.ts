@@ -33,6 +33,7 @@ export type ChatMessage = {
   deliveredAt?: Date | null;
   wasForwarded: boolean;
   wasSentWhileCurrentlyBlocked: boolean;
+  deliveredThenBlocked: boolean;
 };
 
 export type UserTypingEvent = {
