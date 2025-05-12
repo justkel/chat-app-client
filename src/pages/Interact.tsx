@@ -1330,6 +1330,8 @@ const InteractPage = () => {
         setShowModal={setShowForwardModal}
         data={usersForForward?.getUsersToForwardTo || []}
         onSendForwardedMessage={handleSendForwardedMessage}
+        otherUserId={otherUserId ?? null}
+        isOtherUserBlocked={isOtherUserBlocked}
       />
 
       {showCard && (
