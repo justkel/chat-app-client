@@ -982,7 +982,7 @@ const InteractPage = () => {
         .reverse()
         .find((msg) => {
           const isMe = msg.sender?.id === userId;
-          return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll || msg.wasSentWhileCurrentlyBlocked);
+          return !((isMe && msg.senderDFM) || (!isMe && msg.receiverDFM) || msg.delForAll || (!isMe && msg.wasSentWhileCurrentlyBlocked));
         });
 
       socket.emit("lastValidMessageForMe", {

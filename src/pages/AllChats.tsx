@@ -84,8 +84,12 @@ const ChatPage = () => {
         });
 
         socket.on('receiveMessage', (message: any) => {
-            if (!message || !message.sender || !message.receiver || message.wasSentWhileCurrentlyBlocked) {
+            if (!message || !message.sender || !message.receiver) {
                 console.error('Invalid message format:', message);
+                return;
+            }
+
+            if (message.wasSentWhileCurrentlyBlocked && message.sender.id !== userId){
                 return;
             }
 
