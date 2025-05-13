@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Avatar, Spin, notification } from 'antd';
+import { Avatar, Spin, notification, message as antdMessage } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { jwtDecode } from 'jwt-decode';
@@ -1209,6 +1209,36 @@ const InteractPage = () => {
     setCurrentSelectedMessage([]);
   };
 
+  const copyMessage = () => {
+    if (!selectedMessages || selectedMessages.length === 0 || currentSelectedMessages.length === 0) return;
+
+    if (currentSelectedMessages.length === 1) {
+      const singleMessage = currentSelectedMessages[0];
+      navigator.clipboard.writeText(singleMessage.content)
+        .then(() => antdMessage.success('Message was copied successfully'));
+    } else {
+      const formattedMessages = [...currentSelectedMessages]
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+        .map(msg => {
+          const senderName = msg.sender.id === userId
+            ? userData?.getUserById?.username
+            : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username;
+
+          const formattedTimestamp = dayjs(msg.timestamp).format('M/D/YYYY h:mm A');
+
+          return `[${formattedTimestamp}] ${senderName}: ${msg.content}`;
+        })
+        .join('\n');
+
+      navigator.clipboard.writeText(formattedMessages)
+        .then(() => antdMessage.success('Messages were copied successfully'));
+    }
+
+    setSelectedMessages([]);
+    setCurrentSelectedMessage([]);
+    setShowCard(false);
+  };
+
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
     if (!currentSelectedMessage && currentSelectedMessages.length === 0) return;
 
@@ -1473,7 +1503,7 @@ const InteractPage = () => {
                   msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ||
                   msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX)
               ) && (
-                  <li className="cursor-pointer hover:text-blue-500">Copy</li>
+                  <li className="cursor-pointer hover:text-blue-500" onClick={copyMessage}>Copy</li>
                 )}
 
               {selectedMessages.length === 1 && (
@@ -1491,7 +1521,7 @@ const InteractPage = () => {
                   !currentSelectedMessages.some(msg => msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX)) ||
                   selectedMessages.length === 1
                 )) && (
-                  <li className="text-gray-500">No actions available for the selected message(s)</li>
+                  <li className="text-gray-500">No other actions available for the selected message(s)</li>
                 )}
             </ul>
           </div>
@@ -2581,8 +2611,8 @@ const InteractPage = () => {
                                     <Avatar
                                       className="w-16 h-16"
                                       src={`http://localhost:5002${msg.sender?.id === userId
-                                          ? userData?.getUserById?.profilePicture
-                                          : otherUserData?.getOtherUserById?.profilePicture
+                                        ? userData?.getUserById?.profilePicture
+                                        : otherUserData?.getOtherUserById?.profilePicture
                                         }`}
                                     />
                                     <AudioOutlined
