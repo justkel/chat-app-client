@@ -2435,41 +2435,28 @@ const InteractPage = () => {
                               )}
 
                               {/* File Display */}
-                              <div className="flex items-center justify-between bg-white border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="relative w-fit">
-                                  <div className="flex items-center gap-3 overflow-hidden">
-                                    <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
-                                    <button
-                                      onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
-                                      className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
-                                    >
-                                      {msg.fileOriginalName}
-                                    </button>
-                                  </div>
+                              <div className="relative flex items-center justify-between bg-white border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                                {(isMe ? msg.isStarredByCurrentUser : msg.isStarredByOtherUser) && (
+                                  <span
+                                    className="absolute -bottom-4 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                 hover:scale-110 focus:scale-110
+                 text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                  >
+                                    <StarFilled />
+                                  </span>
+                                )}
 
-                                  {isMe ? (
-                                    msg.isStarredByCurrentUser && (
-                                      <span
-                                        className="absolute right-1 text-black font-semibold transition-transform duration-200 ease-in-out
-                   hover:scale-110 focus:scale-110
-                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
-                                      >
-                                        <StarFilled />
-                                      </span>
-                                    )
-                                  ) : (
-                                    msg.isStarredByOtherUser && (
-                                      <span
-                                        className="absolute right-1 text-black font-semibold transition-transform duration-200 ease-in-out
-                   hover:scale-110 focus:scale-110
-                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
-                                      >
-                                        <StarFilled />
-                                      </span>
-                                    )
-                                  )}
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                  <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
+                                  <button
+                                    onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
+                                    className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                  >
+                                    {msg.fileOriginalName}
+                                  </button>
                                 </div>
 
+                                {/* Timestamp and status */}
                                 <div className="text-right">
                                   <small className="block text-xs text-zinc-950">
                                     {new Date(msg.timestamp).toLocaleString("en-GB", {
