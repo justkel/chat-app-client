@@ -1874,12 +1874,24 @@ const InteractPage = () => {
                                         return (
                                           <div key={msg.id} className="relative group">
 
-                                            <img
-                                              src={`http://localhost:5002${msg.content}`}
-                                              alt=""
-                                              className="w-32 h-32 object-cover object-top rounded-lg border shadow-md"
-                                              onClick={() => openImage(`http://localhost:5002${msg.content}`)}
-                                            />
+                                            <div className="relative w-32 h-32">
+                                              <img
+                                                src={`http://localhost:5002${msg.content}`}
+                                                alt=""
+                                                className="w-full h-full object-cover object-top rounded-lg border shadow-md"
+                                                onClick={() => openImage(`http://localhost:5002${msg.content}`)}
+                                              />
+
+                                              {msg.isStarredByCurrentUser && (
+                                                <span
+                                                  className="absolute bottom-1 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                 hover:scale-110 focus:scale-110
+                 text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                                >
+                                                  <StarFilled />
+                                                </span>
+                                              )}
+                                            </div>
 
                                             {isSelected && (
                                               <div
@@ -2170,12 +2182,25 @@ const InteractPage = () => {
 
                                     return (
                                       <div key={msg.id} className="relative group">
-                                        <img
-                                          src={`http://localhost:5002${msg.content}`}
-                                          alt=""
-                                          className="w-32 h-32 object-cover object-top rounded-lg border shadow-md"
-                                          onClick={() => openImage(`http://localhost:5002${msg.content}`)}
-                                        />
+                                        <div className="relative w-32 h-32">
+                                          <img
+                                            src={`http://localhost:5002${msg.content}`}
+                                            alt=""
+                                            className="w-full h-full object-cover object-top rounded-lg border shadow-md"
+                                            onClick={() => openImage(`http://localhost:5002${msg.content}`)}
+                                          />
+
+                                          {msg.isStarredByOtherUser && (
+                                            <span
+                                              className="absolute bottom-1 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                 hover:scale-110 focus:scale-110
+                 text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                            >
+                                              <StarFilled />
+                                            </span>
+                                          )}
+
+                                        </div>
 
                                         {isSelected && (
                                           <div
@@ -2381,14 +2406,38 @@ const InteractPage = () => {
 
                               {/* File Display */}
                               <div className="flex items-center justify-between bg-white border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex items-center gap-3 overflow-hidden">
-                                  <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
-                                  <button
-                                    onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
-                                    className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
-                                  >
-                                    {msg.fileOriginalName}
-                                  </button>
+                                <div className="relative w-fit">
+                                  <div className="flex items-center gap-3 overflow-hidden">
+                                    <FontAwesomeIcon icon={faFileAlt} className="text-blue-600 text-xl" />
+                                    <button
+                                      onClick={() => window.open(`http://localhost:5002${msg.content}`, '_blank')}
+                                      className="text-sm text-gray-700 truncate max-w-xs focus:outline-none bg-transparent border-none p-0 text-left hover:bg-gray-100"
+                                    >
+                                      {msg.fileOriginalName}
+                                    </button>
+                                  </div>
+
+                                  {isMe ? (
+                                    msg.isStarredByCurrentUser && (
+                                      <span
+                                        className="absolute right-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                   hover:scale-110 focus:scale-110
+                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                      >
+                                        <StarFilled />
+                                      </span>
+                                    )
+                                  ) : (
+                                    msg.isStarredByOtherUser && (
+                                      <span
+                                        className="absolute right-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                   hover:scale-110 focus:scale-110
+                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                      >
+                                        <StarFilled />
+                                      </span>
+                                    )
+                                  )}
                                 </div>
 
                                 <div className="text-right">
@@ -2527,18 +2576,44 @@ const InteractPage = () => {
 
                               {/* Audio Display */}
                               <div className="border-2 border-dashed border-blue-400 bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow flex items-center">
-                                <div className="flex items-center gap-3 w-[70%]">
+                                <div className="relative flex items-center gap-3 w-[70%]">
                                   <div className="relative inline-block">
                                     <Avatar
                                       className="w-16 h-16"
                                       src={`http://localhost:5002${msg.sender?.id === userId
-                                        ? userData?.getUserById?.profilePicture
-                                        : otherUserData?.getOtherUserById?.profilePicture
+                                          ? userData?.getUserById?.profilePicture
+                                          : otherUserData?.getOtherUserById?.profilePicture
                                         }`}
                                     />
-                                    <AudioOutlined className="absolute bottom-0 right-0 text-blue-500 bg-white rounded-full p-1" style={{ fontSize: '16px' }} />
+                                    <AudioOutlined
+                                      className="absolute bottom-0 right-0 text-blue-500 bg-white rounded-full p-1"
+                                      style={{ fontSize: '16px' }}
+                                    />
                                   </div>
+
                                   <AudioPlayerCustom src={`http://localhost:5002${msg.content}`} />
+
+                                  {isMe ? (
+                                    msg.isStarredByCurrentUser && (
+                                      <span
+                                        className="absolute bottom-1 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                   hover:scale-110 focus:scale-110
+                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                      >
+                                        <StarFilled />
+                                      </span>
+                                    )
+                                  ) : (
+                                    msg.isStarredByOtherUser && (
+                                      <span
+                                        className="absolute bottom-1 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
+                   hover:scale-110 focus:scale-110
+                   text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                                      >
+                                        <StarFilled />
+                                      </span>
+                                    )
+                                  )}
                                 </div>
 
                                 <div className="text-right ml-3">
