@@ -2349,7 +2349,7 @@ const InteractPage = () => {
 
                               {isSelected && (
                                 <div
-                                  className="absolute inset-0 bg-black bg-opacity-20 rounded-lg pointer-events-auto"
+                                  className="absolute inset-0 bg-black bg-opacity-20 rounded-lg z-10 pointer-events-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleMessageSelection(msg);
@@ -2358,7 +2358,7 @@ const InteractPage = () => {
                               )}
 
                               <div
-                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-10`}
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-20`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleMessageSelection(msg);
