@@ -1298,6 +1298,16 @@ const InteractPage = () => {
     }
   };
 
+  const scrollToMessageAsReply = (id: string | number) => {
+    const el = document.getElementById(`message-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "auto", block: "center" });
+
+      el.classList.add("bg-[#e1f3fb]");
+      setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
+    } 
+  };
+
 
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
     if (!currentSelectedMessage && currentSelectedMessages.length === 0) return;
@@ -1688,8 +1698,8 @@ const InteractPage = () => {
                             >
                               {msg.repliedTo && msg.repliedTo.content && (
                                 <div
-                                  className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black"
-                                    }`}
+                                  className={`p-1 mb-2 border-l-4 rounded-md text-sm w-full ${isMe ? "bg-blue-600/50 text-white" : "bg-gray-500 text-black cursor-pointer"
+                                    }`} onClick={() => scrollToMessageAsReply(msg.repliedTo?.id)}
                                 >
                                   <span className="block font-semibold opacity-80 mb-2">
                                     {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
@@ -2429,7 +2439,7 @@ const InteractPage = () => {
                               )}
 
                               <div
-                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-20`}
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleMessageSelection(msg);
@@ -2587,7 +2597,7 @@ const InteractPage = () => {
                               )}
 
                               <div
-                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100 z-10`}
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleMessageSelection(msg);
