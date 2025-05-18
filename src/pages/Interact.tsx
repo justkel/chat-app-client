@@ -58,6 +58,7 @@ const InteractPage = () => {
   const [isOtherUserBlocked, setIsOtherUserBlocked] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
   const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
@@ -924,7 +925,6 @@ const InteractPage = () => {
             className="max-w-xs max-h-64 object-cover"
           />
         </div>
-
       );
     }
 
@@ -934,7 +934,12 @@ const InteractPage = () => {
     if (fullContent) {
       return (
         <>
-          <span>{isExpanded ? fullContent : truncated}</span>
+          <span
+            className="message-content-text"
+            data-original={fullContent}
+          >
+            {isExpanded ? fullContent : truncated}
+          </span>
           <button
             onClick={() => handleReadMore(message.id)}
             className="text-yellow-800 text-sm ml-2"
@@ -945,7 +950,14 @@ const InteractPage = () => {
       );
     }
 
-    return <span>{message.content}</span>;
+    return (
+      <span
+        className="message-content-text"
+        data-original={message.content}
+      >
+        {message.content}
+      </span>
+    );
   };
 
   useEffect(() => {
@@ -1243,6 +1255,7 @@ const InteractPage = () => {
   const handleSearch = (searchText: string) => {
     const results = messages.filter((msg) => {
       const isMe = msg.sender?.id === userId;
+      setSearchTerm(searchText);
 
       const shouldExclude =
         (isMe && msg.senderDFM) ||
@@ -1269,6 +1282,19 @@ const InteractPage = () => {
 
       el.classList.add("bg-[#e1f3fb]");
       setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
+
+      const contentSpan = el.querySelector(".message-content-text");
+      if (contentSpan && searchTerm) {
+        const originalText = contentSpan.getAttribute("data-original") || "";
+        const regex = new RegExp(`(${searchTerm})`, "gi");
+
+        const highlighted = originalText.replace(regex, "<mark class='bg-yellow-500 rounded'>$1</mark>");
+        contentSpan.innerHTML = highlighted;
+
+        setTimeout(() => {
+          contentSpan.innerHTML = originalText;
+        }, 2500);
+      }
     }
   };
 
