@@ -57,6 +57,7 @@ const InteractPage = () => {
   const [errorOccurred, setErrorOccurred] = useState(false);
   const [isOtherUserBlocked, setIsOtherUserBlocked] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
   const navigate = useNavigate();
 
   const toggleCard = () => setShowCard(!showCard);
@@ -610,7 +611,7 @@ const InteractPage = () => {
 
   useEffect(() => {
     if (!scrollLock && isAtBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
   }, [isAtBottom, messages, scrollLock]);
 
@@ -1239,6 +1240,39 @@ const InteractPage = () => {
     setShowCard(false);
   };
 
+  const handleSearch = (searchText: string) => {
+    const results = messages.filter((msg) => {
+      const isMe = msg.sender?.id === userId;
+
+      const shouldExclude =
+        (isMe && msg.senderDFM) ||
+        (!isMe && msg.receiverDFM) ||
+        msg.delForAll ||
+        (!isMe && msg.wasSentWhileCurrentlyBlocked) ||
+        msg.content.startsWith(CHAT_UPLOAD_PREFIX) ||
+        msg.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ||
+        msg.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX);
+
+      if (shouldExclude) return false;
+
+      return msg.content?.toLowerCase().includes(searchText.toLowerCase());
+    });
+
+    setSearchResults(results);
+    return results;
+  };
+
+  const scrollToMessage = (id: string | number) => {
+    const el = document.getElementById(`message-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "auto", block: "center" });
+
+      el.classList.add("bg-[#e1f3fb]");
+      setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
+    }
+  };
+
+
   const handleSendForwardedMessage = (selectedUsers: string[]) => {
     if (!currentSelectedMessage && currentSelectedMessages.length === 0) return;
 
@@ -1447,7 +1481,17 @@ const InteractPage = () => {
         formatTimestampV2={formatTimestampV2}
       />
 
-      <HeaderWithInlineCard otherUserData={otherUserData} userId={userId} otherUserId={otherUserId ?? null} handleBlockOtherUser={handleBlockOtherUser} isOtherUserBlocked={isOtherUserBlocked} isUserBlocked={isUserBlocked} />;
+      <HeaderWithInlineCard
+        otherUserData={otherUserData}
+        userId={userId}
+        otherUserId={otherUserId ?? null}
+        handleBlockOtherUser={handleBlockOtherUser}
+        isOtherUserBlocked={isOtherUserBlocked}
+        isUserBlocked={isUserBlocked}
+        handleSearch={handleSearch}
+        searchResults={searchResults}
+        scrollToMessage={scrollToMessage}
+      />
       <ForwardModal
         showModal={showForwardModal}
         setShowModal={setShowForwardModal}
@@ -1549,7 +1593,7 @@ const InteractPage = () => {
         userId={userId ?? null}
       />
 
-      <div className="flex flex-col h-screen pt-12">
+      <div className="flex flex-col h-screen">
         <div className="flex-1 p-4 overflow-hidden"
           style={{
             backgroundImage: `url(${backgroundImage})`,
@@ -1585,6 +1629,7 @@ const InteractPage = () => {
                         const isSelected = selectedMessages.includes(msg.id);
                         return (
                           <div
+                            id={`message-${msg.id}`}
                             key={msg.id}
                             className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}
                           >
@@ -2684,9 +2729,9 @@ const InteractPage = () => {
               )}
 
               {newMessageCount === 0 && !isAtBottom && (
-                <div className="fixed top-14 left-1/2 transform -translate-x-1/2 z-50">
+                <div className="fixed top-14 left-72 transform -translate-x-1/2 z-50">
                   <button
-                    onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base px-4 py-2 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
                   >
                     <span className="animate-bounce">↓</span>
