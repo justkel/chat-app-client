@@ -19,6 +19,8 @@ const ChatPage = () => {
     const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({});
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
     const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
+    const [sortedUserIds, setSortedUserIds] = useState<number[]>([]);
+
     const { data, loading, error } = useGetAcceptedChatUsers(userId);
 
     const otherUserIds = useMemo(() => {
@@ -65,6 +67,14 @@ const ChatPage = () => {
     }, [userId, otherUserIds]);
 
     useEffect(() => {
+        if (!data?.getAcceptedChatUsers) return;
+
+        const defaultOrder = data.getAcceptedChatUsers.map((user: any) => user.id);
+        setSortedUserIds(defaultOrder);
+    }, [data?.getAcceptedChatUsers]);
+
+
+    useEffect(() => {
         if (!userId) return;
 
         data?.getAcceptedChatUsers.forEach((user: any) => {
@@ -89,13 +99,20 @@ const ChatPage = () => {
                 return;
             }
 
-            if (message.wasSentWhileCurrentlyBlocked && message.sender.id !== userId){
+            if (message.wasSentWhileCurrentlyBlocked && message.sender.id !== userId) {
                 return;
             }
 
             setLastMessagesMap((prev) => {
                 const key = message.sender.id === userId ? message.receiver.id : message.sender.id;
                 return { ...prev, [key]: message };
+            });
+
+            const senderId = message.sender.id;
+            const activeUserId = senderId === userId ? message.receiver.id : senderId;
+            setSortedUserIds((prev) => {
+                const without = prev.filter((id) => id !== activeUserId);
+                return [activeUserId, ...without];
             });
 
             // Increment unread count if the message is from another user
@@ -322,7 +339,8 @@ const ChatPage = () => {
                         <p>No users to chat with</p>
                     ) : (
                         <List>
-                            {data?.getAcceptedChatUsers.map((user: any) => {
+                            {sortedUserIds.map((id) => {
+                                const user = data.getAcceptedChatUsers.find((u: any) => u.id === id);
                                 const lastMessage = lastMessagesMap[user.id] || null;
                                 const unreadCount = unreadCounts[user.id] || 0;
                                 const draftMessage = draftMessages[`message_${userId}_${user.id}`];
@@ -466,12 +484,22 @@ const ChatPage = () => {
                                                                             {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
                                                                                 <span className="flex items-center gap-1 text-gray-600">
                                                                                     <CameraOutlined />
-                                                                                    <span>Photo</span>
+                                                                                    {!lastMessage.caption && (
+                                                                                        <span>Photo</span>
+                                                                                    )}
+                                                                                    {lastMessage.caption && (
+                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                                    )}
                                                                                 </span>
                                                                             ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
                                                                                 <span className="flex items-center gap-1 text-gray-600">
                                                                                     <PaperClipOutlined />
-                                                                                    <span>File</span>
+                                                                                    {!lastMessage.caption && (
+                                                                                        <span>File</span>
+                                                                                    )}
+                                                                                    {lastMessage.caption && (
+                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                                    )}
                                                                                 </span>
                                                                             ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
                                                                                 <span className="flex items-center gap-1 text-gray-600">
@@ -492,12 +520,22 @@ const ChatPage = () => {
                                                                     {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
                                                                         <span className="flex items-center gap-1 text-gray-600">
                                                                             <CameraOutlined />
-                                                                            <span>Photo</span>
+                                                                            {!lastMessage.caption && (
+                                                                                <span>Photo</span>
+                                                                            )}
+                                                                            {lastMessage.caption && (
+                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                            )}
                                                                         </span>
                                                                     ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
                                                                         <span className="flex items-center gap-1 text-gray-600">
                                                                             <PaperClipOutlined />
-                                                                            <span>File</span>
+                                                                            {!lastMessage.caption && (
+                                                                                <span>File</span>
+                                                                            )}
+                                                                            {lastMessage.caption && (
+                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                            )}
                                                                         </span>
                                                                     ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
                                                                         <span className="flex items-center gap-1 text-gray-600">

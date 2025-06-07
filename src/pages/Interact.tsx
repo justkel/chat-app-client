@@ -560,10 +560,10 @@ const InteractPage = () => {
     });
 
 
-    // socket.on('messageDelivered', ({ message }) => {
+    // socket.on('messageDelivered', ({ transformedMessage }) => {
     //   setMessages((prevMessages) =>
     //     prevMessages.map((msg) =>
-    //       msg.id === message.id ? { ...msg, status: 'DELIVERED' } : msg
+    //       msg.id === transformedMessage.id ? { ...msg, status: 'DELIVERED' } : msg
     //     )
     //   );
     // });
@@ -1927,7 +1927,7 @@ const InteractPage = () => {
                                     </div>
                                   )}
                                   {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
-                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
+                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm" onClick={() => scrollToMessageAsReply(groupedMessages[timestamp][0].repliedTo?.id)}>
                                       <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                         {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
                                           ? "You"
@@ -1983,7 +1983,7 @@ const InteractPage = () => {
                                         const isLastVisible = index === 3 && allImages.length > 4;
 
                                         return (
-                                          <div key={msg.id} className="relative group">
+                                          <div id={`message-${msg.id}`} key={msg.id} className="relative group">
 
                                             <div className="relative w-32 h-32">
                                               <img
@@ -2235,7 +2235,7 @@ const InteractPage = () => {
                                     </div>
                                   )}
                                   {groupedMessages[timestamp][0].repliedTo && groupedMessages[timestamp][0].repliedTo.content && (
-                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm">
+                                    <div className="p-1 mb-2 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm" onClick={() => scrollToMessageAsReply(groupedMessages[timestamp][0].repliedTo?.id)}>
                                       <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                         {messagesAll.find((m) => m.id === groupedMessages[timestamp][0].repliedTo.id)?.sender?.id === userId
                                           ? "You"
@@ -2292,7 +2292,7 @@ const InteractPage = () => {
                                     const isLastVisible = index === 3 && allImages.length > 4;
 
                                     return (
-                                      <div key={msg.id} className="relative group">
+                                      <div key={msg.id} id={`message-${msg.id}`} className="relative group">
                                         <div className="relative w-32 h-32">
                                           <img
                                             src={`http://localhost:5002${msg.content}`}
@@ -2425,7 +2425,7 @@ const InteractPage = () => {
                         const isSelected = selectedMessages.includes(msg.id);
 
                         return (
-                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
+                          <div key={msg.id} id={`message-${msg.id}`} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
                             <div className="my-4 w-full max-w-md relative">
 
                               {isSelected && (
@@ -2479,7 +2479,7 @@ const InteractPage = () => {
                               )}
 
                               {msg.repliedTo && msg.repliedTo.content && (
-                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50">
+                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50" onClick={() => scrollToMessageAsReply(msg.repliedTo?.id)}>
                                   <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                     {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
                                       ? "You"
@@ -2583,7 +2583,7 @@ const InteractPage = () => {
                         const isSelected = selectedMessages.includes(msg.id);
 
                         return (
-                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
+                          <div key={msg.id} id={`message-${msg.id}`} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
                             <div className="my-4 w-full max-w-md relative">
 
                               {isSelected && (
@@ -2637,7 +2637,7 @@ const InteractPage = () => {
                               )}
 
                               {msg.repliedTo && msg.repliedTo.content && (
-                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50">
+                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50" onClick={() => scrollToMessageAsReply(msg.repliedTo?.id)}>
                                   <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                     {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
                                       ? "You"
