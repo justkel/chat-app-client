@@ -1629,7 +1629,7 @@ const InteractPage = () => {
         userId={userId ?? null}
       />
 
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen pt-12">
         <div className="flex-1 p-4 overflow-hidden"
           style={{
             backgroundImage: `url(${backgroundImage})`,
@@ -2764,7 +2764,7 @@ const InteractPage = () => {
                 </div>
               )}
 
-              {newMessageCount === 0 && !isAtBottom && (
+              {newMessageCount === 0 && !isAtBottom && messages.length !== 0 && (
                 <div className="fixed top-14 left-72 transform -translate-x-1/2 z-50">
                   <button
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })}

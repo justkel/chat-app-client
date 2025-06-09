@@ -11,13 +11,33 @@ const GET_ACCEPTED_CHAT_USERS = gql`
   }
 `;
 
+const GET_ACCEPTED_CHAT_USERS_ALL = gql`
+  query GetAcceptedChatUsersAll($userId: ID!) {
+    getAcceptedChatUsersAll(userId: $userId) {
+      id
+      fullName
+      email
+      profilePicture
+    }
+  }
+`;
+
 export const useGetAcceptedChatUsers = (userId: string | null) => {
-  const { data, loading, error } = useQuery(GET_ACCEPTED_CHAT_USERS, {
+  const { data, loading, error, refetch } = useQuery(GET_ACCEPTED_CHAT_USERS, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
+};
+
+export const useGetAcceptedChatUsersAll = (userId: string | null) => {
+  const { data, loading, error, refetch } = useQuery(GET_ACCEPTED_CHAT_USERS_ALL, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  return { data, loading, error, refetch };
 };
 
 const GET_USERS_TO_FORWARD_TO = gql`

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Spin } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
-import { useGetAcceptedChatUsers } from '../hooks/useGetAcceptedUsers';
+import { useGetAcceptedChatUsers, useGetAcceptedChatUsersAll } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
@@ -21,7 +21,8 @@ const ChatPage = () => {
     const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
     const [sortedUserIds, setSortedUserIds] = useState<number[]>([]);
 
-    const { data, loading, error } = useGetAcceptedChatUsers(userId);
+    const { data, loading, refetch, error } = useGetAcceptedChatUsers(userId);
+    const { data: dataAll, loading: loadingAll, error: err } = useGetAcceptedChatUsersAll(userId);
 
     const otherUserIds = useMemo(() => {
         return data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
@@ -77,7 +78,7 @@ const ChatPage = () => {
     useEffect(() => {
         if (!userId) return;
 
-        data?.getAcceptedChatUsers.forEach((user: any) => {
+        dataAll?.getAcceptedChatUsersAll.forEach((user: any) => {
             const room = [userId, user.id].sort().join('-');
             if (socket.connected) {
                 socket.emit('joinRoom', { userId, otherUserId: user.id });
@@ -210,13 +211,14 @@ const ChatPage = () => {
             socket.off('unreadCountReset');
             socket.off('updatedLastMessageForDelMe');
             socket.off('updatedLastMessage');
+            socket.off('updatedLastMessageAfterEdit');
             data?.getAcceptedChatUsers.forEach((user: any) => {
                 const room = [userId, user.id].sort().join('-');
                 socket.emit('leaveRoom', { userId, otherUserId: user.id });
                 console.log(`Left room: ${room}`);
             });
         };
-    }, [userId, data]);
+    }, [userId, data, refetch, dataAll]);
 
     useEffect(() => {
         if (!userId) return;
@@ -322,8 +324,9 @@ const ChatPage = () => {
         }
     };
 
-    if (loading || lastMessagesLoading || unreadCountsLoading || chatLoading) return <Spin size="default" style={{ display: 'block', margin: '0 auto' }} />;
+    if (loading || lastMessagesLoading || unreadCountsLoading || chatLoading || loadingAll) return <Spin size="default" style={{ display: 'block', margin: '0 auto' }} />;
     if (error) return <p>Error: {error.message}</p>;
+    if (err) return <p>Error: {err.message}</p>;
 
     return (
         <Dashboard>
@@ -340,7 +343,7 @@ const ChatPage = () => {
                     ) : (
                         <List>
                             {sortedUserIds.map((id) => {
-                                const user = data.getAcceptedChatUsers.find((u: any) => u.id === id);
+                                const user = dataAll.getAcceptedChatUsersAll.find((u: any) => u.id === id);
                                 const lastMessage = lastMessagesMap[user.id] || null;
                                 const unreadCount = unreadCounts[user.id] || 0;
                                 const draftMessage = draftMessages[`message_${userId}_${user.id}`];
