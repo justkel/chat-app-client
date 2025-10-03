@@ -138,27 +138,33 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
 
   return (
     <div>
-      <div className="bg-white p-4 shadow-md flex items-center justify-between fixed top-0 left-0 z-10 w-full">
-        <div className="flex items-center space-x-4">
-          <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
-          <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
-          <div className="flex flex-col">
-            <span className="font-semibold">{chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}</span>
-            {(!isUserBlocked && !isOtherUserBlocked) && (
-              <span className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
-                {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
+      <div className="relative h-full flex flex-col">
+        <div className="absolute top-0 left-0 right-0 bg-white p-4 shadow-md flex items-center justify-between z-10">
+          <div className="flex items-center space-x-4">
+            <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
+            <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
+            <div className="flex flex-col">
+              <span className="font-semibold">
+                {chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
               </span>
-            )}
+              {(!isUserBlocked && !isOtherUserBlocked) && (
+                <span
+                  className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}
+                >
+                  {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <SearchOutlined className="text-2xl cursor-pointer" onClick={toggleSearchModal} />
-          <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
+          <div className="flex items-center space-x-4">
+            <SearchOutlined className="text-2xl cursor-pointer" onClick={toggleSearchModal} />
+            <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
+          </div>
         </div>
       </div>
 
       {isSearchModalOpen && (
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded shadow-lg z-30 w-96 flex items-center space-x-2">
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded shadow-lg z-30 w-full max-w-md flex items-center space-x-2">
           <div className="relative flex-grow">
             <input
               type="text"
@@ -182,7 +188,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
       )}
 
       {currentMatchIndex !== null && searchResults.length > 0 && (
-        <div className="absolute top-36 left-1/2 transform -translate-x-1/2 bg-white shadow-md rounded-lg px-4 py-2 w-fit flex items-center space-x-4 z-30">
+        <div className="absolute top-36 left-1/2 transform -translate-x-1/2 bg-white shadow-md rounded-lg px-4 py-2 w-full max-w-sm flex items-center space-x-4 z-30">
           <UpOutlined
             onClick={goToPrev}
             className={`text-lg cursor-pointer ${currentMatchIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-blue-500'}`}
@@ -196,8 +202,8 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
       )}
 
       {showCard && (
-        <div ref={cardRef} className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
-          <ul className="space-y-8">
+        <div ref={cardRef} className="absolute top-44 right-0 bg-white shadow-md rounded-lg p-4 z-20 w-full max-w-xs">
+          <ul className="space-y-4">
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewContact}>View Contact</li>
             <li className="cursor-pointer hover:text-blue-500">Search</li>
             <li className="cursor-pointer hover:text-blue-500">Media</li>
