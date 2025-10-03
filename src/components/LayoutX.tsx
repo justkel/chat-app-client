@@ -58,16 +58,15 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ display: 'flex', fontFamily: 'Montserrat, sans-serif !important' }}>
-      {/* Drawer */}
       <Drawer
         anchor="left"
-        open={true} // Always visible, just collapses
+        open
         variant="permanent"
         sx={{
-          width: drawerOpen ? drawerWidth : collapsedDrawerWidth,
+          width: collapsedDrawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: drawerOpen ? drawerWidth : collapsedDrawerWidth,
+            width: collapsedDrawerWidth,
             transition: 'width 0.3s ease',
             boxSizing: 'border-box',
             backgroundColor: '#f8f9fa',
@@ -75,57 +74,100 @@ const Dashboard = () => {
             overflowX: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: drawerOpen ? 'flex-start' : 'center',
+            alignItems: 'center',
             paddingTop: 2,
           },
         }}
       >
-        <Toolbar sx={{ justifyContent: drawerOpen ? 'flex-start' : 'center', width: '100%' }}>
+        <Toolbar sx={{ justifyContent: 'center', width: '100%' }}>
           <IconButton onClick={handleDrawerToggle} sx={{ color: 'black' }}>
             <MenuIcon />
           </IconButton>
-          {drawerOpen && (
-            <Typography variant="h6" noWrap sx={{ ml: 2, fontFamily: 'Montserrat, sans-serif !important' }}>
-              Chat App
-            </Typography>
-          )}
         </Toolbar>
         <Divider sx={{ borderColor: '#ced4da', width: '100%' }} />
-        <Box sx={{ p: drawerOpen ? 2 : 0, mt: drawerOpen ? 2 : 3, width: '100%' }}>
-          {menuItems.map((item, idx) => {
-            const button = (
+        <Box sx={{ mt: 3, width: '100%' }}>
+          {menuItems.map((item, idx) => (
+            <Tooltip key={idx} title={item.label} placement="right">
               <Button
-                key={idx}
                 startIcon={item.icon}
                 onClick={
                   item.action
                     ? item.action
                     : item.path
-                      ? () => (window.location.href = item.path)
-                      : undefined
+                    ? () => (window.location.href = item.path)
+                    : undefined
                 }
                 sx={{
-                  justifyContent: drawerOpen ? 'flex-start' : 'center',
+                  justifyContent: 'center',
                   color: 'black',
                   width: '100%',
                   mb: 2,
                   textAlign: 'center',
                   fontFamily: 'Montserrat, sans-serif !important',
-                  fontSize: drawerOpen ? '1rem' : '0.875rem',
-                  '& .MuiButton-startIcon': { fontSize: drawerOpen ? '2rem' : '1.5rem' },
+                  fontSize: '0.875rem',
+                  '& .MuiButton-startIcon': { fontSize: '1.5rem' },
                 }}
-              >
-                {drawerOpen && item.label}
-              </Button>
-            );
+              />
+            </Tooltip>
+          ))}
+        </Box>
+      </Drawer>
 
-            // If collapsed, wrap in Tooltip for hover labels
-            return drawerOpen ? button : (
-              <Tooltip key={idx} title={item.label} placement="right">
-                {button}
-              </Tooltip>
-            );
-          })}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        variant="temporary"
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            backgroundColor: '#f8f9fa',
+            color: 'black',
+            display: 'flex',
+            flexDirection: 'column',
+            paddingTop: 2,
+          },
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'flex-start', width: '100%' }}>
+          <IconButton onClick={handleDrawerToggle} sx={{ color: 'black' }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ ml: 2, fontFamily: 'Montserrat, sans-serif !important' }}
+          >
+            Chat App
+          </Typography>
+        </Toolbar>
+        <Divider sx={{ borderColor: '#ced4da', width: '100%' }} />
+        <Box sx={{ p: 2, mt: 2, width: '100%' }}>
+          {menuItems.map((item, idx) => (
+            <Button
+              key={idx}
+              startIcon={item.icon}
+              onClick={
+                item.action
+                  ? item.action
+                  : item.path
+                  ? () => (window.location.href = item.path)
+                  : undefined
+              }
+              sx={{
+                justifyContent: 'flex-start',
+                color: 'black',
+                width: '100%',
+                mb: 2,
+                textAlign: 'center',
+                fontFamily: 'Montserrat, sans-serif !important',
+                fontSize: '1rem',
+                '& .MuiButton-startIcon': { fontSize: '2rem' },
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
         </Box>
       </Drawer>
     </Box>

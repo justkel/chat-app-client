@@ -1,18 +1,32 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Spin } from 'antd';
+import {
+  AppBar,
+  Toolbar,
+  InputBase,
+  IconButton,
+  Box,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+} from '@mui/icons-material';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers, useGetAcceptedChatUsersAll } from '../hooks/useGetAcceptedUsers';
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
-import Dashboard from '../components/Layout';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
 import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
 import socket from '../socket';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 
-const ChatPage = () => {
+interface ChatPageProps {
+    onSelectUser: (id: string) => void;
+    selectedUserId: string | null;
+}
+
+const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => {
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
@@ -298,7 +312,10 @@ const ChatPage = () => {
     const handleUserClick = (otherUserId: number) => {
         // Reset unread count when opening a chat
         setUnreadCounts((prev) => ({ ...prev, [otherUserId]: 0 }));
-        window.location.href = `/chat/${otherUserId}`;
+        // window.location.href = `/chat/${otherUserId}`;
+        if (onSelectUser) {
+            onSelectUser(String(otherUserId));
+        }
     };
 
     const formatTimestamp = (timestamp: string) => {
@@ -329,13 +346,66 @@ const ChatPage = () => {
     if (err) return <p>Error: {err.message}</p>;
 
     return (
-        <Dashboard>
             <div className="chat-page-container">
-                <div className="search-section">
-                    <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', marginBottom: '10px' }}>
-                        Chat Users
-                    </Typography>
-                </div>
+                <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          bgcolor: 'background.default',
+                          p: 3,
+                          fontFamily: 'Montserrat, sans-serif !important',
+                        }}
+                      >
+                        <AppBar
+                          position="static"
+                          sx={{
+                            boxShadow: 'none',
+                            backgroundColor: '#ecf0f1',
+                            color: 'black',
+                            fontFamily: 'Montserrat, sans-serif !important'
+                          }}
+                        >
+                          <Toolbar>
+                            <Typography
+                              variant="h6"
+                              noWrap
+                              sx={{
+                                flexGrow: 1,
+                                fontFamily: 'Montserrat, sans-serif !important'
+                              }}
+                            >
+                              Dashboard
+                            </Typography>
+                            <div style={{ position: 'relative' }}>
+                              <InputBase
+                                placeholder="Search…"
+                                sx={{
+                                  backgroundColor: '#fff',
+                                  borderRadius: 1,
+                                  paddingLeft: 2,
+                                  paddingRight: 2,
+                                  width: '100%',
+                                  marginRight: 1,
+                                  height: '36px',
+                                  fontFamily: 'Montserrat, sans-serif !important'
+                                }}
+                              />
+                              <IconButton
+                                type="submit"
+                                sx={{
+                                  position: 'absolute',
+                                  right: 5,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)'
+                                }}
+                              >
+                                <SearchIcon />
+                              </IconButton>
+                            </div>
+                          </Toolbar>
+                        </AppBar>
+                
+                      </Box>
 
                 <Paper elevation={3} sx={{ padding: '20px' }}>
                     {data?.getAcceptedChatUsers.length === 0 ? (
@@ -365,7 +435,9 @@ const ChatPage = () => {
                                             padding: '10px',
                                             display: 'flex',
                                             alignItems: 'center',
+                                            backgroundColor: selectedUserId === user.id ? 'rgba(0, 0, 255, 0.1)' : 'white',
                                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                            fontFamily: 'Montserrat, sans-serif !important',
                                             cursor: 'pointer',
                                             '&:hover': {
                                                 transform: 'scale(1.01)',
@@ -391,7 +463,9 @@ const ChatPage = () => {
                                                             style={{ width: '100%', height: '100%' }}
                                                         />
                                                     ) : (
-                                                        user.fullName[0]
+                                                        <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500 }}>
+                                                            {user.fullName[0]}
+                                                        </span>
                                                     )}
                                                 </Avatar>
                                             </Badge>
@@ -406,7 +480,7 @@ const ChatPage = () => {
                                                             color: 'green',
                                                             fontStyle: 'italic',
                                                             fontWeight: 'bold',
-                                                            fontFamily: 'Poppins, sans-serif',
+                                                            fontFamily: 'Montserrat, sans-serif',
                                                         }}
                                                     >
                                                         Typing...
@@ -417,7 +491,7 @@ const ChatPage = () => {
                                                             fontSize: '14px',
                                                             color: 'green',
                                                             fontWeight: 'bold',
-                                                            fontFamily: 'Poppins, sans-serif',
+                                                            fontFamily: 'Montserrat, sans-serif',
                                                         }}
                                                     >
                                                         Draft: {displayDraftMessage}
@@ -501,7 +575,7 @@ const ChatPage = () => {
                                                                                         <span>File</span>
                                                                                     )}
                                                                                     {lastMessage.caption && (
-                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
                                                                                     )}
                                                                                 </span>
                                                                             ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
@@ -519,7 +593,7 @@ const ChatPage = () => {
                                                                     </span>
                                                                 </>
                                                             ) : (
-                                                                <span className="truncate block max-w-full">
+                                                                <span className="truncate block max-w-full font-montserrat">
                                                                     {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
                                                                         <span className="flex items-center gap-1 text-gray-600">
                                                                             <CameraOutlined />
@@ -527,7 +601,7 @@ const ChatPage = () => {
                                                                                 <span>Photo</span>
                                                                             )}
                                                                             {lastMessage.caption && (
-                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
                                                                             )}
                                                                         </span>
                                                                     ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
@@ -537,7 +611,7 @@ const ChatPage = () => {
                                                                                 <span>File</span>
                                                                             )}
                                                                             {lastMessage.caption && (
-                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
+                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
                                                                             )}
                                                                         </span>
                                                                     ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
@@ -574,7 +648,6 @@ const ChatPage = () => {
                     )}
                 </Paper>
             </div>
-        </Dashboard>
     );
 };
 

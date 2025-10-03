@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, Spin, notification, message as antdMessage } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
@@ -33,8 +33,12 @@ import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
 import { AudioOutlined, StarFilled } from '@ant-design/icons';
 
-const InteractPage = () => {
-  const { id: otherUserId } = useParams();
+interface InteractPageProps {
+  otherUserId: string;
+}
+
+const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
+  // const { id: otherUserId } = useParams();
   const { user } = useAuth();
   const [userId, setUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -1305,7 +1309,7 @@ const InteractPage = () => {
 
       el.classList.add("bg-[#e1f3fb]");
       setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
-    } 
+    }
   };
 
 
@@ -2765,13 +2769,13 @@ const InteractPage = () => {
               )}
 
               {newMessageCount === 0 && !isAtBottom && messages.length !== 0 && (
-                <div className="fixed top-14 left-72 transform -translate-x-1/2 z-50">
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-20">
                   <button
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base px-4 py-2 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
                   >
                     <span className="animate-bounce">↓</span>
-                    <span className="font-medium">Scroll to latest</span>
+                    <span className="hidden md:inline font-medium">Scroll to latest</span>
                   </button>
                 </div>
               )}
