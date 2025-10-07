@@ -18,8 +18,16 @@ import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
 import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
-import socket from '../socket';
+import { io } from 'socket.io-client';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
+const socket = io('http://localhost:5002', {
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+});
+
 
 interface ChatPageProps {
     onSelectUser: (id: string) => void;

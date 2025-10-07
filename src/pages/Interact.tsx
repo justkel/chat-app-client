@@ -5,7 +5,6 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import HeaderWithInlineCard from '../components/HeaderCard';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
-import socket from '../socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetChatMessages, useGetChatMessagesAll, useCheckUserOnline, useUpdateMessageStatus } from '../hooks/useGetChatMessages';
 import { useGetOtherUserById, useGetUserById } from '../hooks/useGetOtherUser';
@@ -32,6 +31,15 @@ import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-ic
 import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
 import { AudioOutlined, StarFilled } from '@ant-design/icons';
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:5002', {
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+});
 
 interface InteractPageProps {
   otherUserId: string;
@@ -474,7 +482,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
     const target = e.target as HTMLDivElement;
     const { scrollTop, scrollHeight, clientHeight } = target;
 
-    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 8;
     setIsAtBottom(atBottom);
 
     const newScrollLock = !atBottom;
@@ -519,6 +527,8 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
             message.repliedTo.fileOriginalName = repliedMessage.fileOriginalName;
           }
         }
+
+        console.log('RECEIVED MSG', message);
 
         const newMessages = [...prevMessages, message];
 
