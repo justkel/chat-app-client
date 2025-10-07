@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, InputBase, IconButton, Drawer, Box, Button, Divider } from '@mui/material';
-import { Menu as MenuIcon, Search as SearchIcon, Chat as ChatIcon, Contacts as ContactsIcon, AccountCircle as ProfileIcon, Group as MembersIcon, PendingActions as PendingRequestsIcon, Logout } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import {
+  Toolbar,
+  Typography,
+  IconButton,
+  Drawer,
+  Box,
+  Button,
+  Divider,
+  AppBar,
+  InputBase,
+  Tooltip
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Chat as ChatIcon,
+  Contacts as ContactsIcon,
+  AccountCircle as ProfileIcon,
+  Group as MembersIcon,
+  PendingActions as PendingRequestsIcon,
+  Search as SearchIcon,
+  Logout
+} from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { Modal } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
@@ -16,10 +35,10 @@ const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
 
 const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleDrawerToggle = () => {
-    setIsCollapsed(!isCollapsed);
+    setDrawerOpen(!drawerOpen);
   };
 
   const { logout } = useAuth();
@@ -35,165 +54,128 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
     });
   };
 
+  const menuItems = [
+    { label: 'Chats', icon: <ChatIcon />, path: '/chats' },
+    { label: 'Contacts', icon: <ContactsIcon /> },
+    { label: 'Request Access', icon: <MembersIcon />, path: '/all-users' },
+    { label: 'Approve/Reject', icon: <PendingRequestsIcon />, path: '/pending-requests' },
+    { label: 'Profile', icon: <ProfileIcon /> },
+    { label: 'Logout', icon: <Logout />, action: logoutCallback }
+  ];
+
   return (
-    <Box sx={{ display: 'flex', fontFamily: 'Poppins, sans-serif !important' }}>
+    <Box sx={{ display: 'flex', fontFamily: 'Montserrat, sans-serif !important' }}>
       <Drawer
+        anchor="left"
+        open
+        variant="permanent"
         sx={{
-          width: isCollapsed ? collapsedDrawerWidth : drawerWidth,
+          width: collapsedDrawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: isCollapsed ? collapsedDrawerWidth : drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#34495e',
-            color: 'white',
-            overflowX: 'hidden',
+            width: collapsedDrawerWidth,
             transition: 'width 0.3s ease',
+            boxSizing: 'border-box',
+            backgroundColor: '#f8f9fa',
+            color: 'black',
+            overflowX: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: isCollapsed ? 'center' : 'flex-start',
+            alignItems: 'center',
             paddingTop: 2,
           },
         }}
-        variant="permanent"
-        anchor="left"
       >
-        <Toolbar
-          sx={{
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            width: '100%',
-          }}
-        >
-          <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
+        <Toolbar sx={{ justifyContent: 'center', width: '100%' }}>
+          <IconButton onClick={handleDrawerToggle} sx={{ color: 'black' }}>
             <MenuIcon />
           </IconButton>
-          {!isCollapsed && (
-            <Typography variant="h6" noWrap sx={{ ml: 2, fontFamily: 'Poppins, sans-serif !important' }}>
-              Chat App
-            </Typography>
-          )}
         </Toolbar>
-        <Divider sx={{ borderColor: '#2c3e50', width: '100%' }} />
-        <Box
-          sx={{
-            p: isCollapsed ? 0 : 2,
-            mt: isCollapsed ? 3 : 2,
-            width: '100%',
-          }}
-        >
-          <Button
-            startIcon={<ChatIcon />}
-            sx={{
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              color: 'white',
-              width: '100%',
-              mb: 2,
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif !important',
-              fontSize: isCollapsed ? '0.875rem' : '1rem',
-              '& .MuiButton-startIcon': {
-                fontSize: isCollapsed ? '1.5rem' : '2rem',
-              },
-            }}
-            onClick={() => (window.location.href = '/chats')}
-          >
-            {!isCollapsed && 'Chats'}
-          </Button>
-
-          <Button
-            startIcon={<ContactsIcon />}
-            sx={{
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              color: 'white',
-              width: '100%',
-              mb: 2,
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif !important',
-              fontSize: isCollapsed ? '0.875rem' : '1rem',
-              '& .MuiButton-startIcon': {
-                fontSize: isCollapsed ? '1.5rem' : '2rem',
-              },
-            }}
-          >
-            {!isCollapsed && 'Contacts'}
-          </Button>
-          <Link to="/all-users" style={{ textDecoration: 'none', width: '100%' }}>
-            <Button
-              startIcon={<MembersIcon />}
-              sx={{
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                color: 'white',
-                width: '100%',
-                mb: 2,
-                textAlign: 'center',
-                fontFamily: 'Poppins, sans-serif !important',
-                fontSize: isCollapsed ? '0.875rem' : '1rem',
-                '& .MuiButton-startIcon': {
-                  fontSize: isCollapsed ? '1.5rem' : '2rem',
-                },
-              }}
-            >
-              {!isCollapsed && 'Request Access'}
-            </Button>
-          </Link>
-          <Link to="/pending-requests" style={{ textDecoration: 'none', width: '100%' }}>
-            <Button
-              startIcon={<PendingRequestsIcon />}
-              sx={{
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                color: 'white',
-                width: '100%',
-                mb: 2,
-                textAlign: 'center',
-                fontFamily: 'Poppins, sans-serif !important',
-                fontSize: isCollapsed ? '0.875rem' : '1rem',
-                '& .MuiButton-startIcon': {
-                  fontSize: isCollapsed ? '1.5rem' : '2rem',
-                },
-              }}
-            >
-              {!isCollapsed && 'Approve/Reject'}
-            </Button>
-          </Link>
-          <Button
-            startIcon={<ProfileIcon />}
-            sx={{
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              color: 'white',
-              width: '100%',
-              mb: 2,
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif !important',
-              fontSize: isCollapsed ? '0.875rem' : '1rem',
-              '& .MuiButton-startIcon': {
-                fontSize: isCollapsed ? '1.5rem' : '2rem',
-              },
-            }}
-          >
-            {!isCollapsed && 'Profile'}
-          </Button>
-
-          <Button
-            startIcon={<Logout />}
-            onClick={logoutCallback}
-            sx={{
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              color: 'white',
-              width: '100%',
-              mt: 20,
-              mb: 2,
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif !important',
-              fontSize: isCollapsed ? '0.875rem' : '1rem',
-              '& .MuiButton-startIcon': {
-                fontSize: isCollapsed ? '1.5rem' : '2rem',
-              },
-            }}
-          >
-            {!isCollapsed && 'Logout'}
-          </Button>
-
+        <Divider sx={{ borderColor: '#ced4da', width: '100%' }} />
+        <Box sx={{ mt: 3, width: '100%' }}>
+          {menuItems.map((item, idx) => (
+            <Tooltip key={idx} title={item.label} placement="right">
+              <Button
+                startIcon={item.icon}
+                onClick={
+                  item.action
+                    ? item.action
+                    : item.path
+                    ? () => (window.location.href = item.path)
+                    : undefined
+                }
+                sx={{
+                  justifyContent: 'center',
+                  color: 'black',
+                  width: '100%',
+                  mb: 2,
+                  textAlign: 'center',
+                  fontFamily: 'Montserrat, sans-serif !important',
+                  fontSize: '0.875rem',
+                  '& .MuiButton-startIcon': { fontSize: '1.5rem' },
+                }}
+              />
+            </Tooltip>
+          ))}
         </Box>
+      </Drawer>
 
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        variant="temporary"
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            backgroundColor: '#f8f9fa',
+            color: 'black',
+            display: 'flex',
+            flexDirection: 'column',
+            paddingTop: 2,
+          },
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'flex-start', width: '100%' }}>
+          <IconButton onClick={handleDrawerToggle} sx={{ color: 'black' }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ ml: 2, fontFamily: 'Montserrat, sans-serif !important' }}
+          >
+            Chat App
+          </Typography>
+        </Toolbar>
+        <Divider sx={{ borderColor: '#ced4da', width: '100%' }} />
+        <Box sx={{ p: 2, mt: 2, width: '100%' }}>
+          {menuItems.map((item, idx) => (
+            <Button
+              key={idx}
+              startIcon={item.icon}
+              onClick={
+                item.action
+                  ? item.action
+                  : item.path
+                  ? () => (window.location.href = item.path)
+                  : undefined
+              }
+              sx={{
+                justifyContent: 'flex-start',
+                color: 'black',
+                width: '100%',
+                mb: 2,
+                textAlign: 'center',
+                fontFamily: 'Montserrat, sans-serif !important',
+                fontSize: '1rem',
+                '& .MuiButton-startIcon': { fontSize: '2rem' },
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </Box>
       </Drawer>
 
       <Box
