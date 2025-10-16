@@ -30,6 +30,9 @@ module.exports = {
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
       },
+      screens: {
+        '900': '900px',
+      },
     },
   },
   plugins: [require('tailwind-scrollbar-hide'),],
