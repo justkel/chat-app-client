@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Spin } from 'antd';
 import {
-  AppBar,
-  Toolbar,
-  InputBase,
-  IconButton,
-  Box,
+    AppBar,
+    Toolbar,
+    InputBase,
+    IconButton,
+    Box,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
+    Search as SearchIcon,
 } from '@mui/icons-material';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,6 +42,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
     const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
     const [sortedUserIds, setSortedUserIds] = useState<number[]>([]);
+    const [chatFilter, setChatFilter] = useState<'all' | 'unread'>('all');
 
     const { data, loading, refetch, error } = useGetAcceptedChatUsers(userId);
     const { data: dataAll, loading: loadingAll, error: err } = useGetAcceptedChatUsersAll(userId);
@@ -95,6 +96,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
         const defaultOrder = data.getAcceptedChatUsers.map((user: any) => user.id);
         setSortedUserIds(defaultOrder);
     }, [data?.getAcceptedChatUsers]);
+
+    const filteredUserIds = useMemo(() => {
+        if (chatFilter === 'all') return sortedUserIds;
+        return sortedUserIds.filter((id) => unreadCounts[id] > 0);
+    }, [chatFilter, sortedUserIds, unreadCounts]);
 
 
     useEffect(() => {
@@ -319,7 +325,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
 
     const handleUserClick = (otherUserId: number) => {
         // Reset unread count when opening a chat
-        setUnreadCounts((prev) => ({ ...prev, [otherUserId]: 0 }));
+        // setUnreadCounts((prev) => ({ ...prev, [otherUserId]: 0 }));
         // window.location.href = `/chat/${otherUserId}`;
         if (onSelectUser) {
             onSelectUser(String(otherUserId));
@@ -354,73 +360,148 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     if (err) return <p>Error: {err.message}</p>;
 
     return (
-            <div className="chat-page-container">
-                <Box
-                        component="main"
-                        sx={{
-                          flexGrow: 1,
-                          bgcolor: 'background.default',
-                          p: 3,
-                          fontFamily: 'Montserrat, sans-serif !important',
-                        }}
-                      >
-                        <AppBar
-                          position="static"
-                          sx={{
-                            boxShadow: 'none',
-                            backgroundColor: '#ecf0f1',
-                            color: 'black',
-                            fontFamily: 'Montserrat, sans-serif !important'
-                          }}
-                        >
-                          <Toolbar>
-                            <Typography
-                              variant="h6"
-                              noWrap
-                              sx={{
+        <div className="chat-page-container">
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    bgcolor: 'background.default',
+                    p: 3,
+                    fontFamily: 'Montserrat, sans-serif !important',
+                }}
+            >
+                <AppBar
+                    position="static"
+                    sx={{
+                        boxShadow: 'none',
+                        backgroundColor: '#ecf0f1',
+                        color: 'black',
+                        fontFamily: 'Montserrat, sans-serif !important'
+                    }}
+                >
+                    <Toolbar>
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            sx={{
                                 flexGrow: 1,
                                 fontFamily: 'Montserrat, sans-serif !important'
-                              }}
-                            >
-                              Dashboard
-                            </Typography>
-                            <div style={{ position: 'relative' }}>
-                              <InputBase
+                            }}
+                        >
+                            Dashboard
+                        </Typography>
+                        <div style={{ position: 'relative' }}>
+                            <InputBase
                                 placeholder="Search…"
                                 sx={{
-                                  backgroundColor: '#fff',
-                                  borderRadius: 1,
-                                  paddingLeft: 2,
-                                  paddingRight: 2,
-                                  width: '100%',
-                                  marginRight: 1,
-                                  height: '36px',
-                                  fontFamily: 'Montserrat, sans-serif !important'
+                                    backgroundColor: '#fff',
+                                    borderRadius: 1,
+                                    paddingLeft: 2,
+                                    paddingRight: 2,
+                                    width: '100%',
+                                    marginRight: 1,
+                                    height: '36px',
+                                    fontFamily: 'Montserrat, sans-serif !important'
                                 }}
-                              />
-                              <IconButton
+                            />
+                            <IconButton
                                 type="submit"
                                 sx={{
-                                  position: 'absolute',
-                                  right: 5,
-                                  top: '50%',
-                                  transform: 'translateY(-50%)'
+                                    position: 'absolute',
+                                    right: 5,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)'
                                 }}
-                              >
+                            >
                                 <SearchIcon />
-                              </IconButton>
-                            </div>
-                          </Toolbar>
-                        </AppBar>
-                
-                      </Box>
+                            </IconButton>
+                        </div>
+                    </Toolbar>
+                </AppBar>
 
-                <Paper elevation={3} sx={{ padding: '20px' }}>
-                    {data?.getAcceptedChatUsers.length === 0 ? (
-                        <p>No users to chat with</p>
-                    ) : (
-                        <List>
-                            {sortedUserIds.map((id) => {
+            </Box>
+
+            <Box
+                display="flex"
+                justifyContent="center"
+                flexWrap="wrap"
+                gap={2}
+                mb={3}
+                sx={{
+                    fontFamily: 'Montserrat, sans-serif',
+                }}
+            >
+                {[
+                    { key: 'all', label: 'All Chats' },
+                    { key: 'unread', label: 'Unread' },
+                ].map(({ key, label }) => {
+                    const isActive = chatFilter === key;
+
+                    return (
+                        <Paper
+                            key={key}
+                            elevation={0}
+                            onClick={() => setChatFilter(key as 'all' | 'unread')}
+                            sx={{
+                                position: 'relative',
+                                cursor: 'pointer',
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: '12px',
+                                border: `2px solid ${isActive ? '#2980b9' : 'rgba(0,0,0,0.2)'}`,
+                                color: isActive ? '#2980b9' : '#333',
+                                fontWeight: 600,
+                                textAlign: 'center',
+                                letterSpacing: '0.5px',
+                                overflow: 'hidden',
+                                transition: 'all 0.3s ease',
+                                backgroundColor: 'transparent',
+                                '&:hover': {
+                                    transform: 'translateY(-3px)',
+                                    borderColor: '#2980b9',
+                                    boxShadow: '0 6px 15px rgba(41, 128, 185, 0.2)',
+                                },
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: '-100%',
+                                    width: '100%',
+                                    height: '100%',
+                                    background:
+                                        'linear-gradient(120deg, rgba(41,128,185,0.2), rgba(41,128,185,0.05), transparent)',
+                                    transition: 'all 0.6s ease',
+                                },
+                                '&:hover::before': {
+                                    left: '100%',
+                                },
+                                '@media (max-width: 600px)': {
+                                    width: '100%',
+                                    textAlign: 'center',
+                                },
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    fontSize: { xs: '0.9rem', md: '1rem' },
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
+                            >
+                                {label}
+                            </Typography>
+                        </Paper>
+                    );
+                })}
+            </Box>
+
+            <Paper elevation={3} sx={{ padding: '20px' }}>
+                {data?.getAcceptedChatUsers.length === 0 ? (
+                    <p>No users to chat with</p>
+                ) : (
+                    <List>
+                        {filteredUserIds.length > 0 ? (
+                            filteredUserIds.map((id) => {
                                 const user = dataAll.getAcceptedChatUsersAll.find((u: any) => u.id === id);
                                 const lastMessage = lastMessagesMap[user.id] || null;
                                 const unreadCount = unreadCounts[user.id] || 0;
@@ -651,11 +732,52 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                         />
                                     </ListItem>
                                 );
-                            })}
-                        </List>
-                    )}
-                </Paper>
-            </div>
+                            })
+                        ) : (
+                            <Typography
+                                textAlign="center"
+                                sx={{
+                                    color: 'gray',
+                                    mt: 2,
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '1rem',
+                                    letterSpacing: '0.5px',
+                                    position: 'relative',
+                                    animation: 'fadeIn 0.6s ease-out, float 3s ease-in-out infinite',
+                                    '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        left: '50%',
+                                        bottom: 0,
+                                        transform: 'translateX(-50%)',
+                                        width: '50%',
+                                        height: '2px',
+                                        background: 'linear-gradient(90deg, #9b59b6, #3498db)',
+                                        borderRadius: '2px',
+                                        opacity: 0.5,
+                                        animation: 'pulse 2s infinite ease-in-out'
+                                    },
+                                    '@keyframes fadeIn': {
+                                        from: { opacity: 0, transform: 'translateY(10px)' },
+                                        to: { opacity: 1, transform: 'translateY(0)' }
+                                    },
+                                    '@keyframes float': {
+                                        '0%, 100%': { transform: 'translateY(0)' },
+                                        '50%': { transform: 'translateY(-4px)' }
+                                    },
+                                    '@keyframes pulse': {
+                                        '0%, 100%': { opacity: 0.3 },
+                                        '50%': { opacity: 1 }
+                                    }
+                                }}
+                            >
+                                No unread messages
+                            </Typography>
+                        )}
+                    </List>
+                )}
+            </Paper>
+        </div>
     );
 };
 
