@@ -19,6 +19,7 @@ import {
   Group as MembersIcon,
   PendingActions as PendingRequestsIcon,
   Search as SearchIcon,
+  Settings as SettingsIcon,
   Logout
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -62,6 +63,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
     { label: 'Request Access', icon: <MembersIcon />, path: '/all-users' },
     { label: 'Approve/Reject', icon: <PendingRequestsIcon />, path: '/pending-requests' },
     { label: 'Profile', icon: <ProfileIcon /> },
+    { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
     { label: 'Logout', icon: <Logout />, action: logoutCallback }
   ];
 

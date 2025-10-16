@@ -15,6 +15,7 @@ import ViewContactPage from './pages/ViewContactPage';
 import EditContactPage from './pages/EditContactPage';
 import ViewWallPaper from './pages/ViewWallpaper';
 import ChatLayout from './pages/ChatLayout';
+import SettingsPage from './pages/Settings';
 
 const App: React.FC = () => {
   return (
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route path="/view-contact/:userId/:otherUserId" element={<ProtectedRoute><ViewContactPage /></ProtectedRoute>} />
             <Route path="/edit-contact/:userId/:otherUserId" element={<ProtectedRoute><EditContactPage /></ProtectedRoute>} />
             <Route path="/view-wallpaper/:userId/:otherUserId" element={<ProtectedRoute><ViewWallPaper /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
