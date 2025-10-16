@@ -56,7 +56,7 @@ const MessageActionCard: React.FC<Props> = ({
     );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
       <div
         ref={cardRef}
         className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48"
