@@ -21,7 +21,7 @@ const ChatLayout: React.FC = () => {
     return (
         <div className="flex h-screen">
             <Dashboard></Dashboard>
-            <div className="hidden md:block w-2/5 border-r overflow-y-auto">
+            <div className="hidden 900:block w-2/5 border-r overflow-y-auto">
                 <AllChats
                     onSelectUser={handleSelectUser}
                     selectedUserId={selectedUserId}
@@ -30,7 +30,9 @@ const ChatLayout: React.FC = () => {
 
             <div className="w-full md:w-3/5 flex-1 bg-gray-50 relative">
                 {selectedUserId ? (
-                    <InteractPage otherUserId={selectedUserId} />
+                    <div className="relative h-full">
+                        <InteractPage otherUserId={selectedUserId} onSelectUser={handleSelectUser}/>
+                    </div>
                 ) : (
                     <div className="flex justify-center items-center h-full text-gray-400">
                         Select a chat to start messaging

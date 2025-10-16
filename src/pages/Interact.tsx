@@ -34,18 +34,19 @@ import { AudioOutlined, StarFilled } from '@ant-design/icons';
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:5002', {
-    reconnection: true,
-    reconnectionAttempts: Infinity,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
 });
 
 interface InteractPageProps {
+  onSelectUser: (id: string) => void;
   otherUserId: string;
 }
 
-const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
+const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }) => {
   // const { id: otherUserId } = useParams();
   const { user } = useAuth();
   const [userId, setUserId] = useState<string | null>(null);
@@ -512,7 +513,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
 
   useEffect(() => {
     socket.on('receiveMessage', (message: ChatMessage) => {
-      if (message.sender.id !== userId) {
+      if (message.sender.id !== userId) { //RECHECK LOGIC
         if (isUserBlocked === true) {
           return;
         }
@@ -528,11 +529,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
           }
         }
 
-        console.log('RECEIVED MSG', message);
-
         const newMessages = [...prevMessages, message];
 
-        if (message.sender.id !== userId && !isAtBottom) {
+        if (message.sender.id !== userId && !isAtBottom && isOtherUserBlocked === false) {
           setNewMessageCount((prevCount) => prevCount + 1);
         }
 
@@ -1267,6 +1266,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
   };
 
   const handleSearch = (searchText: string) => {
+    if (searchText === '') {
+      return ([]);
+    }
     const results = messages.filter((msg) => {
       const isMe = msg.sender?.id === userId;
       setSearchTerm(searchText);
@@ -1354,7 +1356,10 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId }) => {
 
     // Navigate to the chat with the first user in the list
     if (selectedUsers.length > 0) {
-      navigate(`/chat/${selectedUsers[0]}`);
+      // navigate(`/chat/${selectedUsers[0]}`);
+      if (onSelectUser) {
+        onSelectUser(String(selectedUsers[0]));
+      }
     }
 
     // Scroll to the bottom after a short delay
