@@ -22,6 +22,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Modal } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { Typography as Typo } from 'antd';
+import { useNavigate } from "react-router-dom";
 const { Text } = Typo;
 
 const drawerWidth = 240;
@@ -29,6 +30,7 @@ const collapsedDrawerWidth = 60;
 
 const Dashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -94,7 +96,7 @@ const Dashboard = () => {
                   item.action
                     ? item.action
                     : item.path
-                    ? () => (window.location.href = item.path)
+                    ? () => navigate(item.path)
                     : undefined
                 }
                 sx={{
@@ -151,7 +153,7 @@ const Dashboard = () => {
                 item.action
                   ? item.action
                   : item.path
-                  ? () => (window.location.href = item.path)
+                  ? () => navigate(item.path)
                   : undefined
               }
               sx={{

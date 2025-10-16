@@ -25,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Modal } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { Typography as Typo } from 'antd';
+import { useNavigate } from "react-router-dom";
 const { Text } = Typo;
 
 interface DashboardLayoutProps {
@@ -36,6 +37,7 @@ const collapsedDrawerWidth = 60;
 
 const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -101,7 +103,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
                   item.action
                     ? item.action
                     : item.path
-                    ? () => (window.location.href = item.path)
+                    ? () => navigate(item.path)
                     : undefined
                 }
                 sx={{
@@ -158,7 +160,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
                 item.action
                   ? item.action
                   : item.path
-                  ? () => (window.location.href = item.path)
+                  ? () => navigate(item.path)
                   : undefined
               }
               sx={{
