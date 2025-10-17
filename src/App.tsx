@@ -16,6 +16,7 @@ import EditContactPage from './pages/EditContactPage';
 import ViewWallPaper from './pages/ViewWallpaper';
 import ChatLayout from './pages/ChatLayout';
 import SettingsPage from './pages/Settings';
+import MediaPage from './pages/MediaPage';
 
 const App: React.FC = () => {
   return (
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route path="/chats" element={<ProtectedRoute><ChatLayout /></ProtectedRoute>} />
             <Route path="/view-contact/:userId/:otherUserId" element={<ProtectedRoute><ViewContactPage /></ProtectedRoute>} />
             <Route path="/edit-contact/:userId/:otherUserId" element={<ProtectedRoute><EditContactPage /></ProtectedRoute>} />
+            <Route path="/media/:userId/:otherUserId" element={<ProtectedRoute><MediaPage /></ProtectedRoute>} />
             <Route path="/view-wallpaper/:userId/:otherUserId" element={<ProtectedRoute><ViewWallPaper /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           </Routes>

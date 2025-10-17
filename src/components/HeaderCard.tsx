@@ -52,6 +52,11 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
     if (userId && otherUserId) navigate(`/view-contact/${userId}/${otherUserId}`);
   };
 
+  const handleViewMedia = () => {
+    if (userId && otherUserId) navigate(`/media/${userId}/${otherUserId}`);
+  };
+
+
   const handleViewWallPaper = () => {
     if (userId && otherUserId) navigate(`/view-wallpaper/${userId}/${otherUserId}`);
   };
@@ -206,7 +211,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
           <ul className="space-y-4">
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewContact}>View Contact</li>
             <li className="cursor-pointer hover:text-blue-500">Search</li>
-            <li className="cursor-pointer hover:text-blue-500">Media</li>
+            <li className="cursor-pointer hover:text-blue-500" onClick={handleViewMedia}>Media</li>
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewWallPaper}>Wallpaper</li>
             <li className="cursor-pointer hover:text-blue-500" onClick={showBlockConfirmModal}>
               {isOtherUserBlocked ? 'Unblock' : 'Block'}
