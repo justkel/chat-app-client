@@ -28,6 +28,14 @@ import { useGetBlockedUsers } from '../hooks/UseGetBlockedUsers';
 import { useAuth } from '../contexts/AuthContext';
 import { notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
+import { io } from 'socket.io-client';
+const socket = io('http://localhost:5002', {
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+});
 
 interface OtherUser {
   id: string | number;
@@ -58,6 +66,17 @@ const SettingsPage: React.FC = () => {
   }, [user]);
 
   const { data, loading, error, refetch } = useGetBlockedUsers(userId);
+
+  useEffect(() => {
+    if (userId && data?.getBlockedUsers.length > 0 && socket.connected) {
+      data?.getBlockedUsers.forEach((blocked: BlockedUser) => {
+        const otherUserId = blocked.otherUser.id;
+        const room = [userId, otherUserId].sort().join('-');
+        socket.emit('joinRoom', { userId, otherUserId });
+        console.log(`Joined blocked user room: ${room}`);
+      });
+    }
+  }, [userId, data]);
 
   const handlePasswordUpdate = () => setPasswordModal(true);
   const handleFetchBlockedUsers = async () => {
