@@ -30,7 +30,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
-import { AudioOutlined, StarFilled } from '@ant-design/icons';
+import { AudioOutlined, StarFilled, DownloadOutlined } from '@ant-design/icons';
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:5002', {
@@ -2444,7 +2444,11 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                         const isSelected = selectedMessages.includes(msg.id);
 
                         return (
-                          <div key={msg.id} id={`message-${msg.id}`} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}>
+                          <div
+                            key={msg.id}
+                            id={`message-${msg.id}`}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative py-2`}
+                          >
                             <div className="my-4 w-full max-w-md relative">
 
                               {isSelected && (
@@ -2458,20 +2462,20 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                               )}
 
                               <div
-                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? "opacity-100" : "opacity-0"} group-hover:opacity-100`}
+                                className={`absolute top-4 ${isMe ? '-left-8' : 'right-[-32px]'} transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleMessageSelection(msg);
                                 }}
                                 style={{
-                                  cursor: "pointer",
-                                  color: "#007BFF",
-                                  borderRadius: "50%",
-                                  width: "24px",
-                                  height: "24px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
+                                  cursor: 'pointer',
+                                  color: '#007BFF',
+                                  borderRadius: '50%',
+                                  width: '24px',
+                                  height: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
                                 }}
                               >
                                 <svg
@@ -2498,10 +2502,13 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                               )}
 
                               {msg.repliedTo && msg.repliedTo.content && (
-                                <div className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50" onClick={() => scrollToMessageAsReply(msg.repliedTo?.id)}>
+                                <div
+                                  className="p-2 mb-1 border-l-4 border-blue-400 rounded-lg border-dotted shadow-md text-sm bg-gray-50 cursor-pointer"
+                                  onClick={() => scrollToMessageAsReply(msg.repliedTo?.id)}
+                                >
                                   <span className="block font-semibold text-blue-800 opacity-90 mb-2">
                                     {messagesAll.find((m) => m.id === msg.repliedTo.id)?.sender?.id === userId
-                                      ? "You"
+                                      ? 'You'
                                       : chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
                                   </span>
 
@@ -2527,7 +2534,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                                   ) : (
                                     <p className="text-gray-600 mt-1">
                                       {msg.repliedTo.content.length > 20
-                                        ? msg.repliedTo.content.slice(0, 20) + "..."
+                                        ? msg.repliedTo.content.slice(0, 20) + '...'
                                         : msg.repliedTo.content}
                                     </p>
                                   )}
@@ -2539,8 +2546,8 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                                 {(isMe ? msg.isStarredByCurrentUser : msg.isStarredByOtherUser) && (
                                   <span
                                     className="absolute -bottom-4 left-1 text-black font-semibold transition-transform duration-200 ease-in-out
-                 hover:scale-110 focus:scale-110
-                 text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
+                  hover:scale-110 focus:scale-110
+                  text-[10px] sm:text-[12px] md:text-[14px] bg-white bg-opacity-70 p-1 rounded-full"
                                   >
                                     <StarFilled />
                                   </span>
@@ -2554,31 +2561,48 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                                   >
                                     {msg.fileOriginalName}
                                   </button>
+
+                                  <div className="relative group">
+                                    <button
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = `http://localhost:5002${msg.content}`;
+                                        link.download = msg.fileOriginalName || 'download';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                      className="text-blue-600 hover:text-blue-800 focus:outline-none"
+                                    >
+                                      <DownloadOutlined />
+                                    </button>
+
+                                    <span className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-[11px] bg-gray-800 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                      Download file
+                                    </span>
+                                  </div>
                                 </div>
 
-                                {/* Timestamp and status */}
+                                {/* Timestamp and Status */}
                                 <div className="text-right">
                                   <small className="block text-xs text-zinc-950">
-                                    {new Date(msg.timestamp).toLocaleString("en-GB", {
+                                    {new Date(msg.timestamp).toLocaleString('en-GB', {
                                       hour12: false,
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "numeric",
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric',
                                     })}
                                   </small>
                                   {isMe && (
                                     <div className="flex justify-end mt-1">
-                                      {msg.status.toLowerCase() === "sent" && <SingleTick />}
-                                      {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
-                                      {msg.status.toLowerCase() === "read" &&
-                                        (
-                                          (otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
-                                            ? <DoubleTick className="text-blue-900" />
-                                            : <DoubleTick />
-                                        )
-                                      }
+                                      {msg.status.toLowerCase() === 'sent' && <SingleTick />}
+                                      {msg.status.toLowerCase() === 'delivered' && <DoubleTick />}
+                                      {msg.status.toLowerCase() === 'read' &&
+                                        ((otherUserData?.getOtherUserById?.readReceipts && userData?.getUserById?.readReceipts)
+                                          ? <DoubleTick className="text-blue-900" />
+                                          : <DoubleTick />)}
                                     </div>
                                   )}
                                 </div>
