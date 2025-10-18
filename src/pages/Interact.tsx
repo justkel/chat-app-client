@@ -1299,8 +1299,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
       if (el) {
         el.scrollIntoView({ behavior: "auto", block: "center" });
 
-        el.classList.add("bg-[#e1f3fb]");
-        setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
+        // el.classList.add("bg-[#e1f3fb]");
+        el.classList.add("animate-arrival", "bg-[#e1f3fb]");
+        setTimeout(() => el.classList.remove("animate-arrival", "bg-[#e1f3fb]"), 2000);
 
         const contentSpan = el.querySelector(".message-content-text");
         if (contentSpan && searchTerm) {
