@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -25,16 +25,18 @@ import {
 } from '@mui/icons-material';
 import Dashboard from '../components/Layout';
 import { useGetBlockedUsers } from '../hooks/UseGetBlockedUsers';
+import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import { useAuth } from '../contexts/AuthContext';
 import { notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { io } from 'socket.io-client';
+
 const socket = io('http://localhost:5002', {
-    reconnection: true,
-    reconnectionAttempts: Infinity,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
 });
 
 interface OtherUser {
@@ -67,16 +69,28 @@ const SettingsPage: React.FC = () => {
 
   const { data, loading, error, refetch } = useGetBlockedUsers(userId);
 
+  const blockedUsers = useMemo(
+    () => data?.getBlockedUsers || [],
+    [data?.getBlockedUsers]
+  );
+
+  const otherUserIds = blockedUsers.map((b: BlockedUser) => b.otherUser.id);
+
+  const { data: chatUserData, loading: chatLoading } = useGetChatUserDetails(
+    Number(userId),
+    otherUserIds
+  );
+
   useEffect(() => {
-    if (userId && data?.getBlockedUsers.length > 0 && socket.connected) {
-      data?.getBlockedUsers.forEach((blocked: BlockedUser) => {
+    if (userId && blockedUsers.length > 0 && socket.connected) {
+      blockedUsers.forEach((blocked: BlockedUser) => {
         const otherUserId = blocked.otherUser.id;
         const room = [userId, otherUserId].sort().join('-');
         socket.emit('joinRoom', { userId, otherUserId });
         console.log(`Joined blocked user room: ${room}`);
       });
     }
-  }, [userId, data]);
+  }, [userId, blockedUsers]);
 
   const handlePasswordUpdate = () => setPasswordModal(true);
   const handleFetchBlockedUsers = async () => {
@@ -89,8 +103,6 @@ const SettingsPage: React.FC = () => {
   };
   const handleThemeChange = () =>
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-
-  const blockedUsers: BlockedUser[] = data?.getBlockedUsers || [];
 
   return (
     <Dashboard>
@@ -314,7 +326,19 @@ const SettingsPage: React.FC = () => {
                 </IconButton>
               </Box>
 
-              {loading ? (
+              <Typography
+                textAlign="center"
+                mb={2}
+                sx={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  color: 'text.secondary',
+                  fontSize: 14,
+                }}
+              >
+                To unblock, visit individual chats.
+              </Typography>
+
+              {loading || chatLoading ? (
                 <Box
                   display="flex"
                   justifyContent="center"
@@ -335,27 +359,40 @@ const SettingsPage: React.FC = () => {
                 </Typography>
               ) : blockedUsers.length > 0 ? (
                 <List>
-                  {blockedUsers.map((blocked: BlockedUser) => (
-                    <ListItem key={blocked.id} divider>
-                      <Avatar
-                        src={blocked.otherUser.profilePicture}
-                        alt={blocked.otherUser.fullName}
-                        sx={{ width: 40, height: 40, mr: 2 }}
-                      />
-                      <ListItemText
-                        primary={blocked.otherUser.fullName}
-                        secondary={blocked.otherUser.email}
-                        primaryTypographyProps={{
-                          fontFamily: 'Montserrat, sans-serif',
-                          fontWeight: 500,
-                        }}
-                        secondaryTypographyProps={{
-                          fontFamily: 'Montserrat, sans-serif',
-                          color: 'text.secondary',
-                        }}
-                      />
-                    </ListItem>
-                  ))}
+                  {blockedUsers.map((blocked: BlockedUser) => {
+                    const chatDetail = chatUserData?.getOtherUserChatDetails?.find(
+                      (chat: any) =>
+                        chat &&
+                        chat.otherUser &&
+                        chat.otherUser.id === blocked.otherUser.id
+                    );
+
+                    const displayName =
+                      chatDetail?.customUsername ||
+                      blocked.otherUser.fullName;
+
+                    return (
+                      <ListItem key={blocked.id} divider>
+                        <Avatar
+                          src={blocked.otherUser.profilePicture}
+                          alt={displayName}
+                          sx={{ width: 40, height: 40, mr: 2 }}
+                        />
+                        <ListItemText
+                          primary={displayName}
+                          secondary={blocked.otherUser.email}
+                          primaryTypographyProps={{
+                            fontFamily: 'Montserrat, sans-serif',
+                            fontWeight: 500,
+                          }}
+                          secondaryTypographyProps={{
+                            fontFamily: 'Montserrat, sans-serif',
+                            color: 'text.secondary',
+                          }}
+                        />
+                      </ListItem>
+                    );
+                  })}
                 </List>
               ) : (
                 <Typography
