@@ -1,12 +1,13 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, Spin, Tooltip, Modal, message } from 'antd';
-import { 
-  DownloadOutlined, 
-  FileOutlined, 
-  PlayCircleOutlined, 
-  MessageOutlined 
+import {
+  DownloadOutlined,
+  FileOutlined,
+  PlayCircleFilled,
+  PauseCircleFilled,
+  MessageOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { useGetMediaBetweenUsers } from '../hooks/useGetMediaBetweenUsers';
@@ -21,7 +22,12 @@ const MediaPage: React.FC = () => {
   const { userId, otherUserId } = useParams();
   const navigate = useNavigate();
   const { data, loading, error } = useGetMediaBetweenUsers(userId!, otherUserId!);
-  const [selectedImage, setSelectedImage] = useState<{ url: string; caption?: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; caption?: string } | null>(
+    null
+  );
+  const [currentAudio, setCurrentAudio] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ [key: string]: number }>({});
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   if (loading)
     return (
@@ -85,6 +91,33 @@ const MediaPage: React.FC = () => {
     return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
   };
 
+  // Audio Controls
+  const togglePlay = (id: string, src: string) => {
+    const currentRef = audioRefs.current[id];
+
+    if (currentAudio && currentAudio !== id && audioRefs.current[currentAudio]) {
+      audioRefs.current[currentAudio]?.pause();
+      audioRefs.current[currentAudio]!.currentTime = 0;
+      setProgress((prev) => ({ ...prev, [currentAudio]: 0 }));
+    }
+
+    if (currentRef?.paused) {
+      currentRef?.play();
+      setCurrentAudio(id);
+    } else {
+      currentRef?.pause();
+      setCurrentAudio(null);
+    }
+  };
+
+  const handleTimeUpdate = (id: string) => {
+    const audio = audioRefs.current[id];
+    if (audio) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      setProgress((prev) => ({ ...prev, [id]: percent }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8 font-montserrat">
       <h1 className="text-3xl md:text-4xl font-bold text-center text-blue-600 mb-8">
@@ -103,9 +136,7 @@ const MediaPage: React.FC = () => {
               children: (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {images.length === 0 ? (
-                    <p className="col-span-full text-center text-gray-500">
-                      No images found
-                    </p>
+                    <p className="col-span-full text-center text-gray-500">No images found</p>
                   ) : (
                     images.map((msg: any) => (
                       <motion.div
@@ -129,7 +160,6 @@ const MediaPage: React.FC = () => {
                             {truncate(msg.caption)}
                           </p>
                         )}
-
                         <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                           <Tooltip title="Go to message" className="font-montserrat">
                             <MessageOutlined
@@ -168,32 +198,59 @@ const MediaPage: React.FC = () => {
                       <motion.div
                         key={msg.id}
                         whileHover={{ scale: 1.02 }}
-                        className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm"
+                        className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-4 flex flex-col shadow-sm hover:shadow-md transition-all duration-200"
                       >
-                        <div className="flex items-center space-x-3">
-                          <PlayCircleOutlined className="text-blue-600 text-2xl" />
-                          <audio
-                            controls
-                            src={`http://localhost:5002${msg.content}`}
-                            className="w-40 sm:w-60"
-                          />
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={() => togglePlay(msg.id, msg.content)}
+                              className="focus:outline-none"
+                            >
+                              {currentAudio === msg.id && !audioRefs.current[msg.id]?.paused ? (
+                                <PauseCircleFilled className="text-blue-600 text-4xl hover:text-blue-700 transition-all duration-200" />
+                              ) : (
+                                <PlayCircleFilled className="text-blue-600 text-4xl hover:text-blue-700 transition-all duration-200" />
+                              )}
+                            </button>
+                            <div>
+                              <p className="text-sm sm:text-base font-medium text-gray-700">
+                                {msg.fileOriginalName || 'Audio message'}
+                              </p>
+                              <div className="w-48 sm:w-64 md:w-80 h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                                <div
+                                  className="h-full bg-blue-500 transition-all duration-200"
+                                  style={{ width: `${progress[msg.id] || 0}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Tooltip title="Go to message" className="font-montserrat">
+                              <MessageOutlined
+                                className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                                onClick={() => handleGoToMessage(msg.id)}
+                              />
+                            </Tooltip>
+                            <Tooltip title="Download" className="font-montserrat">
+                              <DownloadOutlined
+                                className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                                onClick={() =>
+                                  handleDownload(msg.content, msg.fileOriginalName || 'audio.mp3')
+                                }
+                              />
+                            </Tooltip>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Tooltip title="Go to message" className="font-montserrat">
-                            <MessageOutlined
-                              className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
-                              onClick={() => handleGoToMessage(msg.id)}
-                            />
-                          </Tooltip>
-                          <Tooltip title="Download" className="font-montserrat">
-                            <DownloadOutlined
-                              className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
-                              onClick={() =>
-                                handleDownload(msg.content, msg.fileOriginalName || 'audio.mp3')
-                              }
-                            />
-                          </Tooltip>
-                        </div>
+                        <audio
+                          ref={(el) => (audioRefs.current[msg.id] = el)}
+                          src={`http://localhost:5002${msg.content}`}
+                          onTimeUpdate={() => handleTimeUpdate(msg.id)}
+                          onEnded={() => {
+                            setCurrentAudio(null);
+                            setProgress((prev) => ({ ...prev, [msg.id]: 0 }));
+                          }}
+                          className="hidden"
+                        />
                       </motion.div>
                     ))
                   )}
@@ -251,12 +308,7 @@ const MediaPage: React.FC = () => {
         />
       </div>
 
-      <Modal
-        open={!!selectedImage}
-        onCancel={() => setSelectedImage(null)}
-        footer={null}
-        centered
-      >
+      <Modal open={!!selectedImage} onCancel={() => setSelectedImage(null)} footer={null} centered>
         {selectedImage && (
           <div className="flex flex-col items-center">
             <img
