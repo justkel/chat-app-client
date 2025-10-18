@@ -7,9 +7,6 @@ import {
     IconButton,
     Box,
 } from '@mui/material';
-import {
-    Search as SearchIcon,
-} from '@mui/icons-material';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetAcceptedChatUsers, useGetAcceptedChatUsersAll } from '../hooks/useGetAcceptedUsers';
@@ -20,6 +17,7 @@ import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography
 import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
 import { io } from 'socket.io-client';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
+import { useSearchAcceptedUsers } from '../hooks/useSearchAcceptedUsers';
 const socket = io('http://localhost:5002', {
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -42,10 +40,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
     const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
     const [sortedUserIds, setSortedUserIds] = useState<number[]>([]);
-    const [chatFilter, setChatFilter] = useState<'all' | 'unread'>('all');
+    const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'search'>('all');
+    const [searchTerm, setSearchTerm] = useState('');
 
     const { data, loading, refetch, error } = useGetAcceptedChatUsers(userId);
     const { data: dataAll, loading: loadingAll, error: err } = useGetAcceptedChatUsersAll(userId);
+    const { data: searchData } = useSearchAcceptedUsers(userId, searchTerm);
 
     const otherUserIds = useMemo(() => {
         return data?.getAcceptedChatUsers.map((user: any) => user.id) || [];
@@ -98,10 +98,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     }, [data?.getAcceptedChatUsers]);
 
     const filteredUserIds = useMemo(() => {
-        if (chatFilter === 'all') return sortedUserIds;
-        return sortedUserIds.filter((id) => unreadCounts[id] > 0);
-    }, [chatFilter, sortedUserIds, unreadCounts]);
+        if (chatFilter === 'search') {
+            return searchData?.searchAcceptedUsers?.map((u: any) => u.id) || [];
+        }
 
+        if (chatFilter === 'unread') {
+            return sortedUserIds.filter((id) => unreadCounts[id] > 0);
+        }
+
+        return sortedUserIds;
+    }, [chatFilter, sortedUserIds, unreadCounts, searchData]);
 
     useEffect(() => {
         if (!userId) return;
@@ -393,7 +399,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                             }}
                         >
                             <InputBase
-                                placeholder="Search…"
+                                placeholder="Search using username or custom name"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSearchTerm(value);
+                                    setChatFilter(value.length > 0 ? 'search' : 'all');
+                                }}
                                 sx={{
                                     backgroundColor: "#fff",
                                     borderRadius: "50px",
@@ -411,21 +423,38 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                 }}
                             />
 
-                            <IconButton
-                                type="submit"
-                                sx={{
-                                    position: "absolute",
-                                    right: "5px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-50%) scale(1.15)",
-                                    },
-                                }}
-                            >
-                                <SearchIcon sx={{ fontSize: 22 }} />
-                            </IconButton>
+                            {searchTerm && (
+                                <IconButton
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                        setChatFilter("all");
+                                    }}
+                                    sx={{
+                                        position: "absolute",
+                                        right: 5,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        transition: "all 0.3s ease",
+                                        color: "gray",
+                                        "&:hover": { color: "#2980b9" },
+                                    }}
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                </IconButton>
+                            )}
                         </Box>
                     </Toolbar>
                 </AppBar>
@@ -452,7 +481,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                         <Paper
                             key={key}
                             elevation={0}
-                            onClick={() => setChatFilter(key as 'all' | 'unread')}
+                            onClick={() => {
+                                setChatFilter(key as any);
+                                if (key !== 'search') setSearchTerm('');
+                            }}
                             sx={{
                                 position: 'relative',
                                 cursor: 'pointer',
@@ -512,7 +544,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                 ) : (
                     <List>
                         {filteredUserIds.length > 0 ? (
-                            filteredUserIds.map((id) => {
+                            filteredUserIds.map((id: number) => {
                                 const user = dataAll.getAcceptedChatUsersAll.find((u: any) => u.id === id);
                                 const lastMessage = lastMessagesMap[user.id] || null;
                                 const unreadCount = unreadCounts[user.id] || 0;
@@ -782,7 +814,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                     }
                                 }}
                             >
-                                No unread messages
+                                {chatFilter === 'search' ? 'No results found' : 'No unread messages'}
                             </Typography>
                         )}
                     </List>
