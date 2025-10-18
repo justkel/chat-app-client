@@ -380,42 +380,53 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                     }}
                 >
                     <Toolbar>
-                        <Typography
-                            variant="h6"
-                            noWrap
+                        <Box
                             sx={{
-                                flexGrow: 1,
-                                fontFamily: 'Montserrat, sans-serif !important'
+                                position: "relative",
+                                display: "flex",
+                                alignItems: "center",
+                                width: { xs: "100%", sm: "350px", md: "420px" },
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                    transform: "translateY(-1px)",
+                                },
                             }}
                         >
-                            Dashboard
-                        </Typography>
-                        <div style={{ position: 'relative' }}>
                             <InputBase
                                 placeholder="Search…"
                                 sx={{
-                                    backgroundColor: '#fff',
-                                    borderRadius: 1,
+                                    backgroundColor: "#fff",
+                                    borderRadius: "50px",
                                     paddingLeft: 2,
-                                    paddingRight: 2,
-                                    width: '100%',
-                                    marginRight: 1,
-                                    height: '36px',
-                                    fontFamily: 'Montserrat, sans-serif !important'
+                                    paddingRight: 5,
+                                    width: "100%",
+                                    height: "42px",
+                                    fontFamily: "Montserrat, sans-serif !important",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                                    transition: "all 0.35s ease",
+                                    "&:focus-within": {
+                                        boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+                                        width: "100%",
+                                    },
                                 }}
                             />
+
                             <IconButton
                                 type="submit"
                                 sx={{
-                                    position: 'absolute',
-                                    right: 5,
-                                    top: '50%',
-                                    transform: 'translateY(-50%)'
+                                    position: "absolute",
+                                    right: "5px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-50%) scale(1.15)",
+                                    },
                                 }}
                             >
-                                <SearchIcon />
+                                <SearchIcon sx={{ fontSize: 22 }} />
                             </IconButton>
-                        </div>
+                        </Box>
                     </Toolbar>
                 </AppBar>
 
