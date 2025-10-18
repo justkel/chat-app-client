@@ -6,7 +6,6 @@ import {
   Switch,
   Button,
   Modal,
-  TextField,
   List,
   ListItem,
   ListItemText,
@@ -26,6 +25,7 @@ import {
 import Dashboard from '../components/Layout';
 import { useGetBlockedUsers } from '../hooks/UseGetBlockedUsers';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
+import UpdatePasswordModal from '../components/settings/UpdatePasswordModal';
 import { useAuth } from '../contexts/AuthContext';
 import { notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
@@ -229,64 +229,13 @@ const SettingsPage: React.FC = () => {
             </motion.div>
           ))}
 
-          <Modal open={passwordModal} onClose={() => setPasswordModal(false)}>
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                bgcolor: 'background.paper',
-                boxShadow: 24,
-                borderRadius: 2,
-                p: 4,
-                width: { xs: '90%', sm: 400 },
-                fontFamily: 'Montserrat, sans-serif',
-              }}
-            >
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight={600}
-                  sx={{ fontFamily: 'Montserrat, sans-serif' }}
-                >
-                  Update Password
-                </Typography>
-                <IconButton onClick={() => setPasswordModal(false)}>
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-
-              {['Current Password', 'New Password'].map((label) => (
-                <TextField
-                  key={label}
-                  label={label}
-                  type="password"
-                  fullWidth
-                  sx={{
-                    mb: 2,
-                    '& .MuiInputBase-input, & .MuiInputLabel-root': {
-                      fontFamily: 'Montserrat, sans-serif',
-                    },
-                  }}
-                />
-              ))}
-
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ fontFamily: 'Montserrat, sans-serif' }}
-              >
-                Update
-              </Button>
-            </Box>
-          </Modal>
+          {userId && (
+            <UpdatePasswordModal
+              open={passwordModal}
+              onClose={() => setPasswordModal(false)}
+              userId={userId}
+            />
+          )}
 
           <Modal
             open={blockedUsersModal}
