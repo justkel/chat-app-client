@@ -13,6 +13,7 @@ import {
   FileExcelOutlined,
   FileImageOutlined,
   FileZipOutlined,
+  ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { useGetMediaBetweenUsers } from '../hooks/useGetMediaBetweenUsers';
@@ -110,7 +111,7 @@ const MediaPage: React.FC = () => {
   };
 
   // Audio Controls
-  const togglePlay = (id: string, src: string) => {
+  const togglePlay = (id: string) => {
     const currentRef = audioRefs.current[id];
 
     if (currentAudio && currentAudio !== id && audioRefs.current[currentAudio]) {
@@ -143,9 +144,20 @@ const MediaPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 md:p-8 font-montserrat">
-      <h1 className="text-3xl md:text-4xl font-bold text-center text-blue-600 mb-8">
-        Shared Media
-      </h1>
+      <div className="flex items-center mb-8">
+        <motion.button
+          onClick={() => navigate(-1)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 text-blue-600 font-semibold text-lg hover:text-blue-700 transition-all"
+        >
+          <ArrowLeftOutlined className="text-2xl" />
+          <span className="hidden sm:inline">Back</span>
+        </motion.button>
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-blue-600 flex-1">
+          Shared Media
+        </h1>
+      </div>
 
       <div className="bg-white shadow-lg rounded-2xl p-4 md:p-6 border border-gray-200">
         <Tabs
@@ -193,7 +205,7 @@ const MediaPage: React.FC = () => {
                               }}
                             />
                           </Tooltip>
-                          <Tooltip title="Download" className="font-montserrat">
+                          <Tooltip title="Download">
                             <DownloadOutlined
                               className="text-white bg-blue-600 p-1.5 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
                               onClick={(e) => {
@@ -226,7 +238,7 @@ const MediaPage: React.FC = () => {
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-4">
                             <button
-                              onClick={() => togglePlay(msg.id, msg.content)}
+                              onClick={() => togglePlay(msg.id)}
                               className="focus:outline-none"
                             >
                               {currentAudio === msg.id && !audioRefs.current[msg.id]?.paused ? (
@@ -248,13 +260,13 @@ const MediaPage: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Tooltip title="Go to message" className="font-montserrat">
+                            <Tooltip title="Go to message">
                               <MessageOutlined
                                 className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                                 onClick={() => handleGoToMessage(msg.id)}
                               />
                             </Tooltip>
-                            <Tooltip title="Download" className="font-montserrat">
+                            <Tooltip title="Download">
                               <DownloadOutlined
                                 className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                                 onClick={() =>
@@ -305,9 +317,8 @@ const MediaPage: React.FC = () => {
                               {getFileTag(fileName)}
                             </div>
                           </div>
-
                           <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <Tooltip title="Preview" className="font-montserrat">
+                            <Tooltip title="Preview">
                               <FileOutlined
                                 className="text-indigo-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                                 onClick={() =>
@@ -318,13 +329,13 @@ const MediaPage: React.FC = () => {
                                 }
                               />
                             </Tooltip>
-                            <Tooltip title="Go to message" className="font-montserrat">
+                            <Tooltip title="Go to message">
                               <MessageOutlined
                                 className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                                 onClick={() => handleGoToMessage(msg.id)}
                               />
                             </Tooltip>
-                            <Tooltip title="Download" className="font-montserrat">
+                            <Tooltip title="Download">
                               <DownloadOutlined
                                 className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
                                 onClick={() =>
