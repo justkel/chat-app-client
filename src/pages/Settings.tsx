@@ -5,13 +5,6 @@ import {
   Typography,
   Switch,
   Button,
-  Modal,
-  List,
-  ListItem,
-  ListItemText,
-  CircularProgress,
-  IconButton,
-  Avatar,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -20,12 +13,12 @@ import {
   Star as StarIcon,
   Visibility as VisibilityIcon,
   Palette as PaletteIcon,
-  Close as CloseIcon,
 } from '@mui/icons-material';
 import Dashboard from '../components/Layout';
 import { useGetBlockedUsers } from '../hooks/UseGetBlockedUsers';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import UpdatePasswordModal from '../components/settings/UpdatePasswordModal';
+import BlockedUsersModal from '../components/settings/BlockedUsersModal';
 import { useAuth } from '../contexts/AuthContext';
 import { notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
@@ -237,122 +230,14 @@ const SettingsPage: React.FC = () => {
             />
           )}
 
-          <Modal
+          <BlockedUsersModal
             open={blockedUsersModal}
             onClose={() => setBlockedUsersModal(false)}
-          >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                bgcolor: 'background.paper',
-                boxShadow: 24,
-                borderRadius: 2,
-                p: 4,
-                width: { xs: '90%', sm: 400 },
-                fontFamily: 'Montserrat, sans-serif',
-                maxHeight: '80vh',
-                overflowY: 'auto',
-              }}
-            >
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight={600}
-                  sx={{ fontFamily: 'Montserrat, sans-serif' }}
-                >
-                  Blocked Users
-                </Typography>
-                <IconButton onClick={() => setBlockedUsersModal(false)}>
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-
-              <Typography
-                textAlign="center"
-                mb={2}
-                sx={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  color: 'text.secondary',
-                  fontSize: 14,
-                }}
-              >
-                To unblock, visit individual chats.
-              </Typography>
-
-              {loading || chatLoading ? (
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  height="150px"
-                >
-                  <CircularProgress />
-                </Box>
-              ) : error ? (
-                <Typography
-                  textAlign="center"
-                  sx={{
-                    fontFamily: 'Montserrat, sans-serif',
-                    color: 'error.main',
-                  }}
-                >
-                  Failed to load blocked users.
-                </Typography>
-              ) : blockedUsers.length > 0 ? (
-                <List>
-                  {blockedUsers.map((blocked: BlockedUser) => {
-                    const chatDetail = chatUserData?.getOtherUserChatDetails?.find(
-                      (chat: any) =>
-                        chat &&
-                        chat.otherUser &&
-                        chat.otherUser.id === blocked.otherUser.id
-                    );
-
-                    const displayName =
-                      chatDetail?.customUsername ||
-                      blocked.otherUser.fullName;
-
-                    return (
-                      <ListItem key={blocked.id} divider>
-                        <Avatar
-                          src={blocked.otherUser.profilePicture}
-                          alt={displayName}
-                          sx={{ width: 40, height: 40, mr: 2 }}
-                        />
-                        <ListItemText
-                          primary={displayName}
-                          secondary={blocked.otherUser.email}
-                          primaryTypographyProps={{
-                            fontFamily: 'Montserrat, sans-serif',
-                            fontWeight: 500,
-                          }}
-                          secondaryTypographyProps={{
-                            fontFamily: 'Montserrat, sans-serif',
-                            color: 'text.secondary',
-                          }}
-                        />
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              ) : (
-                <Typography
-                  textAlign="center"
-                  sx={{ fontFamily: 'Montserrat, sans-serif' }}
-                >
-                  No blocked users found.
-                </Typography>
-              )}
-            </Box>
-          </Modal>
+            blockedUsers={blockedUsers}
+            loading={loading || chatLoading}
+            error={error}
+            chatUserData={chatUserData}
+          />
         </Box>
       </Box>
     </Dashboard>
