@@ -1,8 +1,13 @@
 'use client';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, Spin, Tooltip, Modal, message } from 'antd';
-import { DownloadOutlined, FileOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { 
+  DownloadOutlined, 
+  FileOutlined, 
+  PlayCircleOutlined, 
+  MessageOutlined 
+} from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { useGetMediaBetweenUsers } from '../hooks/useGetMediaBetweenUsers';
 import {
@@ -11,15 +16,17 @@ import {
   CHAT_UPLOAD_PREFIX,
 } from '../utilss/types';
 import '../index.css';
+
 const MediaPage: React.FC = () => {
   const { userId, otherUserId } = useParams();
+  const navigate = useNavigate();
   const { data, loading, error } = useGetMediaBetweenUsers(userId!, otherUserId!);
   const [selectedImage, setSelectedImage] = useState<{ url: string; caption?: string } | null>(null);
 
   if (loading)
     return (
       <div className="flex justify-center mt-20 font-montserrat">
-        <Spin size="large" />
+        <Spin size="default" />
       </div>
     );
 
@@ -31,6 +38,12 @@ const MediaPage: React.FC = () => {
       </div>
     );
   }
+
+  const handleGoToMessage = (messageId: string) => {
+    navigate(`/chats`, {
+      state: { scrollToMessageId: messageId },
+    });
+  };
 
   const allMessages = data?.getMediaBetweenUsers || [];
   const sortByTimestampAsc = (a: any, b: any) =>
@@ -116,15 +129,27 @@ const MediaPage: React.FC = () => {
                             {truncate(msg.caption)}
                           </p>
                         )}
-                        <Tooltip className='font-montserrat' title="Download">
-                          <DownloadOutlined
-                            className="absolute top-2 right-2 text-white bg-blue-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownload(msg.content, msg.fileOriginalName || 'image.jpg');
-                            }}
-                          />
-                        </Tooltip>
+
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <Tooltip title="Go to message" className="font-montserrat">
+                            <MessageOutlined
+                              className="text-white bg-green-600 p-1.5 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGoToMessage(msg.id);
+                              }}
+                            />
+                          </Tooltip>
+                          <Tooltip title="Download" className="font-montserrat">
+                            <DownloadOutlined
+                              className="text-white bg-blue-600 p-1.5 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownload(msg.content, msg.fileOriginalName || 'image.jpg');
+                              }}
+                            />
+                          </Tooltip>
+                        </div>
                       </motion.div>
                     ))
                   )}
@@ -153,14 +178,22 @@ const MediaPage: React.FC = () => {
                             className="w-40 sm:w-60"
                           />
                         </div>
-                        <Tooltip className='font-montserrat' title="Download">
-                          <DownloadOutlined
-                            className="text-blue-600 text-xl cursor-pointer"
-                            onClick={() =>
-                              handleDownload(msg.content, msg.fileOriginalName || 'audio.mp3')
-                            }
-                          />
-                        </Tooltip>
+                        <div className="flex items-center gap-3">
+                          <Tooltip title="Go to message" className="font-montserrat">
+                            <MessageOutlined
+                              className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={() => handleGoToMessage(msg.id)}
+                            />
+                          </Tooltip>
+                          <Tooltip title="Download" className="font-montserrat">
+                            <DownloadOutlined
+                              className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={() =>
+                                handleDownload(msg.content, msg.fileOriginalName || 'audio.mp3')
+                              }
+                            />
+                          </Tooltip>
+                        </div>
                       </motion.div>
                     ))
                   )}
@@ -192,14 +225,22 @@ const MediaPage: React.FC = () => {
                             {truncate(msg.fileOriginalName || 'View File', 25)}
                           </a>
                         </div>
-                        <Tooltip className='font-montserrat' title="Download">
-                          <DownloadOutlined
-                            className="text-blue-600 text-xl cursor-pointer"
-                            onClick={() =>
-                              handleDownload(msg.content, msg.fileOriginalName || 'file')
-                            }
-                          />
-                        </Tooltip>
+                        <div className="flex items-center gap-3">
+                          <Tooltip title="Go to message" className="font-montserrat">
+                            <MessageOutlined
+                              className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={() => handleGoToMessage(msg.id)}
+                            />
+                          </Tooltip>
+                          <Tooltip title="Download" className="font-montserrat">
+                            <DownloadOutlined
+                              className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                              onClick={() =>
+                                handleDownload(msg.content, msg.fileOriginalName || 'file')
+                              }
+                            />
+                          </Tooltip>
+                        </div>
                       </motion.div>
                     ))
                   )}

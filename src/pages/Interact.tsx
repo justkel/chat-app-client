@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Spin, notification, message as antdMessage } from 'antd';
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -31,6 +31,7 @@ import { faShare, faFileAlt, faHeadphones } from '@fortawesome/free-solid-svg-ic
 import { FilePreviewModalAudio } from '../components/FilePreviewModalAudio';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
 import { AudioOutlined, StarFilled, DownloadOutlined } from '@ant-design/icons';
+import { useLocation } from "react-router-dom";
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:5002', {
@@ -96,6 +97,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [selectedAudio, setSelectedAudio] = useState<File | null>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
 
   const imageMessages = useMemo(() => {
     return messages.filter((msg) =>
@@ -1291,28 +1293,41 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     return results;
   };
 
-  const scrollToMessage = (id: string | number) => {
-    const el = document.getElementById(`message-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "auto", block: "center" });
+  const scrollToMessage = useCallback(
+    (id: string | number) => {
+      const el = document.getElementById(`message-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "auto", block: "center" });
 
-      el.classList.add("bg-[#e1f3fb]");
-      setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
+        el.classList.add("bg-[#e1f3fb]");
+        setTimeout(() => el.classList.remove("bg-[#e1f3fb]"), 1500);
 
-      const contentSpan = el.querySelector(".message-content-text");
-      if (contentSpan && searchTerm) {
-        const originalText = contentSpan.getAttribute("data-original") || "";
-        const regex = new RegExp(`(${searchTerm})`, "gi");
+        const contentSpan = el.querySelector(".message-content-text");
+        if (contentSpan && searchTerm) {
+          const originalText = contentSpan.getAttribute("data-original") || "";
+          const regex = new RegExp(`(${searchTerm})`, "gi");
 
-        const highlighted = originalText.replace(regex, "<mark class='bg-yellow-500 rounded'>$1</mark>");
-        contentSpan.innerHTML = highlighted;
+          const highlighted = originalText.replace(
+            regex,
+            "<mark class='bg-yellow-500 rounded'>$1</mark>"
+          );
+          contentSpan.innerHTML = highlighted;
 
-        setTimeout(() => {
-          contentSpan.innerHTML = originalText;
-        }, 2500);
+          setTimeout(() => {
+            contentSpan.innerHTML = originalText;
+          }, 2500);
+        }
       }
+    },
+    [searchTerm]
+  );
+
+  useEffect(() => {
+    const messageId = location.state?.scrollToMessageId;
+    if (messageId) {
+      setTimeout(() => scrollToMessage(messageId), 500);
     }
-  };
+  }, [location.state, scrollToMessage]);
 
   const scrollToMessageAsReply = (id: string | number) => {
     const el = document.getElementById(`message-${id}`);
