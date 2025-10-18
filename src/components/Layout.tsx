@@ -7,8 +7,6 @@ import {
   Box,
   Button,
   Divider,
-  AppBar,
-  InputBase,
   Tooltip
 } from '@mui/material';
 import {
@@ -18,7 +16,6 @@ import {
   AccountCircle as ProfileIcon,
   Group as MembersIcon,
   PendingActions as PendingRequestsIcon,
-  Search as SearchIcon,
   Settings as SettingsIcon,
   Logout
 } from '@mui/icons-material';
@@ -186,32 +183,6 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
         component="main"
         sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3, fontFamily: 'Poppins, sans-serif' }}
       >
-        <AppBar position="static" sx={{ boxShadow: 'none', backgroundColor: '#ecf0f1', color: 'black', fontFamily: 'Poppins, sans-serif !important' }}>
-          <Toolbar>
-            <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontFamily: 'Poppins, sans-serif !important' }}>
-              Dashboard
-            </Typography>
-            <div style={{ position: 'relative' }}>
-              <InputBase
-                placeholder="Search…"
-                sx={{
-                  backgroundColor: '#fff',
-                  borderRadius: 1,
-                  paddingLeft: 2,
-                  paddingRight: 2,
-                  width: '100%',
-                  marginRight: 1,
-                  height: '36px',
-                  fontFamily: 'Poppins, sans-serif !important'
-                }}
-              />
-              <IconButton type="submit" sx={{ position: 'absolute', right: 5, top: '50%', transform: 'translateY(-50%)' }}>
-                <SearchIcon />
-              </IconButton>
-            </div>
-          </Toolbar>
-        </AppBar>
-
         <Box sx={{ mt: 2 }}>
           {children}
         </Box>
