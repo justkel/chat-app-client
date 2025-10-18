@@ -1,13 +1,18 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Spin, Tooltip, Modal, message } from 'antd';
+import { Tabs, Spin, Tooltip, Modal, message, Tag } from 'antd';
 import {
   DownloadOutlined,
   FileOutlined,
   PlayCircleFilled,
   PauseCircleFilled,
   MessageOutlined,
+  FilePdfOutlined,
+  FileWordOutlined,
+  FileExcelOutlined,
+  FileImageOutlined,
+  FileZipOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { useGetMediaBetweenUsers } from '../hooks/useGetMediaBetweenUsers';
@@ -18,6 +23,18 @@ import {
 } from '../utilss/types';
 import '../index.css';
 
+const getFileIcon = (fileName: string) => {
+  const ext = fileName?.split('.').pop()?.toLowerCase() || '';
+  if (['pdf'].includes(ext)) return <FilePdfOutlined className="text-red-500 text-3xl" />;
+  if (['doc', 'docx'].includes(ext)) return <FileWordOutlined className="text-blue-500 text-3xl" />;
+  if (['xls', 'xlsx', 'csv'].includes(ext))
+    return <FileExcelOutlined className="text-green-500 text-3xl" />;
+  if (['zip', 'rar'].includes(ext)) return <FileZipOutlined className="text-yellow-500 text-3xl" />;
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext))
+    return <FileImageOutlined className="text-purple-500 text-3xl" />;
+  return <FileOutlined className="text-gray-500 text-3xl" />;
+};
+
 const MediaPage: React.FC = () => {
   const { userId, otherUserId } = useParams();
   const navigate = useNavigate();
@@ -25,6 +42,7 @@ const MediaPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<{ url: string; caption?: string } | null>(
     null
   );
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null);
   const [currentAudio, setCurrentAudio] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ [key: string]: number }>({});
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -116,6 +134,11 @@ const MediaPage: React.FC = () => {
       const percent = (audio.currentTime / audio.duration) * 100;
       setProgress((prev) => ({ ...prev, [id]: percent }));
     }
+  };
+
+  const getFileTag = (fileName: string) => {
+    const ext = fileName?.split('.').pop()?.toUpperCase();
+    return <Tag color="blue">{ext}</Tag>;
   };
 
   return (
@@ -261,45 +284,58 @@ const MediaPage: React.FC = () => {
               key: '3',
               label: 'Files',
               children: (
-                <div className="flex flex-col gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   {files.length === 0 ? (
                     <p className="text-center text-gray-500">No files found</p>
                   ) : (
-                    files.map((msg: any) => (
-                      <motion.div
-                        key={msg.id}
-                        whileHover={{ scale: 1.02 }}
-                        className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <FileOutlined className="text-gray-700 text-2xl" />
-                          <a
-                            href={`http://localhost:5002${msg.content}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate max-w-[150px] sm:max-w-[250px]"
-                          >
-                            {truncate(msg.fileOriginalName || 'View File', 25)}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Tooltip title="Go to message" className="font-montserrat">
-                            <MessageOutlined
-                              className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
-                              onClick={() => handleGoToMessage(msg.id)}
-                            />
-                          </Tooltip>
-                          <Tooltip title="Download" className="font-montserrat">
-                            <DownloadOutlined
-                              className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
-                              onClick={() =>
-                                handleDownload(msg.content, msg.fileOriginalName || 'file')
-                              }
-                            />
-                          </Tooltip>
-                        </div>
-                      </motion.div>
-                    ))
+                    files.map((msg: any) => {
+                      const fileName = msg.fileOriginalName || 'File';
+                      return (
+                        <motion.div
+                          key={msg.id}
+                          whileHover={{ scale: 1.02 }}
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-4 flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 group"
+                        >
+                          <div className="flex items-center gap-4">
+                            {getFileIcon(fileName)}
+                            <div className="flex flex-col">
+                              <span className="text-gray-800 font-semibold truncate max-w-[150px] sm:max-w-[250px]">
+                                {truncate(fileName, 25)}
+                              </span>
+                              {getFileTag(fileName)}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <Tooltip title="Preview" className="font-montserrat">
+                              <FileOutlined
+                                className="text-indigo-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                                onClick={() =>
+                                  setPreviewFile({
+                                    url: `http://localhost:5002${msg.content}`,
+                                    name: fileName,
+                                  })
+                                }
+                              />
+                            </Tooltip>
+                            <Tooltip title="Go to message" className="font-montserrat">
+                              <MessageOutlined
+                                className="text-green-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                                onClick={() => handleGoToMessage(msg.id)}
+                              />
+                            </Tooltip>
+                            <Tooltip title="Download" className="font-montserrat">
+                              <DownloadOutlined
+                                className="text-blue-600 text-xl cursor-pointer hover:scale-110 transition-transform duration-200"
+                                onClick={() =>
+                                  handleDownload(msg.content, msg.fileOriginalName || 'file')
+                                }
+                              />
+                            </Tooltip>
+                          </div>
+                        </motion.div>
+                      );
+                    })
                   )}
                 </div>
               ),
@@ -321,6 +357,25 @@ const MediaPage: React.FC = () => {
                 {selectedImage.caption}
               </p>
             )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={!!previewFile}
+        onCancel={() => setPreviewFile(null)}
+        footer={null}
+        centered
+        width="80%"
+      >
+        {previewFile && (
+          <div className="flex flex-col items-center">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">{previewFile.name}</h2>
+            <iframe
+              src={previewFile.url}
+              title={previewFile.name}
+              className="w-full h-[70vh] border rounded-lg shadow-inner"
+            />
           </div>
         )}
       </Modal>
