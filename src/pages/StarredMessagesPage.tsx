@@ -1,5 +1,9 @@
 'use client';
 import React, { useMemo, useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShare } from '@fortawesome/free-solid-svg-icons';
+import ForwardModal from '../components/ForwardModal';
+import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -13,6 +17,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useGetStarredMessages } from '../hooks/useGetStarredMessages';
+import { useGetUsersToForwardTo } from '../hooks/useGetAcceptedUsers';
 import { useAuth } from '../contexts/AuthContext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -24,6 +29,14 @@ import { jwtDecode } from 'jwt-decode';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
 const montserrat = 'Montserrat, sans-serif';
+
+const socket = io('http://localhost:5002', {
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+});
 
 
 const SingleTick = () => (
@@ -56,6 +69,8 @@ const formatTimestamp = (iso?: string | null) => {
 export default function StarredMessagesPage() {
     const [userId, setUserId] = useState<string | null>(null);
     const [loadingNavigate, setLoadingNavigate] = useState(false);
+    const [showForwardModal, setShowForwardModal] = useState(false);
+    const [currentMessageToForward, setCurrentMessageToForward] = useState<any>(null);
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -71,6 +86,50 @@ export default function StarredMessagesPage() {
     }, [user]);
 
     const { data, loading, error, refetch } = useGetStarredMessages(userId);
+    const { data: usersForForward } = useGetUsersToForwardTo(userId);
+
+    const handleOpenForwardModal = (message: any) => {
+        setCurrentMessageToForward(message);
+        setShowForwardModal(true);
+    };
+
+    const handleSendForwardedMessage = (selectedUsers: string[]) => {
+        if (!currentMessageToForward) return;
+
+        selectedUsers.forEach(uid => {
+            socket.emit('joinRoom', { userId, otherUserId: uid });
+
+            const message = {
+                sender: { id: userId },
+                receiver: { id: uid },
+                content: currentMessageToForward.content,
+                fileOriginalName: currentMessageToForward.fileOriginalName || null,
+                caption: currentMessageToForward.caption || null,
+                repliedTo: null,
+                timestamp: new Date().toISOString(),
+                status: 'SENT',
+                senderDFM: false,
+                receiverDFM: false,
+                delForAll: false,
+                wasForwarded: true,
+            };
+
+            socket.emit('sendMessage', message);
+        });
+
+        setShowForwardModal(false);
+        setCurrentMessageToForward(null);
+
+        if (selectedUsers.length > 0) {
+            localStorage.setItem('lastSelectedUserId', selectedUsers[0]);
+            setLoadingNavigate(true);
+
+            setTimeout(() => {
+                setLoadingNavigate(false);
+                navigate('/chats');
+            }, 1200);
+        }
+    };
 
     const handleGoToMessage = (otherUserId: string, messageId: string) => {
         localStorage.setItem('lastSelectedUserId', otherUserId);
@@ -406,8 +465,8 @@ export default function StarredMessagesPage() {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Box sx={{ flex: 1, minWidth: 0 }}>{renderContent()}</Box>
 
-                                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                                                        <div className="flex justify-end mt-1">
+                                                    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                        <div className="flex justify-end">
                                                             {msg.status.toLowerCase() === "sent" && <SingleTick />}
                                                             {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
                                                             {msg.status.toLowerCase() === "read" &&
@@ -419,6 +478,19 @@ export default function StarredMessagesPage() {
                                                             }
                                                         </div>
                                                         <StarBorderIcon sx={{ color: 'goldenrod' }} />
+                                                        <IconButton
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenForwardModal(msg);
+                                                            }}
+                                                            sx={{
+                                                                color: 'primary.main',
+                                                                '&:hover': { color: 'blue' },
+                                                                fontSize: '20px',
+                                                            }}
+                                                        >
+                                                            <FontAwesomeIcon icon={faShare} />
+                                                        </IconButton>
                                                     </Box>
                                                 </Box>
                                             </Box>
@@ -447,6 +519,14 @@ export default function StarredMessagesPage() {
                     <CircularProgress />
                 </Box>
             )}
+
+            <ForwardModal
+                showModal={showForwardModal}
+                setShowModal={setShowForwardModal}
+                data={usersForForward?.getUsersToForwardTo || []}
+                userId={userId!}
+                onSendForwardedMessage={handleSendForwardedMessage}
+            />
         </Box>
     );
 }

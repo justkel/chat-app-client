@@ -1606,9 +1606,8 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
         showModal={showForwardModal}
         setShowModal={setShowForwardModal}
         data={usersForForward?.getUsersToForwardTo || []}
+        userId={userId!} 
         onSendForwardedMessage={handleSendForwardedMessage}
-        otherUserId={otherUserId ?? null}
-        isOtherUserBlocked={isOtherUserBlocked}
       />
 
       {showCard && (
