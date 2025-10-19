@@ -14,6 +14,7 @@ import {
   Visibility as VisibilityIcon,
   Palette as PaletteIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import Dashboard from '../components/Layout';
 import { useGetBlockedUsers } from '../hooks/UseGetBlockedUsers';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
@@ -59,6 +60,8 @@ const SettingsPage: React.FC = () => {
       setUserId(decodedToken.sub);
     }
   }, [user]);
+
+  const navigate = useNavigate();
 
   const { data, loading, error, refetch } = useGetBlockedUsers(userId);
 
@@ -159,7 +162,8 @@ const SettingsPage: React.FC = () => {
             {
               icon: <StarIcon sx={{ color: '#f1c40f' }} />,
               title: 'Starred Messages',
-              action: 'Open',
+              action: 'Visit',
+              onClick: () => navigate('/starred'),
             },
             {
               icon: <VisibilityIcon sx={{ color: '#2ecc71' }} />,

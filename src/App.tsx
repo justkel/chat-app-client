@@ -17,6 +17,7 @@ import ViewWallPaper from './pages/ViewWallpaper';
 import ChatLayout from './pages/ChatLayout';
 import SettingsPage from './pages/Settings';
 import MediaPage from './pages/MediaPage';
+import StarredMessagesPage from './pages/StarredMessagesPage';
 
 const App: React.FC = () => {
   return (
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="/media/:userId/:otherUserId" element={<ProtectedRoute><MediaPage /></ProtectedRoute>} />
             <Route path="/view-wallpaper/:userId/:otherUserId" element={<ProtectedRoute><ViewWallPaper /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/starred" element={<ProtectedRoute><StarredMessagesPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
