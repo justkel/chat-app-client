@@ -69,8 +69,8 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const [showInfoCard, setShowInfoCard] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [errorOccurred, setErrorOccurred] = useState(false);
-  const [isOtherUserBlocked, setIsOtherUserBlocked] = useState(false);
-  const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [isOtherUserBlocked, setIsOtherUserBlocked] = useState<boolean | null>(null);
+  const [isUserBlocked, setIsUserBlocked] = useState<boolean | null>(null);
   const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
@@ -160,8 +160,8 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const { isOnline: onlineData, loading: onlineLoading, error: onlineError, refetch: isOnlineRefetch } = useCheckUserOnline(otherUserId ?? null);
   const { data: otherUserData, loading: otherUserLoading, refetch: otherUserRefetch } = useGetOtherUserById(otherUserId ?? null);
   const { data: userData, loading: userLoading } = useGetUserById(userId);
-  const { data: chatSettings, loading: chatLoading } = useChatSettings(userId!, otherUserId!);
-  const { data: otherUserChatSettings, loading: otherUserChatLoading } = useGetOtherUserChatSettings(userId!, otherUserId!);
+  const { data: chatSettings, loading: chatLoading } = useChatSettings(userId ?? '', otherUserId!);
+  const { data: otherUserChatSettings, loading: otherUserChatLoading } = useGetOtherUserChatSettings(userId ?? '', otherUserId!);
   const { data: usersForForward } = useGetUsersToForwardTo(userId);
   const { updateMessageStatus } = useUpdateMessageStatus();
   const { deleteMessages } = useDeleteMessages();
@@ -191,18 +191,16 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   }, [chatSettings?.customWallpaper]);
 
   useEffect(() => {
-    if (chatSettings?.isOtherUserBlocked === true) {
-      setIsOtherUserBlocked(true);
+    if (chatSettings?.isOtherUserBlocked !== undefined) {
+      setIsOtherUserBlocked(chatSettings.isOtherUserBlocked);
     }
-  }, [chatSettings
-  ]);
+  }, [chatSettings]);
 
   useEffect(() => {
-    if (otherUserChatSettings?.isOtherUserBlocked === true) {
-      setIsUserBlocked(true);
+    if (otherUserChatSettings?.isOtherUserBlocked !== undefined) {
+      setIsUserBlocked(otherUserChatSettings.isOtherUserBlocked);
     }
-  }, [otherUserChatSettings
-  ]);
+  }, [otherUserChatSettings]);
 
   // useEffect(() => {
   //   console.log('DID OTHER USER BLOCK ME', isUserBlocked);
@@ -1572,9 +1570,20 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     </svg>
   );
 
+  const isLoadingBlockedStatus =
+    isOtherUserBlocked === null || isUserBlocked === null;
 
-  if (loading || chatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
-  if (otherUserLoading || userLoading || chatLoading || loadingMsgAll || otherUserChatLoading) return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  if (
+    isLoadingBlockedStatus ||
+    loading ||
+    chatLoading ||
+    otherUserLoading ||
+    userLoading ||
+    loadingMsgAll ||
+    otherUserChatLoading
+  ) {
+    return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  }
   // if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -1606,7 +1615,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
         showModal={showForwardModal}
         setShowModal={setShowForwardModal}
         data={usersForForward?.getUsersToForwardTo || []}
-        userId={userId!} 
+        userId={userId!}
         onSendForwardedMessage={handleSendForwardedMessage}
       />
 
