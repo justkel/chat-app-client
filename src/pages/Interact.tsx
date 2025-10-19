@@ -1296,7 +1296,46 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const scrollToMessage = useCallback(
     (id: string | number) => {
       const el = document.getElementById(`message-${id}`);
-      if (el) {
+      if (!el) return;
+
+      const images = Array.from(el.querySelectorAll("img")) as HTMLImageElement[];
+      const audios = Array.from(el.querySelectorAll("audio")) as HTMLAudioElement[];
+      const videos = Array.from(el.querySelectorAll("video")) as HTMLVideoElement[];
+
+      const mediaReadyPromises = [
+        ...images.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete) resolve();
+              else {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              }
+            })
+        ),
+        ...audios.map(
+          (audio) =>
+            new Promise<void>((resolve) => {
+              if (audio.readyState >= 2) resolve();
+              else {
+                audio.onloadeddata = () => resolve();
+                audio.onerror = () => resolve();
+              }
+            })
+        ),
+        ...videos.map(
+          (video) =>
+            new Promise<void>((resolve) => {
+              if (video.readyState >= 2) resolve();
+              else {
+                video.onloadeddata = () => resolve();
+                video.onerror = () => resolve();
+              }
+            })
+        ),
+      ];
+
+      Promise.all(mediaReadyPromises).then(() => {
         el.scrollIntoView({ behavior: "auto", block: "center" });
 
         // el.classList.add("bg-[#e1f3fb]");
@@ -1318,7 +1357,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
             contentSpan.innerHTML = originalText;
           }, 2500);
         }
-      }
+      });
     },
     [searchTerm]
   );
