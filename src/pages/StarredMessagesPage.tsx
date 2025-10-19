@@ -1,14 +1,14 @@
 'use client';
 import React, { useMemo, useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  Avatar,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Divider,
-  Button,
+    Box,
+    Typography,
+    Avatar,
+    CircularProgress,
+    IconButton,
+    Paper,
+    Divider,
+    Button,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useGetStarredMessages } from '../hooks/useGetStarredMessages';
@@ -23,6 +23,20 @@ import { jwtDecode } from 'jwt-decode';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
 const montserrat = 'Montserrat, sans-serif';
+
+
+const SingleTick = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+    </svg>
+);
+
+const DoubleTick = ({ className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="20 6 9 17 4 12" />
+        <polyline points="26 6 15 17 20 12" />
+    </svg>
+);
 
 const MEDIA_BASE = 'http://localhost:5002';
 
@@ -376,18 +390,29 @@ export default function StarredMessagesPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Box sx={{ flex: 1, minWidth: 0 }}>{renderContent()}</Box>
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                          <StarBorderIcon sx={{ color: 'goldenrod' }} />
-                        </Box>
-                      </Box>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                                    <div className="flex justify-end mt-1">
+                                                        {msg.status.toLowerCase() === "sent" && <SingleTick />}
+                                                        {msg.status.toLowerCase() === "delivered" && <DoubleTick />}
+                                                        {msg.status.toLowerCase() === "read" &&
+                                                            (
+                                                                (msg.sender?.readReceipts && msg.receiver?.readReceipts)
+                                                                    ? <DoubleTick className="text-blue-900" />
+                                                                    : <DoubleTick />
+                                                            )
+                                                        }
+                                                    </div>
+                                                    <StarBorderIcon sx={{ color: 'goldenrod' }} />
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    </Paper>
+                                </motion.div>
+                            );
+                        })}
                     </Box>
-                  </Paper>
-                </motion.div>
-              );
-            })}
-          </Box>
-        )}
-      </Paper>
-    </Box>
-  );
+                )}
+            </Paper>
+        </Box>
+    );
 }

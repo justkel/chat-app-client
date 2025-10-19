@@ -10,11 +10,13 @@ const GET_STARRED_MESSAGES = gql`
         id
         fullName
         profilePicture
+        readReceipts
       }
       receiver {
         id
         fullName
         profilePicture
+        readReceipts
       }
       repliedTo {
         id
