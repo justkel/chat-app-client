@@ -766,12 +766,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                                     'No messages yet'
                                                 )
                                             }
-                                            primaryTypographyProps={{
-                                                sx: { fontFamily: 'Poppins, sans-serif', fontWeight: 'bold' },
-                                            }}
-                                            secondaryTypographyProps={{
-                                                sx: { fontFamily: 'Poppins, sans-serif', color: '#888' },
-                                            }}
                                         />
                                     </ListItem>
                                 );
