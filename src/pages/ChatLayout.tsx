@@ -11,6 +11,11 @@ const ChatLayout: React.FC = () => {
         if (savedUserId) {
             setSelectedUserId(savedUserId);
         }
+
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
     }, []);
 
     const handleSelectUser = (id: string) => {
@@ -19,19 +24,20 @@ const ChatLayout: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen">
-            <Dashboard></Dashboard>
-            <div className="hidden 900:block w-2/5 border-r overflow-y-auto">
+        <div className="flex h-screen overflow-hidden">
+            <Dashboard />
+
+            <div className="hidden 900:block w-2/5 border-r h-full overflow-y-auto">
                 <AllChats
                     onSelectUser={handleSelectUser}
                     selectedUserId={selectedUserId}
                 />
             </div>
 
-            <div className="w-full md:w-3/5 flex-1 bg-gray-50 relative">
+            <div className="w-full md:w-3/5 flex-1 bg-gray-50 relative h-full overflow-hidden">
                 {selectedUserId ? (
-                    <div className="relative h-full">
-                        <InteractPage otherUserId={selectedUserId} onSelectUser={handleSelectUser}/>
+                    <div className="relative h-full overflow-hidden">
+                        <InteractPage otherUserId={selectedUserId} onSelectUser={handleSelectUser} />
                     </div>
                 ) : (
                     <div className="flex justify-center items-center h-full text-gray-400">

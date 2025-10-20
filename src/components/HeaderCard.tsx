@@ -144,26 +144,46 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
   return (
     <div>
       <div className="relative h-full flex flex-col">
-        <div className="absolute top-0 left-0 right-0 bg-white p-4 shadow-md flex items-center justify-between z-10">
-          <div className="flex items-center space-x-4">
-            <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
-            <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
-            <div className="flex flex-col">
-              <span className="font-semibold">
-                {chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
-              </span>
-              {(!isUserBlocked && !isOtherUserBlocked) && (
-                <span
-                  className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'}`}
-                >
-                  {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
-                </span>
-              )}
+        <div className="bg-white p-4 shadow-md absolute top-0 left-0 w-full z-10">
+          <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-4">
+
+            <div className="flex items-center">
+              <ArrowLeftOutlined
+                className="text-2xl cursor-pointer"
+                onClick={handleBackNavigation}
+              />
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <SearchOutlined className="text-2xl cursor-pointer" onClick={toggleSearchModal} />
-            <MoreOutlined className="text-3xl cursor-pointer" onClick={toggleCard} />
+
+            <div className="flex-grow text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start space-x-3">
+                <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
+                <div className="flex flex-col leading-tight">
+                  <span className="font-bold text-lg sm:text-xl">
+                    {chatSettings?.customUsername || otherUserData?.getOtherUserById?.username}
+                  </span>
+                  {(!isUserBlocked && !isOtherUserBlocked) && (
+                    <span
+                      className={`text-sm ${otherUserData?.getOtherUserById?.isOnline ? 'text-green-500' : 'text-gray-500'
+                        }`}
+                    >
+                      {otherUserData?.getOtherUserById?.isOnline ? 'Online' : 'Offline'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-8 sm:gap-16">
+              <SearchOutlined
+                className="text-2xl text-gray-600 hover:text-black cursor-pointer"
+                onClick={toggleSearchModal}
+              />
+              <MoreOutlined
+                className="text-3xl text-gray-600 hover:text-black cursor-pointer"
+                onClick={toggleCard}
+              />
+            </div>
+
           </div>
         </div>
       </div>

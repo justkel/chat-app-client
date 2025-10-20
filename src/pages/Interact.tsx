@@ -1726,7 +1726,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
             className="overflow-y-auto scrollbar-hide h-[80%] pr-2"
             onScroll={handleScroll}
           >
-            <div className="space-y-8 pb-20">
+            <div className="space-y-8 pb-32">
               <div>
                 {Object.keys(groupedMessages).map((timestamp, index) => (
                   <div key={index}>
@@ -2871,7 +2871,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
               )}
 
               {newMessageCount === 0 && !isAtBottom && messages.length !== 0 && (
-                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-20">
                   <button
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
