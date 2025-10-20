@@ -5,6 +5,8 @@ import { faShare } from '@fortawesome/free-solid-svg-icons';
 import ForwardModal from '../components/ForwardModal';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import { notification } from 'antd';
+
 import {
     Box,
     Typography,
@@ -28,6 +30,8 @@ import ImageNotSupportedOutlinedIcon from '@mui/icons-material/ImageNotSupported
 import { jwtDecode } from 'jwt-decode';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 import AudioPlayerCustom from '../components/AudioPlayerCustom';
+import { GET_OTHER_USER_CHAT_SETTINGS_LAZY } from '../hooks/useGetOtherUserContactDetails';
+import { useLazyQuery } from '@apollo/client';
 const montserrat = 'Montserrat, sans-serif';
 
 const socket = io('http://localhost:5002', {
@@ -73,6 +77,7 @@ export default function StarredMessagesPage() {
     const [currentMessageToForward, setCurrentMessageToForward] = useState<any>(null);
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [fetchChatSettings] = useLazyQuery(GET_OTHER_USER_CHAT_SETTINGS_LAZY);
 
     useEffect(() => {
         if (user) {
@@ -86,7 +91,27 @@ export default function StarredMessagesPage() {
     }, [user]);
 
     const { data, loading, error, refetch } = useGetStarredMessages(userId);
-    const { data: usersForForward } = useGetUsersToForwardTo(userId);
+    const { data: usersForForward } = useGetUsersToForwardTo(userId ?? "");
+    const [chatSettingsMap, setChatSettingsMap] = useState<Record<string, any>>({})
+
+    useEffect(() => {
+        const fetchSettingsForAll = async () => {
+            if (!usersForForward?.getUsersToForwardTo) return;
+
+            for (const user of usersForForward.getUsersToForwardTo) {
+                const { data } = await fetchChatSettings({
+                    variables: { ownerId: userId, otherUserId: user.id }
+                });
+
+                setChatSettingsMap(prev => ({
+                    ...prev,
+                    [user.id]: data?.getOtherUserChatSettings || {}
+                }));
+            }
+        };
+
+        fetchSettingsForAll();
+    }, [usersForForward, fetchChatSettings, userId]);
 
     const handleOpenForwardModal = (message: any) => {
         setCurrentMessageToForward(message);
@@ -98,6 +123,21 @@ export default function StarredMessagesPage() {
 
         selectedUsers.forEach(uid => {
             socket.emit('joinRoom', { userId, otherUserId: uid });
+
+            const isBlocked = chatSettingsMap[uid]?.isOtherUserBlocked === true;
+            if (!socket.connected) {
+                socket.connect();
+
+                setTimeout(() => {
+                    if (!socket.connected) {
+                        notification.error({
+                            message: 'Connection error',
+                            description: 'Unable to forward message. Please refresh the page.',
+                        });
+                    }
+                }, 3000);
+                return;
+            }
 
             const message = {
                 sender: { id: userId },
@@ -112,6 +152,7 @@ export default function StarredMessagesPage() {
                 receiverDFM: false,
                 delForAll: false,
                 wasForwarded: true,
+                wasSentWhileCurrentlyBlocked: isBlocked,
             };
 
             socket.emit('sendMessage', message);
@@ -123,7 +164,6 @@ export default function StarredMessagesPage() {
         if (selectedUsers.length > 0) {
             localStorage.setItem('lastSelectedUserId', selectedUsers[0]);
             setLoadingNavigate(true);
-
             setTimeout(() => {
                 setLoadingNavigate(false);
                 navigate('/chats');

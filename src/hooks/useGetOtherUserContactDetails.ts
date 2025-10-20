@@ -47,6 +47,16 @@ export const useGetOtherUserChatSettings = (ownerId: string, otherUserId: string
   return { data: data?.getOtherUserChatSettings, loading, error, refetch };
 };
 
+export const GET_OTHER_USER_CHAT_SETTINGS_LAZY = gql`
+  query GetOtherUserChatSettingsLazy($ownerId: ID!, $otherUserId: ID!) {
+    getOtherUserChatSettings(ownerId: $ownerId, otherUserId: $otherUserId) {
+      customUsername
+      customWallpaper
+      isOtherUserBlocked
+    }
+  }
+`;
+
 export const useOtherUserDetails = (userId: string, otherUserId: string) => {
   const { data, loading, error } = useQuery(GET_OTHER_USER_DETAILS, {
     variables: { userId, otherUserId },
