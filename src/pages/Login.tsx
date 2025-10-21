@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     try {
       const userData = await login(email, password, keepMeLoggedIn);
       console.log('Logged in:', userData);
-      navigate('/dashboard');
+      navigate('/chats');
     } catch (err) {
       console.error('Login error:', err);
     }
