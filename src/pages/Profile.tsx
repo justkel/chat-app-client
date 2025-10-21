@@ -68,31 +68,28 @@ const ProfilePage: React.FC = () => {
             return;
         }
 
+        if (!firstName.trim() || !lastName.trim()) {
+            message.error('First and last name cannot be empty');
+            return;
+        }
+
         try {
             await updateProfile({
                 userId,
-                firstName,
-                lastName,
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
                 profilePicture: file ?? undefined,
             });
 
             message.success({
-                content: (
-                    <span className="font-montserrat">
-                        Profile updated
-                    </span>
-                ),
+                content: <span className="font-montserrat">Profile updated</span>,
             });
             setFile(null);
             refetch?.();
         } catch (err: any) {
             console.error(err);
             message.error({
-                content: (
-                    <span className="font-montserrat">
-                        Update failed
-                    </span>
-                ),
+                content: <span className="font-montserrat">{err?.message || 'Update failed'}</span>,
             });
         }
     };
@@ -108,6 +105,7 @@ const ProfilePage: React.FC = () => {
     if (userError) {
         return <div className="min-h-screen flex items-center justify-center text-red-400">Error loading profile.</div>;
     }
+    const isDefaultPicture = userData?.getUserById?.profilePicture === '/uploads/default-profile.jpg';
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-neutral-900 to-black p-6 font-montserrat">
@@ -164,9 +162,7 @@ const ProfilePage: React.FC = () => {
                             </label>
                         </div>
 
-                        <div className="mt-4 text-sm text-neutral-400">
-                            {preview ? 'Preview' : 'No profile picture set'}
-                        </div>
+                        <div className="mt-4 text-sm text-neutral-400">{preview ? 'Preview' : 'No profile picture set'}</div>
 
                         <div className="mt-6">
                             <Button
@@ -177,12 +173,17 @@ const ProfilePage: React.FC = () => {
                                         await updateProfile({ userId, profilePicture: undefined });
                                         message.success('Removed profile picture');
                                         refetch?.();
-                                        setPreview(userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : null);
+                                        setPreview(
+                                            userData?.getUserById?.profilePicture
+                                                ? `http://localhost:5002${userData.getUserById.profilePicture}`
+                                                : null
+                                        );
                                     } catch (err: any) {
                                         message.error(err?.message || 'Failed');
                                     }
                                 }}
-                                className="rounded-md text-white bg-[rgba(255,255,255,0.02)] font-montserrat"
+                                disabled={isDefaultPicture}
+                                className="rounded-md text-white bg-[rgba(255,255,255,0.02)] font-montserrat disabled:opacity-40 disabled:cursor-not-allowed disabled:text-white"
                             >
                                 Remove picture
                             </Button>
@@ -239,7 +240,11 @@ const ProfilePage: React.FC = () => {
                                     setFirstName(userData?.getUserById?.firstName ?? '');
                                     setLastName(userData?.getUserById?.lastName ?? '');
                                     setFile(null);
-                                    setPreview(userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : null);
+                                    setPreview(
+                                        userData?.getUserById?.profilePicture
+                                            ? `http://localhost:5002${userData.getUserById.profilePicture}`
+                                            : null
+                                    );
                                     message.info('Changes discarded');
                                 }}
                                 className="text-neutral-400 font-montserrat"
