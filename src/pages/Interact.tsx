@@ -796,6 +796,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
     formData.append('senderId', userId ?? '');
     formData.append('receiverId', otherUserId ?? '');
+    formData.append('wasSentWhileCurrentlyBlocked', isUserBlocked ? 'true' : 'false');
 
     const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
     const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
@@ -833,6 +834,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     formData.append('senderId', userId);
     formData.append('receiverId', otherUserId);
     formData.append('fileOriginalName', selectedFile.name);
+    formData.append('wasSentWhileCurrentlyBlocked', isUserBlocked ? 'true' : 'false');
 
     const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
     const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
@@ -861,13 +863,13 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
   const uploadAudioAndSend = async () => {
     if (!selectedAudio || !userId || !otherUserId) return;
-    console.log(selectedAudio);
 
     const formData = new FormData();
     formData.append('audio', selectedAudio);
     formData.append('senderId', userId);
     formData.append('receiverId', otherUserId);
     formData.append('fileOriginalName', selectedAudio.name);
+    formData.append('wasSentWhileCurrentlyBlocked', isUserBlocked ? 'true' : 'false');
 
     const replyMessage = localStorage.getItem(`replyMessage_${userId}_${otherUserId}`);
     const repliedTo = replyMessage ? JSON.parse(replyMessage).id : '';
@@ -1647,7 +1649,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
               {selectedMessages.length === 1 && messages.find(msg => msg.id === selectedMessages[0]) && (
                 <li>
-                  <button className="cursor-pointer hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed" onClick={messageReply} disabled={isOtherUserBlocked || isUserBlocked}>
+                  <button className="cursor-pointer hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed" onClick={messageReply} disabled={isOtherUserBlocked === true || isUserBlocked === true}>
                     Reply
                   </button>
                 </li>
