@@ -92,14 +92,14 @@ const ChatRequests = () => {
                         <Card
                             key={request.id}
                             title={
-                                <span style={{ fontFamily: 'Poppins, sans-serif' }}>{request.requester?.fullName}</span>
+                                <span>{request.requester?.fullName}</span>
                             }
                             extra={
                                 <>
                                     <Button
                                         type="primary"
                                         onClick={() => handleApprove(request.id)}
-                                        style={{ fontFamily: 'Poppins, sans-serif', fontWeight: '500' }}
+                                        style={{ fontWeight: '500' }}
                                     >
                                         Accept
                                     </Button>
@@ -107,7 +107,7 @@ const ChatRequests = () => {
                                         type="default"
                                         danger
                                         onClick={() => handleReject(request.id)}
-                                        style={{ marginLeft: '10px', fontFamily: 'Poppins, sans-serif', fontWeight: '500' }}
+                                        style={{ marginLeft: '10px', fontWeight: '500' }}
                                     >
                                         Reject
                                     </Button>

@@ -116,7 +116,6 @@ const Members = () => {
                     margin: 'auto',
                     padding: 3,
                     mt: 5,
-                    fontFamily: 'Poppins, sans-serif',
                 }}
             >
                 <Typography
@@ -124,7 +123,6 @@ const Members = () => {
                     gutterBottom
                     align="center"
                     color="primary"
-                    sx={{ fontFamily: 'Poppins, sans-serif' }}
                 >
                     Chat Access Request
                 </Typography>
@@ -132,13 +130,11 @@ const Members = () => {
                     {usersData?.getAllUsersExcept.map((user: User) => (
                         <ListItem key={user.id} divider>
                             <ListItemAvatar>
-                                <Avatar sx={{ fontFamily: 'Poppins, sans-serif' }}>{user.fullName.charAt(0).toUpperCase()}</Avatar>
+                                <Avatar>{user.fullName.charAt(0).toUpperCase()}</Avatar>
                             </ListItemAvatar>
                             <ListItemText
                                 primary={user.fullName}
                                 secondary={user.email}
-                                primaryTypographyProps={{ sx: { fontFamily: 'Poppins, sans-serif' } }}
-                                secondaryTypographyProps={{ sx: { fontFamily: 'Poppins, sans-serif' } }}
                             />
                             <Box sx={{ ml: 2 }}>
                                 {
@@ -160,7 +156,6 @@ const Members = () => {
                                                         onClick={() => handleSendRequest(user.id)}
                                                         disabled={!!loadingStates[user.id]}
                                                         sx={{
-                                                            fontFamily: 'Poppins, sans-serif',
                                                             textTransform: 'none',
                                                             borderRadius: '20px',
                                                             px: 3,

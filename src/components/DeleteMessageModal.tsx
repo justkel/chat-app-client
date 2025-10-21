@@ -43,7 +43,7 @@ const DeleteMessageModal: React.FC<DeleteMessageModalProps> = ({
                 className="block w-full text-left text-red-500 py-2 px-4 hover:bg-gray-100 rounded
                          disabled:text-gray-400 disabled:bg-transparent disabled:cursor-not-allowed"
                 onClick={onDeleteForEveryone}
-                disabled={isOtherUserBlocked || isUserBlocked}
+                disabled={isOtherUserBlocked === true || isUserBlocked === true}
               >
                 Delete for everyone
               </button>

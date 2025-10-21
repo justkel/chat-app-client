@@ -380,7 +380,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                     position="static"
                     sx={{
                         boxShadow: 'none',
-                        backgroundColor: '#ecf0f1',
+                        backgroundColor: '#fff',
                         color: 'black',
                         fontFamily: 'Montserrat, sans-serif !important'
                     }}

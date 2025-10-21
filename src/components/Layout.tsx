@@ -181,7 +181,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       <Box
         component="main"
-        sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3, fontFamily: 'Poppins, sans-serif' }}
+        sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
       >
         <Box sx={{ mt: 2 }}>
           {children}
