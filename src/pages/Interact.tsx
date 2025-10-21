@@ -185,10 +185,15 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   useEffect(() => {
     if (chatSettings?.customWallpaper) {
       setBackgroundImage(`http://localhost:5002/wallpapers/${chatSettings.customWallpaper}`);
+    } else if (userData?.getUserById?.defaultChatWallpaper) {
+      setBackgroundImage(`http://localhost:5002/wallpapers/${userData.getUserById.defaultChatWallpaper}`);
     } else {
-      setBackgroundImage('http://localhost:5002/uploads/whatsapp-wallpaper.jpg');
+      setBackgroundImage(`http://localhost:5002/uploads/whatsapp-wallpaper.jpg`);
     }
-  }, [chatSettings?.customWallpaper]);
+  }, [
+    chatSettings?.customWallpaper,
+    userData?.getUserById?.defaultChatWallpaper
+  ]);
 
   useEffect(() => {
     if (chatSettings?.isOtherUserBlocked !== undefined) {
