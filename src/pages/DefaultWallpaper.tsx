@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
-import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { useGetAllWallpapers } from '../hooks/useGetAllWallpapers';
 import { Spin, Avatar, Button } from 'antd';
 import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
-import { useEditWallpaper } from '../hooks/useEditChatSettings';
+import { useUpdateDefaultWallpaper } from '../hooks/useUpdateDefaultWallpaper';
+import { useGetUserById } from '../hooks/useGetOtherUser';
 
-const ViewWallPaper: React.FC = () => {
-    const { userId, otherUserId } = useParams();
+const DefaultWallPaper: React.FC = () => {
+    const [userId, setUserId] = useState<string | null>(null);
     const { user } = useAuth();
+
+    useEffect(() => {
+        if (user) {
+            const decodedToken: any = jwtDecode(user.token);
+            setUserId(decodedToken.sub);
+        }
+    }, [user]);
     const [showCard, setShowCard] = useState(false);
     const [expandedWallpaper, setExpandedWallpaper] = useState<null | {
         id: number;
@@ -22,32 +29,16 @@ const ViewWallPaper: React.FC = () => {
 
     const toggleCard = () => setShowCard(!showCard);
 
-    const { data: chatSettings, loading: chatLoading, error: chatError, refetch } = useChatSettings(userId!, otherUserId!);
+    const { data: userData, loading: userLoading, error: userError, refetch } = useGetUserById(userId!);
     const { data: wallpapersData, loading: wallpapersLoading, error: wallpapersError } = useGetAllWallpapers();
 
-    const { updateWallpaper, loading: wallpaperLoading, error: wallpaperError } = useEditWallpaper();
+    const { updateWallpaper, loading: wallpaperLoading, error: wallpaperError } = useUpdateDefaultWallpaper();
 
     useEffect(() => {
-        if (user) {
-            try {
-                const decodedToken: any = jwtDecode(user.token);
-
-                if (decodedToken.sub !== Number(userId)) {
-                    console.warn('User ID does not match the decoded token. Redirecting...');
-                    navigate('/chats');
-                }
-            } catch (error) {
-                console.error('Error decoding token:', error);
-                navigate('/login');
-            }
+        if (userData?.getUserById?.defaultChatWallpaper) {
+            setCustomWallpaper(userData?.getUserById?.defaultChatWallpaper);
         }
-    }, [user, userId, navigate]);
-
-    useEffect(() => {
-        if (chatSettings?.customWallpaper) {
-            setCustomWallpaper(chatSettings.customWallpaper);
-        }
-    }, [chatSettings]);
+    }, [userData]);
 
     // Preload wallpaper images
     useEffect(() => {
@@ -59,9 +50,9 @@ const ViewWallPaper: React.FC = () => {
         }
     }, [wallpapersData]);
 
-    if (chatLoading || wallpapersLoading || wallpaperLoading) return <Spin className="mt-8" />;
-    if (chatError || wallpapersError || wallpaperError) {
-        console.error(chatError || wallpapersError || wallpaperError);
+    if (userLoading || wallpapersLoading || wallpaperLoading) return <Spin className="mt-8" />;
+    if (userError || wallpapersError || wallpaperError) {
+        console.error(userError || wallpapersError || wallpaperError);
         return <div>Error loading data.</div>;
     }
 
@@ -75,7 +66,7 @@ const ViewWallPaper: React.FC = () => {
 
     const selectWallpaper = (wallpaper: string) => {
         setCustomWallpaper(wallpaper);
-        updateWallpaper(userId!, otherUserId!, wallpaper);
+        updateWallpaper(userId!, wallpaper);
         closeExpandedView();
         refetch();
     };
@@ -84,7 +75,7 @@ const ViewWallPaper: React.FC = () => {
         <div className="p-8 min-h-screen font-montserrat relative bg-gradient-to-br from-gray-50 via-gray-100 to-white shadow-lg rounded-2xl">
             <ArrowLeftOutlined
                 className="absolute top-6 left-6 text-2xl cursor-pointer"
-                onClick={() => window.location.href = `/chats`}
+                onClick={() => navigate(-1)}
             />
             <MoreOutlined className="absolute top-6 right-6 text-2xl cursor-pointer" onClick={toggleCard} />
 
@@ -129,7 +120,7 @@ const ViewWallPaper: React.FC = () => {
                                     className="mt-4 w-1/2 font-montserrat"
                                     onClick={() => selectWallpaper(expandedWallpaper.wallpaper)}
                                 >
-                                    Select as new wallpaper
+                                    Select as default wallpaper
                                 </Button>
                             </div>
                         )}
@@ -147,4 +138,4 @@ const ViewWallPaper: React.FC = () => {
     );
 };
 
-export default ViewWallPaper;
+export default DefaultWallPaper;

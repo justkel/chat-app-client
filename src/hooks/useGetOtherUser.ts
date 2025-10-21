@@ -24,6 +24,7 @@ const GET_USER_BY_ID = gql`
       profilePicture
       isOnline
       readReceipts
+      defaultChatWallpaper
     }
   }
 `;

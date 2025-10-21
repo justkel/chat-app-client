@@ -48,7 +48,6 @@ interface BlockedUser {
 
 const SettingsPage: React.FC = () => {
   const [readReceipts, setReadReceipts] = useState(true);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [passwordModal, setPasswordModal] = useState(false);
   const [blockedUsersModal, setBlockedUsersModal] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -97,8 +96,6 @@ const SettingsPage: React.FC = () => {
       notification.error({ message: 'Failed to load blocked users.' });
     }
   };
-  const handleThemeChange = () =>
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   return (
     <Dashboard>
@@ -173,8 +170,8 @@ const SettingsPage: React.FC = () => {
             {
               icon: <PaletteIcon sx={{ color: '#9b59b6' }} />,
               title: 'Default Chat Theme',
-              action: theme === 'light' ? 'Dark Mode' : 'Light Mode',
-              onClick: handleThemeChange,
+              action: 'Select',
+              onClick: () => navigate('/wallpapers'),
             },
           ].map((setting, i) => (
             <motion.div whileHover={{ scale: 1.02 }} key={i}>
