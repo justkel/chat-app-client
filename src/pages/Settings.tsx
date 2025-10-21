@@ -24,6 +24,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { notification } from 'antd';
 import { jwtDecode } from 'jwt-decode';
 import { io } from 'socket.io-client';
+import { useGetUserById } from '../hooks/useGetOtherUser';
+import { useUpdateReadReceipts } from '../hooks/useUpdateReadReceipts';
 
 const socket = io('http://localhost:5002', {
   reconnection: true,
@@ -52,6 +54,7 @@ const SettingsPage: React.FC = () => {
   const [blockedUsersModal, setBlockedUsersModal] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -60,17 +63,30 @@ const SettingsPage: React.FC = () => {
     }
   }, [user]);
 
-  const navigate = useNavigate();
+  const { data: userData, refetch: refetchUser } = useGetUserById(userId);
+  const { updateReadReceipts } = useUpdateReadReceipts();
+
+  useEffect(() => {
+    if (userData?.getUserById?.readReceipts !== undefined) {
+      setReadReceipts(userData.getUserById.readReceipts);
+    }
+  }, [userData]);
+
+  const handleToggleReadReceipts = async (checked: boolean) => {
+    setReadReceipts(checked);
+    if (userId) {
+      await updateReadReceipts(userId, checked);
+      await refetchUser();
+    }
+  };
 
   const { data, loading, error, refetch } = useGetBlockedUsers(userId);
-
   const blockedUsers = useMemo(
     () => data?.getBlockedUsers || [],
     [data?.getBlockedUsers]
   );
 
   const otherUserIds = blockedUsers.map((b: BlockedUser) => b.otherUser.id);
-
   const { data: chatUserData, loading: chatLoading } = useGetChatUserDetails(
     Number(userId),
     otherUserIds
@@ -203,7 +219,7 @@ const SettingsPage: React.FC = () => {
                 {setting.switch ? (
                   <Switch
                     checked={readReceipts}
-                    onChange={(e) => setReadReceipts(e.target.checked)}
+                    onChange={(e) => handleToggleReadReceipts(e.target.checked)}
                     color="success"
                     sx={{ fontFamily: 'Montserrat, sans-serif' }}
                   />
