@@ -85,6 +85,12 @@ const SettingsPage: React.FC = () => {
         message: checked
           ? 'Read receipts enabled'
           : 'Read receipts disabled',
+        description: checked
+          ? 'Others can now see when you read their messages'
+          : 'Read receipts have been turned off',
+        style: {
+          fontFamily: 'Montserrat, sans-serif',
+        },
       });
     } catch (err) {
       setReadReceipts(!checked);
