@@ -450,7 +450,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
           !msg.deliveredThenBlocked
       );
 
-      if (messagesToUpdate.length === 0 || isOtherUserBlocked) return;
+      if (messagesToUpdate.length === 0 || isOtherUserBlocked === true) return;
 
       messagesToUpdate.forEach(async (msg) => {
         try {
@@ -514,7 +514,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   useEffect(() => {
     socket.on('receiveMessage', (message: ChatMessage) => {
       if (message.sender.id !== userId) { //RECHECK LOGIC
-        if (isUserBlocked === true) {
+        if (isUserBlocked === true || isOtherUserBlocked === true) {
           return;
         }
       }
@@ -1638,7 +1638,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                     <button
                       className="cursor-pointer hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed"
                       onClick={messageEdit}
-                      disabled={isOtherUserBlocked || isUserBlocked}
+                      disabled={isOtherUserBlocked === true || isUserBlocked === true}
                     >
                       Edit
                     </button>
