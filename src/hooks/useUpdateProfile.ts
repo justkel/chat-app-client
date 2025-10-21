@@ -9,6 +9,7 @@ export const useUpdateProfile = () => {
     firstName?: string;
     lastName?: string;
     profilePicture?: File | null;
+    removePicture?: boolean;
   }) => {
     setLoading(true);
     setError(null);
@@ -23,6 +24,8 @@ export const useUpdateProfile = () => {
 
       if (input.profilePicture) {
         formData.append('profilePicture', input.profilePicture);
+      } else if (input.removePicture) {
+        formData.append('removePicture', 'true');
       }
 
       const resp = await fetch('http://localhost:5002/auth/update-profile', {

@@ -21,12 +21,7 @@ const ProfilePage: React.FC = () => {
         }
     }, [user]);
 
-    const {
-        data: userData,
-        loading: userLoading,
-        error: userError,
-        refetch,
-    } = useGetUserById(userId!);
+    const { data: userData, loading: userLoading, error: userError, refetch } = useGetUserById(userId!);
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -63,15 +58,8 @@ const ProfilePage: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!userId) {
-            message.error('Unable to identify user');
-            return;
-        }
-
-        if (!firstName.trim() || !lastName.trim()) {
-            message.error('First and last name cannot be empty');
-            return;
-        }
+        if (!userId) return message.error('Unable to identify user');
+        if (!firstName.trim() || !lastName.trim()) return message.error('First and last name cannot be empty');
 
         try {
             await updateProfile({
@@ -170,14 +158,10 @@ const ProfilePage: React.FC = () => {
                                 onClick={async () => {
                                     if (!userId) return;
                                     try {
-                                        await updateProfile({ userId, profilePicture: undefined });
+                                        await updateProfile({ userId, removePicture: true });
                                         message.success('Removed profile picture');
+                                        setFile(null);
                                         refetch?.();
-                                        setPreview(
-                                            userData?.getUserById?.profilePicture
-                                                ? `http://localhost:5002${userData.getUserById.profilePicture}`
-                                                : null
-                                        );
                                     } catch (err: any) {
                                         message.error(err?.message || 'Failed');
                                     }
