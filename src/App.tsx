@@ -19,6 +19,7 @@ import SettingsPage from './pages/Settings';
 import MediaPage from './pages/MediaPage';
 import StarredMessagesPage from './pages/StarredMessagesPage';
 import DefaultWallPaper from './pages/DefaultWallpaper';
+import ProfilePage from './pages/Profile';
 
 const App: React.FC = () => {
   return (
@@ -41,6 +42,7 @@ const App: React.FC = () => {
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/starred" element={<ProtectedRoute><StarredMessagesPage /></ProtectedRoute>} />
             <Route path="/wallpapers" element={<ProtectedRoute><DefaultWallPaper /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

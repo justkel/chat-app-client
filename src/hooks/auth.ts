@@ -2,60 +2,6 @@ import { gql, useMutation } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
-// const REGISTER_MUTATION = gql`
-//   mutation Register($registerInput: RegisterInput!) {
-//     register(registerInput: $registerInput) {
-//       accessToken
-//       userId
-//       email
-//     }
-//   }
-// `;
-
-// export const useRegister = () => {
-//   const [registerMutation, { data, loading, error }] = useMutation(REGISTER_MUTATION);
-
-//   const register = async (input: {
-//     email: string;
-//     password: string;
-//     username: string;
-//     firstName?: string;
-//     lastName?: string;
-//     phoneNumber?: string;
-//     profilePicture?: File | null;
-//   }) => {
-//     const { profilePicture, ...registerInput } = input;
-
-//     let profilePictureUrl: string | undefined;
-
-//     if (profilePicture) {
-//       const formData = new FormData();
-//       formData.append('file', profilePicture);
-
-//       const uploadResponse = await fetch('/upload', {
-//         method: 'POST',
-//         body: formData,
-//       });
-
-//       const uploadResult = await uploadResponse.json();
-//       profilePictureUrl = uploadResult.url; // Extract the URL from the response
-//     }
-
-//     const response = await registerMutation({
-//       variables: {
-//         registerInput: {
-//           ...registerInput,
-//           profilePicture: profilePictureUrl,
-//         },
-//       },
-//     });
-
-//     return response.data?.register;
-//   };
-
-//   return { register, data, loading, error };
-// };
-
 export const useRegister = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);

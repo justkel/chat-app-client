@@ -55,7 +55,7 @@ const Dashboard = () => {
     { label: 'Contacts', icon: <ContactsIcon /> },
     { label: 'Request Access', icon: <MembersIcon />, path: '/all-users' },
     { label: 'Approve/Reject', icon: <PendingRequestsIcon />, path: '/pending-requests' },
-    { label: 'Profile', icon: <ProfileIcon /> },
+    { label: 'Profile', icon: <ProfileIcon />, path: '/profile' },
     { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
     { label: 'Logout', icon: <Logout />, action: logoutCallback }
   ];
