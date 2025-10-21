@@ -74,9 +74,23 @@ const SettingsPage: React.FC = () => {
 
   const handleToggleReadReceipts = async (checked: boolean) => {
     setReadReceipts(checked);
-    if (userId) {
+
+    if (!userId) return;
+
+    try {
       await updateReadReceipts(userId, checked);
       await refetchUser();
+
+      notification.success({
+        message: checked
+          ? 'Read receipts enabled'
+          : 'Read receipts disabled',
+      });
+    } catch (err) {
+      setReadReceipts(!checked);
+      notification.error({
+        message: 'Failed to update read receipts',
+      });
     }
   };
 
