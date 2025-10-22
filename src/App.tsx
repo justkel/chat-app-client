@@ -17,9 +17,10 @@ import ViewWallPaper from './pages/ViewWallpaper';
 import ChatLayout from './pages/ChatLayout';
 import SettingsPage from './pages/Settings';
 import MediaPage from './pages/MediaPage';
-import StarredMessagesPage from './pages/StarredMessagesPage';
+import StarredMessagesPage from './components/settings/StarredMessagesPage';
 import DefaultWallPaper from './pages/DefaultWallpaper';
 import ProfilePage from './pages/Profile';
+import Contacts from './pages/Contacts';
 
 const App: React.FC = () => {
   return (
@@ -43,6 +44,7 @@ const App: React.FC = () => {
             <Route path="/starred" element={<ProtectedRoute><StarredMessagesPage /></ProtectedRoute>} />
             <Route path="/wallpapers" element={<ProtectedRoute><DefaultWallPaper /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

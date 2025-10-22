@@ -7,6 +7,7 @@ const GET_ACCEPTED_CHAT_USERS = gql`
       fullName
       email
       profilePicture
+      isOnline
     }
   }
 `;
@@ -18,6 +19,7 @@ const GET_ACCEPTED_CHAT_USERS_ALL = gql`
       fullName
       email
       profilePicture
+      isOnline
     }
   }
 `;

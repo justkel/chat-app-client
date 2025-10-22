@@ -52,7 +52,7 @@ const Dashboard = () => {
 
   const menuItems = [
     { label: 'Chats', icon: <ChatIcon />, path: '/chats' },
-    { label: 'Contacts', icon: <ContactsIcon /> },
+    { label: 'Contacts', icon: <ContactsIcon />, path: '/contacts' },
     { label: 'Request Access', icon: <MembersIcon />, path: '/all-users' },
     { label: 'Approve/Reject', icon: <PendingRequestsIcon />, path: '/pending-requests' },
     { label: 'Profile', icon: <ProfileIcon />, path: '/profile' },
