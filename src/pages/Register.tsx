@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRegister } from '../hooks/auth';
 import { useNavigate } from 'react-router-dom';
-import { CameraOutlined } from '@ant-design/icons';
+import { CameraOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +11,8 @@ const Register: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
   const { register, loading, error } = useRegister();
   const navigate = useNavigate();
 
@@ -129,14 +131,20 @@ const Register: React.FC = () => {
           />
         </div>
 
-        <div className="mt-4 mb-6">
+        <div className="mt-4 mb-6 relative">
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none pr-12"
           />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-3.5 cursor-pointer text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+          </span>
         </div>
 
         <button
