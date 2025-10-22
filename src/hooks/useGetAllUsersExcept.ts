@@ -7,6 +7,7 @@ const GET_ALL_USERS_EXCEPT = gql`
       id
       email
       fullName
+      profilePicture
     }
   }
 `;
