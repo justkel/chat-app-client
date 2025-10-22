@@ -25,7 +25,6 @@ const Register: React.FC = () => {
         phoneNumber,
         profilePicture,
       });
-      console.log('User Registered');
       navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);
@@ -46,110 +45,106 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 p-4">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg transform transition-all hover:scale-105">
-        <h2 className="text-3xl font-bold text-center text-purple-800 mb-6">Create Your Account</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-white to-gray-50 p-6 font-montserrat">
+      <div
+        className="w-full max-w-2xl p-8 rounded-3xl"
+        style={{
+          background: 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(18px)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+        }}
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900">Create your account</h2>
+          <p className="text-sm text-gray-500 mt-1">Join us and get started</p>
+        </div>
 
-        {/* Profile Picture */}
-        <div className="mb-6 flex flex-col items-center relative">
-          <div className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center cursor-default shadow-md relative">
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-40 h-40 rounded-full overflow-hidden shadow-xl border border-gray-200 bg-white">
             {profilePicture ? (
               <img
                 src={URL.createObjectURL(profilePicture)}
                 alt="Profile"
-                className="w-full h-full rounded-full object-cover"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-gray-500 font-bold">Upload Profile Picture</span>
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                Upload
+              </div>
             )}
-            {/* Camera Icon */}
             <label
-              className="absolute bottom-2 right-2 bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md cursor-pointer"
+              title="Change profile picture"
+              className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer border border-gray-300 shadow"
             >
-              <CameraOutlined className="text-gray-700 text-xl" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+              <CameraOutlined className="text-gray-700 text-lg" />
+              <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
             </label>
           </div>
         </div>
 
-        {/* Username */}
-        <div className="mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
-            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First name"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
+          />
+
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last name"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
+          />
+        </div>
+
+        <div className="mt-4">
+          <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
             autoComplete="off"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
 
-        {/* First Name */}
-        <div className="mb-4">
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="First Name"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
-          />
-        </div>
-
-        {/* Last Name */}
-        <div className="mb-4">
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Last Name"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
-          />
-        </div>
-
-        {/* Email */}
-        <div className="mb-4">
+        <div className="mt-4">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
 
-        {/* Phone Number */}
-        <div className="mb-4">
+        <div className="mt-4">
           <input
             type="text"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="Phone Number"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
 
-        {/* Password */}
-        <div className="mb-6">
+        <div className="mt-4 mb-6">
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
 
-        {/* Register Button */}
         <button
           onClick={handleRegister}
           disabled={loading}
-          className={`w-full py-2 bg-purple-600 text-white font-semibold rounded-md shadow-md hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-200 ${loading ? 'cursor-not-allowed opacity-50' : ''
-            }`}
+          className={`w-full py-3 rounded-xl text-white font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md transition ${
+            loading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+          }`}
         >
           {loading ? 'Registering...' : 'Register'}
         </button>
@@ -157,11 +152,12 @@ const Register: React.FC = () => {
         {error && (
           <p className="mt-4 text-center text-red-500 animate-pulse">Error: {error.message}</p>
         )}
-        <div className="mt-4 text-center text-gray-600">
+
+        <div className="mt-5 text-center text-gray-600">
           Already have an account?{' '}
           <span
             onClick={() => navigate('/login')}
-            className="text-purple-600 hover:underline cursor-pointer transition duration-200"
+            className="text-indigo-600 hover:underline cursor-pointer"
           >
             Log in
           </span>
