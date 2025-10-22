@@ -6,6 +6,7 @@ const FETCH_CHAT_REQUESTS = gql`
       id
       requester {
         fullName
+        email
       }
     }
   }
