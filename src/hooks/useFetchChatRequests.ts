@@ -8,6 +8,7 @@ const FETCH_CHAT_REQUESTS = gql`
         fullName
         email
       }
+      createdAt
     }
   }
 `;
