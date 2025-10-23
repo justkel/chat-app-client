@@ -36,6 +36,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const decodedToken: CustomJwtPayload = jwtDecode(token);
         const userId = decodedToken.sub;
 
+        localStorage.removeItem('lastSelectedUserId');
+
         // Send the request to update the user's online status
         await fetch(`http://localhost:5002/user/${userId}/set-online-status`, {
           method: 'POST',

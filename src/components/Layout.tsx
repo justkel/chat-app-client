@@ -48,7 +48,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
     Modal.confirm({
       title: 'Confirm',
       icon: <ExclamationCircleOutlined />,
-      content: 'Are you sure you want to sign out?',
+      content: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Are you sure you want to sign out?</Text>,
       okText: <Text style={{ fontFamily: 'Montserrat, sans-serif', color: '#fff' }}>Sign Out</Text>,
       cancelText: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Cancel</Text>,
       onOk: logout,
@@ -183,9 +183,9 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       <Box
         component="main"
-        sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+        sx={{ flexGrow: 1, bgcolor: 'background.default', p: 2 }}
       >
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 1 }}>
           {children}
         </Box>
       </Box>
