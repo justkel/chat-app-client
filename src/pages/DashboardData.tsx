@@ -144,6 +144,54 @@ const DashboardPage: React.FC = () => {
         }
     };
 
+    const getDynamicLine = (type: string, value?: number, sent?: number, received?: number) => {
+        switch (type) {
+            case 'contacts':
+                if (!value || value === 0) return 'No contacts yet — your space is still new.';
+                if (value <= 5) return 'A small circle — stay close to your people.';
+                if (value <= 30) return 'Growing connections — one chat at a time.';
+                if (value <= 100) return 'A warm community — conversations live here.';
+                return 'A full network — your world is expanding.';
+
+            case 'unread':
+                if (!value || value === 0) return 'No unread messages — enjoy the calm.';
+                if (value <= 10) return 'Some chats are waiting — respond when you can.';
+                if (value <= 30) return 'Your inbox is active — take a moment to catch up.';
+                return 'A busy space — one reply at a time is enough.';
+
+            case 'online':
+                if (!value || value === 0) return 'No friends online at the moment.';
+                if (value <= 5) return 'A few friends are online — feel free to say hello.';
+                return 'Many friends are online — your space is alive.';
+
+            case 'messageBalance':
+                if (sent === undefined || received === undefined) return '';
+                const total = sent + received;
+
+                if (sent === 0 && received === 0) {
+                    return 'No messages yet — start chatting to begin your story.';
+                }
+                if (total > 300) {
+                    return 'Wow — you’re a messaging superstar! Keep the conversations flowing.';
+                }
+                if (sent === received) {
+                    return 'Your conversations are balanced — that’s healthy.';
+                }
+                if (sent > received) {
+                    return 'You’ve spoken more — gentle conversations matter.';
+                }
+                return 'You’ve been listening more — a beautiful habit.';
+
+            case 'pendingRequests':
+                if (!value || value === 0) return 'No pending requests at the moment.';
+                if (value <= 5) return 'Some requests are awaiting attention.';
+                return 'You have many pending requests — handle them with ease.';
+
+            default:
+                return '';
+        }
+    };
+
     const popVariant = {
         hidden: { scale: 0.95, opacity: 0 },
         show: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
@@ -200,7 +248,7 @@ const DashboardPage: React.FC = () => {
                                         {allContacts.length.toLocaleString()}
                                     </Typography>
                                     <Typography sx={{ mt: 1, color: '#475569', fontWeight: 600 }}>
-                                        A curated crowd — the more the merrier.
+                                        {getDynamicLine('contacts', allContacts.length)}
                                     </Typography>
                                 </Card>
                             </motion.div>
@@ -213,9 +261,6 @@ const DashboardPage: React.FC = () => {
                                             <Typography sx={{ color: '#4b5563', fontWeight: 600 }}>
                                                 {onlineFriends.length} currently available
                                             </Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography sx={{ fontSize: 12, color: '#9aa3b2' }}>Live</Typography>
                                         </Box>
                                     </Box>
 
@@ -340,7 +385,12 @@ const DashboardPage: React.FC = () => {
                                     <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <RocketLaunchIcon />
                                         <Typography sx={{ color: '#475569', fontWeight: 600 }}>
-                                            Keep the balance — more replies means healthier conversations.
+                                            {getDynamicLine(
+                                                'messageBalance',
+                                                undefined,
+                                                messageStatsData?.getMessageStats?.totalMessagesSent ?? 0,
+                                                messageStatsData?.getMessageStats?.totalMessagesReceived ?? 0
+                                            )}
                                         </Typography>
                                     </Box>
                                 </Card>
@@ -364,7 +414,7 @@ const DashboardPage: React.FC = () => {
                                                 )}
                                             </Typography>
                                             <Typography sx={{ fontSize: 13, color: '#6b7280', mt: 0.5 }}>
-                                                Hot threads that need your attention — click to jump in.
+                                                {getDynamicLine('unread', unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0)}
                                             </Typography>
                                         </Box>
                                     </Box>
