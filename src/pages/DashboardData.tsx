@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -40,7 +41,9 @@ import Dashboard from '../components/Layout';
 
 const DashboardPage: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [userId, setUserId] = useState<string | null>(null);
+    const [loadingNavigate, setLoadingNavigate] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -319,7 +322,7 @@ const DashboardPage: React.FC = () => {
                     <Grid item xs={12} md={4}>
                         <Stack spacing={4}>
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={cardStyle}>
+                                <Card sx={{ ...cardStyle, cursor: 'pointer' }} onClick={() => navigate('/contacts')}>
                                     <Typography sx={cardTitleStyle('#0ea5a2')}>Total Contacts</Typography>
                                     <Typography sx={{ fontSize: 18, color: '#065f46', mb: 1 }}>You have a total of</Typography>
                                     <Typography sx={{ fontSize: 42, fontWeight: 900, color: '#064e3b' }}>
@@ -332,7 +335,7 @@ const DashboardPage: React.FC = () => {
                             </motion.div>
 
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={cardStyle}>
+                                <Card sx={{ ...cardStyle, cursor: 'pointer' }} onClick={() => navigate('/contacts')}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Box>
                                             <Typography sx={cardTitleStyle('#7c3aed')}>Friends Online</Typography>
@@ -367,7 +370,7 @@ const DashboardPage: React.FC = () => {
                             </motion.div>
 
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={{ ...cardStyle, py: 2 }}>
+                                <Card sx={{ ...cardStyle, py: 2, cursor: 'pointer' }} onClick={() => navigate('/chats')}>
                                     <Typography sx={cardTitleStyle('#2563eb')}>Active Chats</Typography>
                                     <Typography sx={{ color: '#475569', mb: 2 }}>One-line view — quick jump</Typography>
                                     <Stack direction="row" spacing={1} sx={{
@@ -403,7 +406,7 @@ const DashboardPage: React.FC = () => {
                     <Grid item xs={12} md={5}>
                         <Stack spacing={4}>
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={{ ...cardStyle, position: 'relative', overflow: 'visible' }}>
+                                <Card sx={{ ...cardStyle, position: 'relative', overflow: 'visible', cursor: 'pointer' }} onClick={() => navigate('/chats')}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Typography sx={cardTitleStyle('#ef4444')}>Messages — battlefield</Typography>
                                         <Typography sx={{ color: '#64748b', fontWeight: 700 }}>Stats</Typography>
@@ -481,7 +484,7 @@ const DashboardPage: React.FC = () => {
                             </motion.div>
 
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={cardStyle}>
+                                <Card sx={{ ...cardStyle, cursor: 'pointer' }} onClick={() => navigate('/chats')}>
                                     <Typography sx={cardTitleStyle('#db2777')}>Unread</Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1 }}>
                                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 160 }}>
@@ -570,7 +573,7 @@ const DashboardPage: React.FC = () => {
                                                     {formatTimestamp(m.timestamp)}
                                                 </Typography>
                                                 <Typography sx={{ fontSize: 11, color: '#9aa3b2' }}>
-                                                    {m.sender?.id === userId ? 'You' : 'Other User'}
+                                                    {m.sender?.id === Number(userId) ? 'You' : 'Other User'}
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -593,9 +596,19 @@ const DashboardPage: React.FC = () => {
                                         pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0
                                     )}
                                 </Typography>
-                                <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                                    <Chip icon={<PersonAddAlt1Icon />} label="Review" clickable />
-                                    <Chip icon={<PendingActionsIcon />} label="Pending" clickable />
+                                <Box sx={{ mt: 2, display: 'flex', gap: 1, cursor: 'pointer' }}>
+                                    <Chip
+                                        icon={<PersonAddAlt1Icon />}
+                                        label="Review"
+                                        clickable
+                                        onClick={() => navigate('/pending-requests')}
+                                    />
+                                    <Chip
+                                        icon={<PendingActionsIcon />}
+                                        label="Pending"
+                                        clickable
+                                        onClick={() => navigate('/all-users')}
+                                    />
                                 </Box>
                             </Card>
                         </motion.div>
