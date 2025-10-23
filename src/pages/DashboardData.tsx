@@ -1,242 +1,449 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box,
-    Typography,
-    Avatar,
-    Card,
-    Grid,
-    Stack,
-    Tooltip,
-    CircularProgress,
+  Box,
+  Typography,
+  Avatar,
+  Card,
+  Grid,
+  Stack,
+  Tooltip,
+  CircularProgress,
+  Chip,
 } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import InboxIcon from '@mui/icons-material/Inbox';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import BlockIcon from '@mui/icons-material/Block';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import {
-    useGetAcceptedChatUsersAll,
-    useGetAcceptedChatUsers,
+  useGetAcceptedChatUsersAll,
+  useGetAcceptedChatUsers,
 } from '../hooks/useGetAcceptedUsers';
 import { useGetUserById } from '../hooks/useGetOtherUser';
 import {
-    useGetMessageStats,
-    useGetBlockedUsersCount,
-    useGetPendingRequestSummary,
-    useGetUnreadSummary,
-    useGetRecentConversationsLastMessages,
+  useGetMessageStats,
+  useGetBlockedUsersCount,
+  useGetPendingRequestSummary,
+  useGetUnreadSummary,
+  useGetRecentConversationsLastMessages,
 } from '../hooks/useDashboardData';
 
 const DashboardPage: React.FC = () => {
-    const { user } = useAuth();
-    const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
 
-    const { data: userData, loading: userLoading } = useGetUserById(userId!);
-
-    useEffect(() => {
-        if (user) {
-            const decodedToken: any = jwtDecode(user.token);
-            setUserId(decodedToken.sub);
-        }
-    }, [user]);
-
-    // Hooks for dashboard stats
-    const { data: allContactsData, loading: allContactsLoading } = useGetAcceptedChatUsersAll(userId);
-    const { data: activeChatsData, loading: activeChatsLoading } = useGetAcceptedChatUsers(userId);
-    const { data: recentMessagesData, loading: recentMessagesLoading } = useGetRecentConversationsLastMessages(userId);
-    const { data: unreadSummaryData } = useGetUnreadSummary(Number(userId));
-    const { data: pendingRequestsData } = useGetPendingRequestSummary(Number(userId));
-    const { data: blockedUsersData } = useGetBlockedUsersCount(Number(userId));
-    const { data: messageStatsData } = useGetMessageStats(Number(userId));
-
-    if (allContactsLoading || activeChatsLoading || recentMessagesLoading || userLoading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress size={60} />
-            </Box>
-        );
+  useEffect(() => {
+    if (user) {
+      try {
+        const decodedToken: any = jwtDecode(user.token);
+        setUserId(String(decodedToken.sub));
+      } catch {
+        setUserId(null);
+      }
     }
+  }, [user]);
 
-    const onlineFriends = allContactsData?.getAcceptedChatUsersAll.filter((u: any) => u.isOnline) || [];
+  const { data: userData, loading: userLoading } = useGetUserById(userId!);
+  const { data: allContactsData, loading: allContactsLoading } = useGetAcceptedChatUsersAll(userId);
+  const { data: activeChatsData, loading: activeChatsLoading } = useGetAcceptedChatUsers(userId);
+  const { data: recentMessagesData, loading: recentMessagesLoading } = useGetRecentConversationsLastMessages(userId);
+  const { data: unreadSummaryData } = useGetUnreadSummary(userId ? Number(userId) : null);
+  const { data: pendingRequestsData } = useGetPendingRequestSummary(userId ? Number(userId) : null);
+  const { data: blockedUsersData } = useGetBlockedUsersCount(userId ? Number(userId) : null);
+  const { data: messageStatsData } = useGetMessageStats(userId ? Number(userId) : null);
 
+  const loading = allContactsLoading || activeChatsLoading || recentMessagesLoading || userLoading;
+
+  if (loading) {
     return (
-        <Box sx={{
-            p: { xs: 2, md: 4 },
-            minHeight: '100vh',
-            fontFamily: 'Montserrat, sans-serif',
-            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        }}>
-            <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                mb: 6,
-                p: 3,
-                borderRadius: 3,
-                backdropFilter: 'blur(12px)',
-                background: 'rgba(255,255,255,0.25)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s ease-in-out',
-                '&:hover': { transform: 'translateY(-3px)' },
-            }}>
-                <Avatar
-                    src={userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : undefined}
-                    sx={{ width: 72, height: 72, mr: 3, bgcolor: '#dbeafe', color: '#1e3a8a', fontWeight: 700 }}
-                >
-                    {!userData?.getUserById?.profilePicture && userData?.getUserById?.fullName?.charAt(0).toUpperCase()}
-                </Avatar>
-                <Box>
-                    <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#0f172a' }}>
-                        Welcome, {userData?.getUserById?.fullName ?? 'User'} 👋
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', mt: 0.5 }}>
-                        Here’s a quick overview of your activity
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Grid container spacing={4}>
-                <Grid item xs={12} md={4}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#2563eb')}>Total Contacts</Typography>
-                        <Typography sx={cardNumberStyle('#1e40af')}>{allContactsData?.getAcceptedChatUsersAll.length ?? 0}</Typography>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#16a34a')}>Friends Online</Typography>
-                        <Typography sx={cardNumberStyle('#065f46', 2)}>{onlineFriends.length}</Typography>
-                        <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', py: 1 }}>
-                            {onlineFriends.slice(0, 5).map((friend: any) => (
-                                <Tooltip key={friend.id} title={friend.fullName}>
-                                    <Avatar
-                                        src={friend.profilePicture ? `http://localhost:5002${friend.profilePicture}` : undefined}
-                                        sx={{ width: 40, height: 40, bgcolor: '#d1fae5', color: '#065f46', fontWeight: 700 }}
-                                    >
-                                        {!friend.profilePicture && friend.fullName.charAt(0).toUpperCase()}
-                                    </Avatar>
-                                </Tooltip>
-                            ))}
-                        </Stack>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#f59e0b')}>Active Chats</Typography>
-                        <Typography sx={cardNumberStyle('#78350f')}>{activeChatsData?.getAcceptedChatUsers.length ?? 0}</Typography>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#db2777')}>Messages</Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} mt={1}>
-                            <Box>
-                                <Typography sx={subCardTitleStyle('#be185d')}>Sent</Typography>
-                                <Typography sx={subCardNumberStyle}>{messageStatsData?.getMessageStats?.totalMessagesSent ?? 0}</Typography>
-                            </Box>
-                            <Box>
-                                <Typography sx={subCardTitleStyle('#9333ea')}>Received</Typography>
-                                <Typography sx={subCardNumberStyle}>{messageStatsData?.getMessageStats?.totalMessagesReceived ?? 0}</Typography>
-                            </Box>
-                        </Stack>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#e11d48')}>Pending Requests</Typography>
-                        <Typography sx={cardNumberStyle('#881337')}>
-                            {pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0}
-                        </Typography>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#f43f5e')}>Unread Messages</Typography>
-                        <Typography sx={cardNumberStyle('#b91c1c')}>
-                            {unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0}
-                        </Typography>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                    <Card sx={cardStyle}>
-                        <Typography sx={cardTitleStyle('#6b7280')}>Blocked Users</Typography>
-                        <Typography sx={cardNumberStyle('#374151')}>
-                            {blockedUsersData?.getBlockedUsersCount?.blockedCount ?? 0}
-                        </Typography>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12}>
-                    <Card sx={{ ...cardStyle, background: 'rgba(255,255,255,0.15)' }}>
-                        <Typography sx={cardTitleStyle('#2563eb')}>Recent Messages</Typography>
-                        <Stack spacing={2} mt={2}>
-                            {recentMessagesData?.getRecentConversationsLastMessages.slice(0, 5).map((msg: any) => (
-                                <Box key={msg.id} sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    p: 2,
-                                    borderRadius: 2,
-                                    background: 'rgba(255,255,255,0.3)',
-                                    backdropFilter: 'blur(6px)',
-                                    transition: 'all 0.2s ease-in-out',
-                                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
-                                }}>
-                                    <Box>
-                                        <Typography sx={{ fontWeight: 700 }}>
-                                            {msg.sender.firstName} {msg.sender.lastName}
-                                        </Typography>
-                                        <Typography sx={{ color: '#64748b', fontSize: 13 }} noWrap>
-                                            {msg.content}
-                                        </Typography>
-                                    </Box>
-                                    <Typography sx={{ color: '#1e3a8a', fontWeight: 600, fontSize: 12 }}>
-                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </Typography>
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Card>
-                </Grid>
-            </Grid>
-        </Box>
+      <Box className="flex items-center justify-center min-h-screen">
+        <CircularProgress size={72} />
+      </Box>
     );
+  }
+
+  const allContacts = allContactsData?.getAcceptedChatUsersAll || [];
+  const onlineFriends = allContacts.filter((f: any) => f.isOnline) || [];
+  const activeChats = activeChatsData?.getAcceptedChatUsers || [];
+  const recentMsgs = recentMessagesData?.getRecentConversationsLastMessages || [];
+
+  const fancySentenceForPending = (sent: number, received: number) => {
+    const sentPart = sent > 0 ? `${sent} request${sent > 1 ? 's' : ''} waiting on others` : 'No outgoing requests';
+    const receivedPart = received > 0 ? `${received} invites pending your action` : 'No incoming requests';
+    return `${sentPart} · ${receivedPart}`;
+  };
+
+  const formatUnreadSummary = (total: number, convos: number) => {
+    return `You have ${total.toLocaleString()} unread message${total !== 1 ? 's' : ''} across ${convos} conversation${convos !== 1 ? 's' : ''}.`;
+  };
+
+  const formatTimestamp = (ts: string | number) => {
+    const d = new Date(ts);
+    return d.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const popVariant = {
+    hidden: { scale: 0.95, opacity: 0 },
+    show: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
+  };
+
+  return (
+    <Box
+      sx={{
+        p: { xs: 3, md: 6 },
+        minHeight: '100vh',
+        fontFamily: '"Montserrat", "Inter", sans-serif',
+        background:
+          'linear-gradient(180deg, rgba(243,246,255,1) 0%, rgba(226,232,240,1) 100%)',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+          mb: 6,
+          p: 3,
+          borderRadius: 3,
+          backdropFilter: 'blur(12px)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.15))',
+          boxShadow: '0 6px 24px rgba(16,24,40,0.08)',
+        }}
+      >
+        <Avatar
+          src={userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : undefined}
+          sx={{ width: 84, height: 84, mr: 2, bgcolor: '#eef2ff', color: '#3730a3', fontWeight: 800 }}
+        >
+          {!userData?.getUserById?.profilePicture && (userData?.getUserById?.fullName?.charAt(0).toUpperCase() || <AccountCircle />)}
+        </Avatar>
+
+        <Box>
+          <Typography sx={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>
+            Welcome back, {userData?.getUserById?.fullName ?? 'friend'} 👋
+          </Typography>
+          <Typography sx={{ color: '#475569', mt: 0.5 }}>
+            Snapshot of your world — numbers have never looked this pretty.
+          </Typography>
+        </Box>
+      </Box>
+
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={4}>
+          <Stack spacing={4}>
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={cardStyle}>
+                <Typography sx={cardTitleStyle('#0ea5a2')}>Total Contacts</Typography>
+                <Typography sx={{ fontSize: 18, color: '#065f46', mb: 1 }}>
+                  You have a total of
+                </Typography>
+                <Typography sx={{ fontSize: 42, fontWeight: 900, color: '#064e3b' }}>
+                  {allContacts.length.toLocaleString()}
+                </Typography>
+                <Typography sx={{ mt: 1, color: '#475569', fontWeight: 600 }}>
+                  A curated crowd — the more the merrier.
+                </Typography>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={cardStyle}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box>
+                    <Typography sx={cardTitleStyle('#7c3aed')}>Friends Online</Typography>
+                    <Typography sx={{ color: '#4b5563', fontWeight: 600 }}>
+                      {onlineFriends.length} currently available
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: '#9aa3b2' }}>Live</Typography>
+                  </Box>
+                </Box>
+
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 3, overflowX: 'auto', pb: 1 }}>
+                  {onlineFriends.length === 0 && (
+                    <Box sx={{ color: '#6b7280' }}>No one online right now — time to start a conversation?</Box>
+                  )}
+
+                  {onlineFriends.slice(0, 12).map((f: any) => (
+                    <Tooltip key={f.id} title={f.fullName || 'Unknown'}>
+                      <Avatar
+                        src={f.profilePicture ? `http://localhost:5002${f.profilePicture}` : undefined}
+                        sx={{
+                          width: 52,
+                          height: 52,
+                          border: '3px solid rgba(124,58,237,0.12)',
+                          boxShadow: '0 4px 18px rgba(99,102,241,0.12)',
+                          '&:hover': { transform: 'translateY(-6px)' },
+                          transition: 'all 0.25s ease',
+                        }}
+                      >
+                        {!f.profilePicture && f.fullName?.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </Tooltip>
+                  ))}
+                </Stack>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={{ ...cardStyle, py: 2 }}>
+                <Typography sx={cardTitleStyle('#2563eb')}>Active Chats</Typography>
+                <Typography sx={{ color: '#475569', mb: 2 }}>One-line view — quick jump</Typography>
+                <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
+                  {activeChats.length === 0 && (
+                    <Chip icon={<ChatBubbleIcon />} label="No active chats" variant="outlined" />
+                  )}
+                  {activeChats.slice(0, 12).map((c: any) => (
+                    <Chip
+                      key={c.id}
+                      avatar={<Avatar src={c.profilePicture ? `http://localhost:5002${c.profilePicture}` : undefined} />}
+                      label={`${c.firstName} ${c.lastName}`}
+                      clickable
+                      variant="filled"
+                      sx={{
+                        fontWeight: 700,
+                        textTransform: 'none',
+                        boxShadow: '0 6px 18px rgba(2,6,23,0.06)',
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Card>
+            </motion.div>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={5}>
+          <Stack spacing={4}>
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={{ ...cardStyle, position: 'relative', overflow: 'visible' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={cardTitleStyle('#ef4444')}>Messages — battlefield</Typography>
+                  <Typography sx={{ color: '#64748b', fontWeight: 700 }}>Stats</Typography>
+                </Box>
+
+                <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'stretch', flexWrap: 'wrap' }}>
+                  <Box sx={{
+                    flex: 1,
+                    minWidth: 180,
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(255,245,235,0.9), rgba(255,250,240,0.6))',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.02)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}>
+                    <Box sx={{ p: 1, borderRadius: '12px', background: 'rgba(14,165,132,0.08)' }}>
+                      <SendIcon sx={{ fontSize: 28, color: '#047857' }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#065f46' }}>Outgoing</Typography>
+                      <Typography sx={{ fontSize: 34, fontWeight: 900 }}>
+                        {messageStatsData?.getMessageStats?.totalMessagesSent ?? 0}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: '#6b7280' }}>Messages you initiated</Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{
+                    width: 4,
+                    borderRadius: 2,
+                    alignSelf: 'center',
+                    background: 'linear-gradient(180deg, rgba(99,102,241,0.9), rgba(124,58,237,0.9))',
+                    minHeight: 120,
+                    display: { xs: 'none', sm: 'block' },
+                  }} />
+
+                  <Box sx={{
+                    flex: 1,
+                    minWidth: 180,
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(240,249,255,0.9), rgba(243,246,255,0.6))',
+                    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.02)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}>
+                    <Box sx={{ p: 1, borderRadius: '12px', background: 'rgba(37,99,235,0.06)' }}>
+                      <InboxIcon sx={{ fontSize: 28, color: '#1e3a8a' }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#1e3a8a' }}>Incoming</Typography>
+                      <Typography sx={{ fontSize: 34, fontWeight: 900 }}>
+                        {messageStatsData?.getMessageStats?.totalMessagesReceived ?? 0}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: '#6b7280' }}>Messages you've been sent</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <RocketLaunchIcon />
+                  <Typography sx={{ color: '#475569', fontWeight: 600 }}>
+                    Keep the balance — more replies means healthier conversations.
+                  </Typography>
+                </Box>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={7}>
+                  <Card sx={cardStyle}>
+                    <Typography sx={cardTitleStyle('#db2777')}>Unread</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1 }}>
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: 'spring', stiffness: 160 }}
+                      >
+                        <Typography sx={{ fontSize: 40, fontWeight: 900, color: '#be185d' }}>
+                          {unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0}
+                        </Typography>
+                      </motion.div>
+
+                      <Box>
+                        <Typography sx={{ fontWeight: 800, color: '#6b21a8' }}>
+                          {formatUnreadSummary(
+                            unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0,
+                            unreadSummaryData?.getUnreadSummary?.unreadConversationCount ?? 0
+                          )}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: '#6b7280', mt: 0.5 }}>
+                          Hot threads that need your attention — click to jump in.
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={5}>
+                  <Card sx={cardStyle}>
+                    <Typography sx={cardTitleStyle('#f59e0b')}>Pending Requests</Typography>
+                    <Typography sx={{ color: '#7c2d12', fontWeight: 700, fontSize: 22, mt: 1 }}>
+                      {pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0} received · {pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0} sent
+                    </Typography>
+                    <Typography sx={{ mt: 1, color: '#475569' }}>
+                      {fancySentenceForPending(
+                        pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0,
+                        pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0
+                      )}
+                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                      <Chip icon={<PersonAddAlt1Icon />} label="Review" clickable />
+                      <Chip icon={<BlockIcon />} label="Blocked" clickable />
+                    </Box>
+                  </Card>
+                </Grid>
+              </Grid>
+            </motion.div>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={3}>
+          <Stack spacing={4}>
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={{ ...cardStyle, py: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <BlockIcon sx={{ fontSize: 30, color: '#616161' }} />
+                  <Box>
+                    <Typography sx={cardTitleStyle('#6b7280')}>Blocked Users</Typography>
+                    <Typography sx={{ fontSize: 26, fontWeight: 900 }}>
+                      {blockedUsersData?.getBlockedUsersCount?.blockedCount ?? 0}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: '#9aa3b2' }}>
+                      Soft and safe — review when needed.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={popVariant} initial="hidden" animate="show">
+              <Card sx={{ ...cardStyle, background: 'rgba(255,255,255,0.12)' }}>
+                <Typography sx={cardTitleStyle('#2563eb')}>Recent Messages</Typography>
+                <Stack spacing={2} mt={2}>
+                  {(recentMsgs.length ? recentMsgs.slice(0, 3) : []).map((m: any) => (
+                    <Box
+                      key={m.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 2,
+                        borderRadius: 2,
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
+                        border: '1px solid rgba(255,255,255,0.03)',
+                        transition: 'all 0.18s ease',
+                        '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 8px 30px rgba(2,6,23,0.08)' },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flex: 1 }}>
+                        <Avatar
+                          src={m.sender?.profilePicture ? `http://localhost:5002${m.sender.profilePicture}` : undefined}
+                          sx={{ width: 44, height: 44 }}
+                        >
+                          {!m.sender?.profilePicture && (m.sender?.firstName?.charAt(0).toUpperCase() || '?')}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: 15 }}>
+                            {m.sender?.firstName} {m.sender?.lastName}
+                          </Typography>
+                          <Typography sx={{ color: '#6b7280', fontSize: 13 }} noWrap>
+                            {m.content}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ ml: 2, textAlign: 'right', minWidth: 150 }}>
+                        <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>
+                          {formatTimestamp(m.timestamp)}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: '#9aa3b2' }}>
+                          {m.sender?.id === userId ? 'You' : 'Them'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Stack>
+              </Card>
+            </motion.div>
+          </Stack>
+        </Grid>
+      </Grid>
+    </Box>
+  );
 };
 
+
 const cardStyle = {
-    borderRadius: 3,
-    p: 3,
-    background: 'rgba(255,255,255,0.2)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    transition: 'all 0.3s ease-in-out',
-    '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' },
+  borderRadius: 3,
+  p: 3,
+  background: 'rgba(255,255,255,0.85)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(2,6,23,0.04)',
+  transition: 'all 0.28s ease-in-out',
+  '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 10px 40px rgba(2,6,23,0.06)' },
 };
 
 const cardTitleStyle = (color: string) => ({
-    fontWeight: 700,
-    color,
-    mb: 1,
+  fontWeight: 800,
+  color,
+  mb: 1,
 });
-
-const cardNumberStyle = (color: string, mb: number = 0) => ({
-    fontSize: 36,
-    fontWeight: 800,
-    color,
-    mb,
-});
-
-const subCardTitleStyle = (color: string) => ({
-    fontSize: 20,
-    fontWeight: 700,
-    color,
-});
-
-const subCardNumberStyle = {
-    fontSize: 28,
-    fontWeight: 800,
-};
 
 export default DashboardPage;
