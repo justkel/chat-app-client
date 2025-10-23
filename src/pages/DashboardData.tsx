@@ -221,6 +221,27 @@ const DashboardPage: React.FC = () => {
         }
     };
 
+    const getInitials = (fullName: string = '') => {
+        const parts = fullName.trim().split(' ');
+        const first = parts[0]?.charAt(0).toUpperCase() || '';
+        const last = parts[1]?.charAt(0).toUpperCase() || '';
+        return last ? `${first}.${last}.` : `${first}.`;
+    };
+
+    const handleOpenMessageFromDashboard = (message: any) => {
+        const sendTo = message.sender.id === Number(userId) ? message.receiver.id : message.sender.id;
+        localStorage.setItem('lastSelectedUserId', sendTo);
+
+        setLoadingNavigate(true);
+
+        setTimeout(() => {
+            setLoadingNavigate(false);
+            navigate('/chats', {
+                state: { scrollToMessageId: message.id },
+            });
+        }, 3500);
+    };
+
     const popVariant = {
         hidden: { scale: 0.95, opacity: 0 },
         show: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
@@ -350,19 +371,34 @@ const DashboardPage: React.FC = () => {
 
                                         {onlineFriends.slice(0, 12).map((f: any) => (
                                             <Tooltip key={f.id} title={f.fullName || 'Unknown'}>
-                                                <Avatar
-                                                    src={f.profilePicture ? `http://localhost:5002${f.profilePicture}` : undefined}
-                                                    sx={{
-                                                        width: 52,
-                                                        height: 52,
-                                                        border: '3px solid rgba(124,58,237,0.12)',
-                                                        boxShadow: '0 4px 18px rgba(99,102,241,0.12)',
-                                                        '&:hover': { transform: 'translateY(-6px)' },
-                                                        transition: 'all 0.25s ease',
-                                                    }}
-                                                >
-                                                    {!f.profilePicture && f.fullName?.charAt(0).toUpperCase()}
-                                                </Avatar>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+
+                                                    <Avatar
+                                                        src={f.profilePicture ? `http://localhost:5002${f.profilePicture}` : undefined}
+                                                        sx={{
+                                                            width: 52,
+                                                            height: 52,
+                                                            border: '3px solid rgba(124,58,237,0.12)',
+                                                            boxShadow: '0 4px 18px rgba(99,102,241,0.12)',
+                                                            '&:hover': { transform: 'translateY(-6px)' },
+                                                            transition: 'all 0.25s ease',
+                                                            background: '#f1f5f9'
+                                                        }}
+                                                    />
+
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: 700,
+                                                            fontSize: 13,
+                                                            color: '#1e293b',
+                                                            fontFamily: 'Montserrat',
+                                                            mt: 0.3
+                                                        }}
+                                                    >
+                                                        {getInitials(f.fullName)}
+                                                    </Typography>
+
+                                                </Box>
                                             </Tooltip>
                                         ))}
                                     </Stack>
@@ -513,7 +549,7 @@ const DashboardPage: React.FC = () => {
                     <Grid item xs={12} md={3}>
                         <Stack spacing={4}>
                             <motion.div variants={popVariant} initial="hidden" animate="show">
-                                <Card sx={{ ...cardStyle, py: 3 }}>
+                                <Card sx={{ ...cardStyle, py: 3, cursor: 'pointer' }} onClick={() => navigate('/settings')}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <BlockIcon sx={{ fontSize: 30, color: '#616161' }} />
                                         <Box>
@@ -539,6 +575,7 @@ const DashboardPage: React.FC = () => {
                                     {(recentMsgs.length ? recentMsgs.slice(0, 3) : []).map((m: any) => (
                                         <Box
                                             key={m.id}
+                                            onClick={() => handleOpenMessageFromDashboard(m)}
                                             sx={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -548,6 +585,7 @@ const DashboardPage: React.FC = () => {
                                                 background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
                                                 border: '1px solid rgba(255,255,255,0.03)',
                                                 transition: 'all 0.18s ease',
+                                                cursor: 'pointer',
                                                 '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 8px 30px rgba(2,6,23,0.08)' },
                                             }}
                                         >
@@ -631,8 +669,23 @@ const DashboardPage: React.FC = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-        </Dashboard>
 
+            {loadingNavigate && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 9999,
+                    }}
+                >
+                    <CircularProgress />
+                </Box>
+            )}
+        </Dashboard>
     );
 };
 
