@@ -17,6 +17,7 @@ import {
   Group as MembersIcon,
   PendingActions as PendingRequestsIcon,
   Settings as SettingsIcon,
+  BarChart as DashboardIcon,
   Logout
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -55,6 +56,7 @@ const Dashboard: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   const menuItems = [
+    { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { label: 'Chats', icon: <ChatIcon />, path: '/chats' },
     { label: 'Contacts', icon: <ContactsIcon />, path: '/contacts' },
     { label: 'Request Access', icon: <MembersIcon />, path: '/all-users' },
