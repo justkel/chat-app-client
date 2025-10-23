@@ -14,12 +14,13 @@ import SendIcon from '@mui/icons-material/Send';
 import InboxIcon from '@mui/icons-material/Inbox';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import BlockIcon from '@mui/icons-material/Block';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import {
   useGetAcceptedChatUsersAll,
   useGetAcceptedChatUsers,
@@ -105,8 +106,7 @@ const DashboardPage: React.FC = () => {
         p: { xs: 3, md: 6 },
         minHeight: '100vh',
         fontFamily: '"Montserrat", "Inter", sans-serif',
-        background:
-          'linear-gradient(180deg, rgba(243,246,255,1) 0%, rgba(226,232,240,1) 100%)',
+        background: 'linear-gradient(180deg, rgba(243,246,255,1) 0%, rgba(226,232,240,1) 100%)',
       }}
     >
       <Box
@@ -145,9 +145,7 @@ const DashboardPage: React.FC = () => {
             <motion.div variants={popVariant} initial="hidden" animate="show">
               <Card sx={cardStyle}>
                 <Typography sx={cardTitleStyle('#0ea5a2')}>Total Contacts</Typography>
-                <Typography sx={{ fontSize: 18, color: '#065f46', mb: 1 }}>
-                  You have a total of
-                </Typography>
+                <Typography sx={{ fontSize: 18, color: '#065f46', mb: 1 }}>You have a total of</Typography>
                 <Typography sx={{ fontSize: 42, fontWeight: 900, color: '#064e3b' }}>
                   {allContacts.length.toLocaleString()}
                 </Typography>
@@ -172,9 +170,7 @@ const DashboardPage: React.FC = () => {
                 </Box>
 
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 3, overflowX: 'auto', pb: 1 }}>
-                  {onlineFriends.length === 0 && (
-                    <Box sx={{ color: '#6b7280' }}>No one online right now — time to start a conversation?</Box>
-                  )}
+                  {onlineFriends.length === 0 && <Box sx={{ color: '#6b7280' }}>No one online right now — time to start a conversation?</Box>}
 
                   {onlineFriends.slice(0, 12).map((f: any) => (
                     <Tooltip key={f.id} title={f.fullName || 'Unknown'}>
@@ -301,55 +297,28 @@ const DashboardPage: React.FC = () => {
             </motion.div>
 
             <motion.div variants={popVariant} initial="hidden" animate="show">
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={7}>
-                  <Card sx={cardStyle}>
-                    <Typography sx={cardTitleStyle('#db2777')}>Unread</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1 }}>
-                      <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 160 }}
-                      >
-                        <Typography sx={{ fontSize: 40, fontWeight: 900, color: '#be185d' }}>
-                          {unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0}
-                        </Typography>
-                      </motion.div>
-
-                      <Box>
-                        <Typography sx={{ fontWeight: 800, color: '#6b21a8' }}>
-                          {formatUnreadSummary(
-                            unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0,
-                            unreadSummaryData?.getUnreadSummary?.unreadConversationCount ?? 0
-                          )}
-                        </Typography>
-                        <Typography sx={{ fontSize: 13, color: '#6b7280', mt: 0.5 }}>
-                          Hot threads that need your attention — click to jump in.
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={5}>
-                  <Card sx={cardStyle}>
-                    <Typography sx={cardTitleStyle('#f59e0b')}>Pending Requests</Typography>
-                    <Typography sx={{ color: '#7c2d12', fontWeight: 700, fontSize: 22, mt: 1 }}>
-                      {pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0} received · {pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0} sent
+              <Card sx={cardStyle}>
+                <Typography sx={cardTitleStyle('#db2777')}>Unread</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1 }}>
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 160 }}>
+                    <Typography sx={{ fontSize: 40, fontWeight: 900, color: '#be185d' }}>
+                      {unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0}
                     </Typography>
-                    <Typography sx={{ mt: 1, color: '#475569' }}>
-                      {fancySentenceForPending(
-                        pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0,
-                        pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0
+                  </motion.div>
+
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, color: '#6b21a8' }}>
+                      {formatUnreadSummary(
+                        unreadSummaryData?.getUnreadSummary?.totalUnreadMessages ?? 0,
+                        unreadSummaryData?.getUnreadSummary?.unreadConversationCount ?? 0
                       )}
                     </Typography>
-                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                      <Chip icon={<PersonAddAlt1Icon />} label="Review" clickable />
-                      <Chip icon={<BlockIcon />} label="Blocked" clickable />
-                    </Box>
-                  </Card>
-                </Grid>
-              </Grid>
+                    <Typography sx={{ fontSize: 13, color: '#6b7280', mt: 0.5 }}>
+                      Hot threads that need your attention — click to jump in.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
             </motion.div>
           </Stack>
         </Grid>
@@ -365,70 +334,92 @@ const DashboardPage: React.FC = () => {
                     <Typography sx={{ fontSize: 26, fontWeight: 900 }}>
                       {blockedUsersData?.getBlockedUsersCount?.blockedCount ?? 0}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: '#9aa3b2' }}>
-                      Soft and safe — review when needed.
-                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: '#9aa3b2' }}>Soft and safe — review when needed.</Typography>
                   </Box>
                 </Box>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={popVariant} initial="hidden" animate="show">
-              <Card sx={{ ...cardStyle, background: 'rgba(255,255,255,0.12)' }}>
-                <Typography sx={cardTitleStyle('#2563eb')}>Recent Messages</Typography>
-                <Stack spacing={2} mt={2}>
-                  {(recentMsgs.length ? recentMsgs.slice(0, 3) : []).map((m: any) => (
-                    <Box
-                      key={m.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        p: 2,
-                        borderRadius: 2,
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
-                        border: '1px solid rgba(255,255,255,0.03)',
-                        transition: 'all 0.18s ease',
-                        '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 8px 30px rgba(2,6,23,0.08)' },
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flex: 1 }}>
-                        <Avatar
-                          src={m.sender?.profilePicture ? `http://localhost:5002${m.sender.profilePicture}` : undefined}
-                          sx={{ width: 44, height: 44 }}
-                        >
-                          {!m.sender?.profilePicture && (m.sender?.firstName?.charAt(0).toUpperCase() || '?')}
-                        </Avatar>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: 15 }}>
-                            {m.sender?.firstName} {m.sender?.lastName}
-                          </Typography>
-                          <Typography sx={{ color: '#6b7280', fontSize: 13 }} noWrap>
-                            {m.content}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ ml: 2, textAlign: 'right', minWidth: 150 }}>
-                        <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>
-                          {formatTimestamp(m.timestamp)}
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, color: '#9aa3b2' }}>
-                          {m.sender?.id === userId ? 'You' : 'Them'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Stack>
               </Card>
             </motion.div>
           </Stack>
         </Grid>
       </Grid>
+
+      <Grid container spacing={4} sx={{ mt: 3 }}>
+        <Grid item xs={12} md={6}>
+          <motion.div variants={popVariant} initial="hidden" animate="show">
+            <Card sx={{ ...cardStyle, background: 'rgba(255,255,255,0.12)' }}>
+              <Typography sx={cardTitleStyle('#2563eb')}>Recent Messages</Typography>
+              <Stack spacing={2} mt={2}>
+                {(recentMsgs.length ? recentMsgs.slice(0, 3) : []).map((m: any) => (
+                  <Box
+                    key={m.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 2,
+                      borderRadius: 2,
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
+                      border: '1px solid rgba(255,255,255,0.03)',
+                      transition: 'all 0.18s ease',
+                      '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 8px 30px rgba(2,6,23,0.08)' },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flex: 1 }}>
+                      <Avatar
+                        src={m.sender?.profilePicture ? `http://localhost:5002${m.sender.profilePicture}` : undefined}
+                        sx={{ width: 44, height: 44 }}
+                      >
+                        {!m.sender?.profilePicture && (m.sender?.firstName?.charAt(0).toUpperCase() || '?')}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 15 }}>
+                          {m.sender?.firstName ?? ''} {m.sender?.lastName ?? ''}
+                        </Typography>
+                        <Typography sx={{ color: '#6b7280', fontSize: 13 }} noWrap>
+                          {m.content}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ ml: 2, textAlign: 'right', minWidth: 150 }}>
+                      <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>
+                        {formatTimestamp(m.timestamp)}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: '#9aa3b2' }}>
+                        {m.sender?.id === userId ? 'You' : 'Other User'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Card>
+          </motion.div>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <motion.div variants={popVariant} initial="hidden" animate="show">
+            <Card sx={cardStyle}>
+              <Typography sx={cardTitleStyle('#f59e0b')}>Pending Requests</Typography>
+              <Typography sx={{ color: '#7c2d12', fontWeight: 700, fontSize: 22, mt: 1 }}>
+                {pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0} received · {pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0} sent
+              </Typography>
+              <Typography sx={{ mt: 1, color: '#475569' }}>
+                {fancySentenceForPending(
+                  pendingRequestsData?.getPendingRequestSummary?.sentPendingCount ?? 0,
+                  pendingRequestsData?.getPendingRequestSummary?.receivedPendingCount ?? 0
+                )}
+              </Typography>
+              <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                <Chip icon={<PersonAddAlt1Icon />} label="Review" clickable />
+                <Chip icon={<PendingActionsIcon />} label="Pending" clickable />
+              </Box>
+            </Card>
+          </motion.div>
+        </Grid>
+      </Grid>
     </Box>
   );
 };
-
 
 const cardStyle = {
   borderRadius: 3,
