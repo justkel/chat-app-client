@@ -13,7 +13,7 @@ import { useGetAcceptedChatUsers, useGetAcceptedChatUsersAll } from '../hooks/us
 import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper, Typography, Badge } from '@mui/material';
+import { List, ListItem, ListItemAvatar, Avatar, Paper, Typography, Badge } from '@mui/material';
 import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
 import { io } from 'socket.io-client';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
@@ -338,27 +338,34 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
         }
     };
 
-    const formatTimestamp = (timestamp: string) => {
-        const messageDate = new Date(timestamp);
-        const currentDate = new Date();
+    const formatTimestamp = (iso?: string | number | null) => {
+        if (!iso) return '';
+        const d = new Date(iso);
+        const now = new Date();
 
-        const isToday = messageDate.toDateString() === currentDate.toDateString();
+        const isToday =
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate();
+
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
         const isYesterday =
-            messageDate.getDate() === currentDate.getDate() - 1 &&
-            messageDate.getMonth() === currentDate.getMonth() &&
-            messageDate.getFullYear() === currentDate.getFullYear();
+            d.getFullYear() === yesterday.getFullYear() &&
+            d.getMonth() === yesterday.getMonth() &&
+            d.getDate() === yesterday.getDate();
 
-        const hours = messageDate.getHours();
-        let minutes = messageDate.getMinutes();
-        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+        const startOfWeek = new Date(now);
+        const day = startOfWeek.getDay();
+        startOfWeek.setDate(now.getDate() - day);
+        const isThisWeek = d > startOfWeek && !isToday && !isYesterday;
 
         if (isToday) {
-            return `${hours}:${formattedMinutes} ${hours < 12 ? "AM" : "PM"}`;
-        } else if (isYesterday) {
-            return "Yesterday";
-        } else {
-            return `${messageDate.getMonth() + 1}/${messageDate.getDate()}/${messageDate.getFullYear().toString().slice(-2)}`;
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
         }
+        if (isYesterday) return 'Yesterday';
+        if (isThisWeek) return d.toLocaleDateString([], { weekday: 'short' });
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
     if (loading || lastMessagesLoading || unreadCountsLoading || chatLoading || loadingAll) return <Spin size="default" style={{ display: 'block', margin: '0 auto' }} />;
@@ -366,117 +373,101 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     if (err) return <p>Error: {err.message}</p>;
 
     return (
-        <div className="chat-page-container">
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    bgcolor: 'background.default',
-                    p: 3,
-                    fontFamily: 'Montserrat, sans-serif !important',
-                }}
-            >
+        <div className="chat-page-container" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+            <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 2 }}>
                 <AppBar
                     position="static"
                     sx={{
                         boxShadow: 'none',
                         backgroundColor: '#fff',
                         color: 'black',
-                        fontFamily: 'Montserrat, sans-serif !important'
                     }}
                 >
-                    <Toolbar>
+                    <Toolbar sx={{ gap: 2, px: { xs: 1, sm: 2, md: 3 } }}>
                         <Box
                             sx={{
-                                position: "relative",
-                                display: "flex",
-                                alignItems: "center",
-                                width: { xs: "100%", sm: "350px", md: "420px" },
-                                transition: "all 0.3s ease",
-                                "&:hover": {
-                                    transform: "translateY(-1px)",
-                                },
+                                flex: 1,
+                                display: 'flex',
+                                justifyContent: 'center',
                             }}
                         >
-                            <InputBase
-                                placeholder="Search using username or custom name"
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setSearchTerm(value);
-                                    setChatFilter(value.length > 0 ? 'search' : 'all');
-                                }}
+                            <Box
                                 sx={{
-                                    backgroundColor: "#fff",
-                                    borderRadius: "50px",
-                                    paddingLeft: 2,
-                                    paddingRight: 5,
-                                    width: "100%",
-                                    height: "42px",
-                                    fontFamily: "Montserrat, sans-serif !important",
-                                    boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-                                    transition: "all 0.35s ease",
-                                    "&:focus-within": {
-                                        boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
-                                        width: "100%",
-                                    },
+                                    width: { xs: '100%', sm: '420px' },
+                                    maxWidth: '100%',
+                                    position: 'relative',
                                 }}
-                            />
-
-                            {searchTerm && (
-                                <IconButton
-                                    onClick={() => {
-                                        setSearchTerm("");
-                                        setChatFilter("all");
+                            >
+                                <InputBase
+                                    placeholder="Search using username or custom name"
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSearchTerm(value);
+                                        setChatFilter(value.length > 0 ? 'search' : 'all');
                                     }}
                                     sx={{
-                                        position: "absolute",
-                                        right: 5,
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        transition: "all 0.3s ease",
-                                        color: "gray",
-                                        "&:hover": { color: "#2980b9" },
+                                        width: '100%',
+                                        height: 44,
+                                        px: 3,
+                                        borderRadius: '999px',
+                                        background: '#fff',
+                                        boxShadow: '0 6px 18px rgba(15,23,42,0.06)',
+                                        transition: 'box-shadow .25s ease, transform .15s ease',
+                                        fontFamily: 'Montserrat, sans-serif',
                                     }}
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="3"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
+                                />
+
+                                {searchTerm && (
+                                    <IconButton
+                                        onClick={() => {
+                                            setSearchTerm('');
+                                            setChatFilter('all');
+                                        }}
+                                        sx={{
+                                            position: 'absolute',
+                                            right: 6,
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            color: 'gray',
+                                            '&:hover': { color: '#2980b9' },
+                                        }}
                                     >
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                </IconButton>
-                            )}
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <line x1="18" y1="6" x2="6" y2="18" />
+                                            <line x1="6" y1="6" x2="18" y2="18" />
+                                        </svg>
+                                    </IconButton>
+                                )}
+                            </Box>
                         </Box>
                     </Toolbar>
                 </AppBar>
-
             </Box>
 
             <Box
                 display="flex"
                 justifyContent="center"
-                flexWrap="wrap"
-                gap={2}
-                mb={3}
-                sx={{
-                    fontFamily: 'Montserrat, sans-serif',
-                }}
+                alignItems="center"
+                gap={1.5}
+                mb={2}
+                sx={{ px: 2 }}
             >
                 {[
                     { key: 'all', label: 'All Chats' },
                     { key: 'unread', label: 'Unread' },
                 ].map(({ key, label }) => {
                     const isActive = chatFilter === key;
-
                     return (
                         <Paper
                             key={key}
@@ -486,51 +477,19 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                 if (key !== 'search') setSearchTerm('');
                             }}
                             sx={{
-                                position: 'relative',
                                 cursor: 'pointer',
-                                px: 3,
-                                py: 1.5,
-                                borderRadius: '12px',
-                                border: `2px solid ${isActive ? '#2980b9' : 'rgba(0,0,0,0.2)'}`,
+                                px: 2.2,
+                                py: 0.7,
+                                borderRadius: '20px',
+                                border: isActive ? '1.8px solid #2980b9' : '1px solid rgba(0,0,0,0.08)',
+                                background: isActive ? 'rgba(41,128,185,0.06)' : 'transparent',
                                 color: isActive ? '#2980b9' : '#333',
                                 fontWeight: 600,
-                                textAlign: 'center',
-                                letterSpacing: '0.5px',
-                                overflow: 'hidden',
-                                transition: 'all 0.3s ease',
-                                backgroundColor: 'transparent',
-                                '&:hover': {
-                                    transform: 'translateY(-3px)',
-                                    borderColor: '#2980b9',
-                                    boxShadow: '0 6px 15px rgba(41, 128, 185, 0.2)',
-                                },
-                                '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: '-100%',
-                                    width: '100%',
-                                    height: '100%',
-                                    background:
-                                        'linear-gradient(120deg, rgba(41,128,185,0.2), rgba(41,128,185,0.05), transparent)',
-                                    transition: 'all 0.6s ease',
-                                },
-                                '&:hover::before': {
-                                    left: '100%',
-                                },
-                                '@media (max-width: 600px)': {
-                                    width: '100%',
-                                    textAlign: 'center',
-                                },
+                                fontSize: '0.95rem',
+                                transition: 'all 0.24s ease',
                             }}
                         >
-                            <Typography
-                                variant="subtitle1"
-                                sx={{
-                                    fontSize: { xs: '0.9rem', md: '1rem' },
-                                    fontFamily: 'Montserrat, sans-serif',
-                                }}
-                            >
+                            <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
                                 {label}
                             </Typography>
                         </Paper>
@@ -538,9 +497,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                 })}
             </Box>
 
-            <Paper elevation={3} sx={{ padding: '20px' }}>
+            <Paper elevation={3} sx={{ padding: { xs: 1, sm: 2 }, mx: { xs: 1, sm: 2 }, borderRadius: 2 }}>
                 {data?.getAcceptedChatUsers.length === 0 ? (
-                    <p>No users to chat with</p>
+                    <Box sx={{ py: 6, textAlign: 'center' }}>
+                        <Typography variant="body1" color="text.secondary">
+                            No users to chat with
+                        </Typography>
+                    </Box>
                 ) : (
                     <List>
                         {filteredUserIds.length > 0 ? (
@@ -558,258 +521,259 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                     (chat: any) => chat && chat.otherUser && chat.otherUser.id === user.id
                                 );
 
+                                const isSelected = String(selectedUserId) === String(user.id);
+
                                 return (
                                     <ListItem
                                         key={user.id}
-                                        sx={{
-                                            marginBottom: '20px',
-                                            borderRadius: '12px',
-                                            padding: '10px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            backgroundColor: selectedUserId === user.id ? 'rgba(0, 0, 255, 0.1)' : 'white',
-                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                            fontFamily: 'Montserrat, sans-serif !important',
-                                            cursor: 'pointer',
-                                            '&:hover': {
-                                                transform: 'scale(1.01)',
-                                                transition: 'transform 0.2s',
-                                            },
-                                        }}
                                         onClick={() => handleUserClick(user.id)}
+                                        sx={{
+                                            mb: 1.5,
+                                            px: { xs: 1.2, sm: 2 },
+                                            py: { xs: 1, sm: 1.3 },
+                                            borderRadius: 2,
+                                            cursor: 'pointer',
+                                            alignItems: 'flex-start',
+                                            background: isSelected ? 'rgba(37, 211, 102, 0.08)' : '#fff',
+                                            boxShadow: '0 6px 14px rgba(15,23,42,0.03)',
+                                            transition: 'transform .12s ease, box-shadow .12s ease',
+                                            '&:hover': { transform: 'translateY(-2px)' },
+                                            minHeight: 70,
+                                            display: 'flex',
+                                        }}
                                     >
-                                        <ListItemAvatar>
+                                        <ListItemAvatar sx={{ minWidth: 56, mr: 1.5 }}>
                                             <Badge
-                                                badgeContent={unreadCount}
+                                                badgeContent={unreadCount > 0 ? unreadCount : null}
                                                 color="primary"
-                                                anchorOrigin={{
-                                                    vertical: 'top',
-                                                    horizontal: 'right',
+                                                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                                sx={{
+                                                    '& .MuiBadge-badge': {
+                                                        backgroundColor: '#25D566',
+                                                        color: '#fff',
+                                                        fontSize: '0.7rem',
+                                                        minWidth: 22,
+                                                        height: 22,
+                                                        borderRadius: '12px',
+                                                    },
                                                 }}
                                             >
-                                                <Avatar>
+                                                <Avatar
+                                                    sx={{
+                                                        width: 46,
+                                                        height: 46,
+                                                        fontWeight: 600,
+                                                        bgcolor: user.profilePicture ? 'transparent' : '#e8eef6',
+                                                    }}
+                                                >
                                                     {user.profilePicture ? (
                                                         <img
                                                             src={`http://localhost:5002${user.profilePicture}`}
                                                             alt={user.fullName[0]}
-                                                            style={{ width: '100%', height: '100%' }}
+                                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 999 }}
                                                         />
                                                     ) : (
-                                                        <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500 }}>
-                                                            {user.fullName[0]}
-                                                        </span>
+                                                        <span style={{ fontFamily: 'Montserrat, sans-serif' }}>{user.fullName?.[0]}</span>
                                                     )}
                                                 </Avatar>
                                             </Badge>
                                         </ListItemAvatar>
-                                        <ListItemText
-                                            primary={chatDetail?.customUsername || user.fullName}
-                                            secondary={
-                                                typingUsers[user.id] ? (
-                                                    <Typography
-                                                        sx={{
-                                                            fontSize: '13px',
-                                                            color: 'green',
-                                                            fontStyle: 'italic',
-                                                            fontWeight: 'bold',
-                                                            fontFamily: 'Montserrat, sans-serif',
-                                                        }}
-                                                    >
-                                                        Typing...
-                                                    </Typography>
-                                                ) : draftMessage ? (
-                                                    <Typography
-                                                        sx={{
-                                                            fontSize: '14px',
-                                                            color: 'green',
-                                                            fontWeight: 'bold',
-                                                            fontFamily: 'Montserrat, sans-serif',
-                                                        }}
-                                                    >
-                                                        Draft: {displayDraftMessage}
-                                                    </Typography>
-                                                ) : lastMessage !== null ? (
-                                                    <div className="flex justify-between">
-                                                        <span className="flex items-center">
-                                                            {lastMessage.sender.id === userId ? (
-                                                                <>
-                                                                    <span className="mr-1 font-semibold">You:</span>
-                                                                    <span className="flex items-center">
-                                                                        {lastMessage.status && (
-                                                                            <span className="text-sm text-gray-600 mr-1" style={{ fontSize: '12px' }}>
-                                                                                {lastMessage.status.toLowerCase() === 'sent' && (
-                                                                                    <svg
-                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                        width="24"
-                                                                                        height="16"
-                                                                                        viewBox="0 0 24 24"
-                                                                                        fill="none"
-                                                                                        stroke="currentColor"
-                                                                                        strokeWidth="2"
-                                                                                        strokeLinecap="round"
-                                                                                        strokeLinejoin="round"
-                                                                                        className="tick-icon"
-                                                                                    >
-                                                                                        <polyline points="20 6 9 17 4 12" />
-                                                                                    </svg>
-                                                                                )}
-                                                                                {lastMessage.status.toLowerCase() === 'delivered' && (
-                                                                                    <svg
-                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                        width="24"
-                                                                                        height="16"
-                                                                                        viewBox="0 0 32 16"
-                                                                                        fill="none"
-                                                                                        stroke="currentColor"
-                                                                                        strokeWidth="2"
-                                                                                        strokeLinecap="round"
-                                                                                        strokeLinejoin="round"
-                                                                                        className="tick-icon mb-1"
-                                                                                    >
-                                                                                        <polyline points="20 6 9 17 4 12" />
-                                                                                        <polyline points="26 6 15 17 20 12" />
-                                                                                    </svg>
-                                                                                )}
-                                                                                {lastMessage.status.toLowerCase() === 'read' && (
-                                                                                    <svg
-                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                        width="24"
-                                                                                        height="16"
-                                                                                        viewBox="0 0 32 16"
-                                                                                        fill="none"
-                                                                                        stroke="currentColor"
-                                                                                        strokeWidth="2"
-                                                                                        strokeLinecap="round"
-                                                                                        strokeLinejoin="round"
-                                                                                        className="tick-icon text-green-500 mb-1 font-bold"
-                                                                                    >
-                                                                                        <polyline points="20 6 9 17 4 12" />
-                                                                                        <polyline points="26 6 15 17 20 12" />
-                                                                                    </svg>
-                                                                                )}
-                                                                            </span>
-                                                                        )}
-                                                                        <span className="truncate block max-w-full">
-                                                                            {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
-                                                                                <span className="flex items-center gap-1 text-gray-600">
-                                                                                    <CameraOutlined />
-                                                                                    {!lastMessage.caption && (
-                                                                                        <span>Photo</span>
-                                                                                    )}
-                                                                                    {lastMessage.caption && (
-                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px]">{lastMessage.caption}</span>
-                                                                                    )}
-                                                                                </span>
-                                                                            ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
-                                                                                <span className="flex items-center gap-1 text-gray-600">
-                                                                                    <PaperClipOutlined />
-                                                                                    {!lastMessage.caption && (
-                                                                                        <span>File</span>
-                                                                                    )}
-                                                                                    {lastMessage.caption && (
-                                                                                        <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
-                                                                                    )}
-                                                                                </span>
-                                                                            ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
-                                                                                <span className="flex items-center gap-1 text-gray-600">
-                                                                                    <AudioOutlined />
-                                                                                    <span>Audio</span>
-                                                                                </span>
-                                                                            ) : lastMessage.content.length > 100 ? (
-                                                                                lastMessage.content.slice(0, 100) + "..."
-                                                                            ) : (
-                                                                                lastMessage.content
-                                                                            )}
-                                                                        </span>
 
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                                <Typography
+                                                    noWrap
+                                                    sx={{
+                                                        fontWeight: 700,
+                                                        fontSize: '0.98rem',
+                                                        lineHeight: 1.05,
+                                                        mr: 1,
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                        flex: 1,
+                                                    }}
+                                                >
+                                                    {chatDetail?.customUsername || user.fullName}
+                                                </Typography>
+
+                                                <Typography
+                                                    sx={{
+                                                        fontSize: '0.82rem',
+                                                        color: 'text.secondary',
+                                                        whiteSpace: 'nowrap',
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    {lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}
+                                                </Typography>
+                                            </Box>
+
+                                            <Box sx={{ mt: 0.35, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ minWidth: 0, flex: 1 }}>
+                                                    {typingUsers[user.id] ? (
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: '13px',
+                                                                color: '#25D566',
+                                                                fontStyle: 'italic',
+                                                                fontWeight: 700,
+                                                            }}
+                                                            noWrap
+                                                        >
+                                                            Typing...
+                                                        </Typography>
+                                                    ) : draftMessage ? (
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: '13px',
+                                                                color: '#16a34a',
+                                                                fontStyle: 'italic',
+                                                                fontWeight: 600,
+                                                            }}
+                                                            noWrap
+                                                        >
+                                                            {`Draft: ${displayDraftMessage}`}
+                                                        </Typography>
+                                                    ) : lastMessage !== null ? (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            {lastMessage.sender?.id === userId && (
+                                                                <>
+                                                                    <Typography
+                                                                        sx={{
+                                                                            fontSize: '13px',
+                                                                            color: 'text.secondary',
+                                                                            fontWeight: 700,
+                                                                            mr: 0.3,
+                                                                        }}
+                                                                        noWrap
+                                                                    >
+                                                                        You:
+                                                                    </Typography>
+                                                                    <span className="text-sm text-gray-600 mr-1" style={{ fontSize: '12px' }}>
+                                                                        {lastMessage.status.toLowerCase() === 'sent' && (
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                width="24"
+                                                                                height="16"
+                                                                                viewBox="0 0 24 24"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                strokeWidth="2"
+                                                                                strokeLinecap="round"
+                                                                                strokeLinejoin="round"
+                                                                                className="tick-icon"
+                                                                            >
+                                                                                <polyline points="20 6 9 17 4 12" />
+                                                                            </svg>
+                                                                        )}
+                                                                        {lastMessage.status.toLowerCase() === 'delivered' && (
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                width="24"
+                                                                                height="16"
+                                                                                viewBox="0 0 32 16"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                strokeWidth="2"
+                                                                                strokeLinecap="round"
+                                                                                strokeLinejoin="round"
+                                                                                className="tick-icon mb-1"
+                                                                            >
+                                                                                <polyline points="20 6 9 17 4 12" />
+                                                                                <polyline points="26 6 15 17 20 12" />
+                                                                            </svg>
+                                                                        )}
+                                                                        {lastMessage.status.toLowerCase() === 'read' && (
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                width="24"
+                                                                                height="16"
+                                                                                viewBox="0 0 32 16"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                strokeWidth="2"
+                                                                                strokeLinecap="round"
+                                                                                strokeLinejoin="round"
+                                                                                className="tick-icon text-green-500 mb-1 font-bold"
+                                                                            >
+                                                                                <polyline points="20 6 9 17 4 12" />
+                                                                                <polyline points="26 6 15 17 20 12" />
+                                                                            </svg>
+                                                                        )}
                                                                     </span>
                                                                 </>
-                                                            ) : (
-                                                                <span className="truncate block max-w-full font-montserrat">
-                                                                    {lastMessage.content.startsWith(CHAT_UPLOAD_PREFIX) ? (
-                                                                        <span className="flex items-center gap-1 text-gray-600">
-                                                                            <CameraOutlined />
-                                                                            {!lastMessage.caption && (
-                                                                                <span>Photo</span>
-                                                                            )}
-                                                                            {lastMessage.caption && (
-                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
-                                                                            )}
-                                                                        </span>
-                                                                    ) : lastMessage.content.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
-                                                                        <span className="flex items-center gap-1 text-gray-600">
-                                                                            <PaperClipOutlined />
-                                                                            {!lastMessage.caption && (
-                                                                                <span>File</span>
-                                                                            )}
-                                                                            {lastMessage.caption && (
-                                                                                <span className="ml-1 text-gray-500 truncate max-w-[200px] font-montserrat">{lastMessage.caption}</span>
-                                                                            )}
-                                                                        </span>
-                                                                    ) : lastMessage.content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
-                                                                        <span className="flex items-center gap-1 text-gray-600">
-                                                                            <AudioOutlined />
-                                                                            <span>Audio</span>
-                                                                        </span>
-                                                                    ) : lastMessage.content.length > 100 ? (
-                                                                        lastMessage.content.slice(0, 100) + "..."
-                                                                    ) : (
-                                                                        lastMessage.content
-                                                                    )}
-                                                                </span>
+
 
                                                             )}
-                                                        </span>
-                                                        <span className="text-md text-gray-500 mr-4">{formatTimestamp(lastMessage.timestamp)}</span>
-                                                    </div>
-                                                ) : (
-                                                    'No messages yet'
-                                                )
-                                            }
-                                        />
+
+                                                            <Typography
+                                                                sx={{
+                                                                    fontSize: '13px',
+                                                                    color: 'text.secondary',
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap',
+                                                                    maxWidth: '100%',
+                                                                }}
+                                                                component="span"
+                                                            >
+                                                                {lastMessage.content?.startsWith(CHAT_UPLOAD_PREFIX) ? (
+                                                                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+                                                                        <CameraOutlined />
+                                                                        {!lastMessage.caption ? 'Photo' : (
+                                                                            <Box component="span" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                                {lastMessage.caption}
+                                                                            </Box>
+                                                                        )}
+                                                                    </Box>
+                                                                ) : lastMessage.content?.startsWith(CHAT_UPLOAD_FILE_PREFIX) ? (
+                                                                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+                                                                        <PaperClipOutlined />
+                                                                        {!lastMessage.caption ? 'File' : (
+                                                                            <Box component="span" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                                {lastMessage.caption}
+                                                                            </Box>
+                                                                        )}
+                                                                    </Box>
+                                                                ) : lastMessage.content?.startsWith(CHAT_UPLOAD_AUDIO_PREFIX) ? (
+                                                                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+                                                                        <AudioOutlined />
+                                                                        Audio
+                                                                    </Box>
+                                                                ) : lastMessage.content?.length > 100 ? (
+                                                                    `${lastMessage.content.slice(0, 100)}...`
+                                                                ) : (
+                                                                    lastMessage.content
+                                                                )}
+                                                            </Typography>
+                                                        </Box>
+                                                    ) : (
+                                                        <Typography sx={{ fontSize: '13px', color: 'text.secondary' }} noWrap>
+                                                            No messages yet
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+
+                                            </Box>
+                                        </Box>
                                     </ListItem>
                                 );
                             })
                         ) : (
-                            <Typography
-                                textAlign="center"
-                                sx={{
-                                    color: 'gray',
-                                    mt: 2,
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '1rem',
-                                    letterSpacing: '0.5px',
-                                    position: 'relative',
-                                    animation: 'fadeIn 0.6s ease-out, float 3s ease-in-out infinite',
-                                    '&::after': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        left: '50%',
-                                        bottom: 0,
-                                        transform: 'translateX(-50%)',
-                                        width: '50%',
-                                        height: '2px',
-                                        background: 'linear-gradient(90deg, #9b59b6, #3498db)',
-                                        borderRadius: '2px',
-                                        opacity: 0.5,
-                                        animation: 'pulse 2s infinite ease-in-out'
-                                    },
-                                    '@keyframes fadeIn': {
-                                        from: { opacity: 0, transform: 'translateY(10px)' },
-                                        to: { opacity: 1, transform: 'translateY(0)' }
-                                    },
-                                    '@keyframes float': {
-                                        '0%, 100%': { transform: 'translateY(0)' },
-                                        '50%': { transform: 'translateY(-4px)' }
-                                    },
-                                    '@keyframes pulse': {
-                                        '0%, 100%': { opacity: 0.3 },
-                                        '50%': { opacity: 1 }
-                                    }
-                                }}
-                            >
-                                {chatFilter === 'search' ? 'No results found' : 'No unread messages'}
-                            </Typography>
+                            <Box sx={{ py: 6, textAlign: 'center' }}>
+                                <Typography
+                                    textAlign="center"
+                                    sx={{
+                                        color: 'gray',
+                                        fontSize: '1rem',
+                                        letterSpacing: '0.3px',
+                                        px: 2,
+                                    }}
+                                >
+                                    {chatFilter === 'search' ? 'No results found' : 'No unread messages'}
+                                </Typography>
+                            </Box>
                         )}
                     </List>
                 )}
