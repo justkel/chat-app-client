@@ -130,7 +130,7 @@ const DashboardPage: React.FC = () => {
         if (content && content.startsWith(CHAT_UPLOAD_AUDIO_PREFIX)) {
             return (
                 <Typography sx={{ color: '#6b7280', fontSize: 13 }} noWrap>
-                    🎤 Voice note
+                    🎤 Voice Audio
                 </Typography>
             );
         }
@@ -228,8 +228,15 @@ const DashboardPage: React.FC = () => {
                     </Avatar>
 
                     <Box>
-                        <Typography sx={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>
-                            Welcome back, {userData?.getUserById?.fullName ?? 'friend'} 👋
+                        <Typography sx={{ fontSize: 28, fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Welcome back, {userData?.getUserById?.username ?? 'friend'}{' '}
+                            <motion.span
+                                animate={{ rotate: [0, 20, -20, 20, -20, 0] }}
+                                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                                style={{ display: 'inline-block' }}
+                            >
+                                👋
+                            </motion.span>
                         </Typography>
                         <Typography sx={{ color: '#475569', mt: 0.5 }}>
                             Snapshot of your world — numbers have never looked this pretty.
@@ -292,7 +299,13 @@ const DashboardPage: React.FC = () => {
                                 <Card sx={{ ...cardStyle, py: 2 }}>
                                     <Typography sx={cardTitleStyle('#2563eb')}>Active Chats</Typography>
                                     <Typography sx={{ color: '#475569', mb: 2 }}>One-line view — quick jump</Typography>
-                                    <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1 }}>
+                                    <Stack direction="row" spacing={1} sx={{
+                                        overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': {
+                                            display: 'none',
+                                        },
+                                        '-ms-overflow-style': 'none',
+                                        'scrollbar-width': 'none',
+                                    }}>
                                         {activeChats.length === 0 && (
                                             <Chip icon={<ChatBubbleIcon />} label="No active chats" variant="outlined" />
                                         )}
@@ -300,7 +313,7 @@ const DashboardPage: React.FC = () => {
                                             <Chip
                                                 key={c.id}
                                                 avatar={<Avatar src={c.profilePicture ? `http://localhost:5002${c.profilePicture}` : undefined} />}
-                                                label={`${c.firstName} ${c.lastName}`}
+                                                label={`${c.firstName}`}
                                                 clickable
                                                 variant="filled"
                                                 sx={{
