@@ -9,6 +9,8 @@ import {
     Tooltip,
     CircularProgress,
     Chip,
+    Alert,
+    Snackbar,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import InboxIcon from '@mui/icons-material/Inbox';
@@ -51,14 +53,38 @@ const DashboardPage: React.FC = () => {
         }
     }, [user]);
 
-    const { data: userData, loading: userLoading } = useGetUserById(userId!);
-    const { data: allContactsData, loading: allContactsLoading } = useGetAcceptedChatUsersAll(userId);
-    const { data: activeChatsData, loading: activeChatsLoading } = useGetAcceptedChatUsers(userId);
-    const { data: recentMessagesData, loading: recentMessagesLoading } = useGetRecentConversationsLastMessages(userId);
-    const { data: unreadSummaryData } = useGetUnreadSummary(userId ? Number(userId) : null);
-    const { data: pendingRequestsData } = useGetPendingRequestSummary(userId ? Number(userId) : null);
-    const { data: blockedUsersData } = useGetBlockedUsersCount(userId ? Number(userId) : null);
-    const { data: messageStatsData } = useGetMessageStats(userId ? Number(userId) : null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'info',
+    });
+
+    const { data: userData, loading: userLoading, refetch: refetchUser } = useGetUserById(userId!);
+    const { data: allContactsData, loading: allContactsLoading, refetch: refetchAllContacts } = useGetAcceptedChatUsersAll(userId);
+    const { data: activeChatsData, loading: activeChatsLoading, refetch: refetchActiveContacts } = useGetAcceptedChatUsers(userId);
+    const { data: recentMessagesData, loading: recentMessagesLoading, refetch: refetchRecentMessages } = useGetRecentConversationsLastMessages(userId);
+    const { data: unreadSummaryData, refetch: refetchUnread } = useGetUnreadSummary(userId ? Number(userId) : null);
+    const { data: pendingRequestsData, refetch: refetchPending } = useGetPendingRequestSummary(userId ? Number(userId) : null);
+    const { data: blockedUsersData, refetch: refetchBlocked } = useGetBlockedUsersCount(userId ? Number(userId) : null);
+    const { data: messageStatsData, refetch: refetchMessageStats } = useGetMessageStats(userId ? Number(userId) : null);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const refreshAll = async () => {
+        setRefreshing(true);
+        await Promise.all([
+            refetchUser?.(),
+            refetchAllContacts?.(),
+            refetchActiveContacts?.(),
+            refetchRecentMessages?.(),
+            refetchUnread?.(),
+            refetchPending?.(),
+            refetchBlocked?.(),
+            refetchMessageStats?.(),
+        ]);
+        setRefreshing(false);
+        setSnackbar({ open: true, message: 'Dashboard refreshed', severity: 'info' });
+    };
 
     const loading = allContactsLoading || activeChatsLoading || recentMessagesLoading || userLoading;
 
@@ -211,37 +237,82 @@ const DashboardPage: React.FC = () => {
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'space-between',
                         gap: 3,
                         mb: 6,
-                        p: 3,
+                        p: { xs: 2.5, md: 3.5 },
                         borderRadius: 3,
-                        backdropFilter: 'blur(12px)',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.15))',
-                        boxShadow: '0 6px 24px rgba(16,24,40,0.08)',
+                        backdropFilter: 'blur(14px)',
+                        background: 'rgba(255,255,255,0.4)',
+                        boxShadow: '0 8px 30px rgba(16,24,40,0.06)',
+                        fontFamily: 'Montserrat, Inter, sans-serif',
                     }}
                 >
-                    <Avatar
-                        src={userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : undefined}
-                        sx={{ width: 84, height: 84, mr: 2, bgcolor: '#eef2ff', color: '#3730a3', fontWeight: 800 }}
-                    >
-                        {!userData?.getUserById?.profilePicture && (userData?.getUserById?.fullName?.charAt(0).toUpperCase() || <AccountCircle />)}
-                    </Avatar>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Avatar
+                            src={userData?.getUserById?.profilePicture ? `http://localhost:5002${userData.getUserById.profilePicture}` : undefined}
+                            sx={{ width: 82, height: 82, bgcolor: '#eef2ff', color: '#3730a3', fontWeight: 800 }}
+                        >
+                            {!userData?.getUserById?.profilePicture &&
+                                (userData?.getUserById?.fullName?.charAt(0).toUpperCase() || <AccountCircle />)}
+                        </Avatar>
 
-                    <Box>
-                        <Typography sx={{ fontSize: 28, fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1 }}>
-                            Welcome back, {userData?.getUserById?.username ?? 'friend'}{' '}
-                            <motion.span
-                                animate={{ rotate: [0, 20, -20, 20, -20, 0] }}
-                                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                                style={{ display: 'inline-block' }}
+                        <Box>
+                            <Typography
+                                sx={{
+                                    fontSize: 27,
+                                    fontWeight: 900,
+                                    color: '#0f172a',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
                             >
-                                👋
-                            </motion.span>
-                        </Typography>
-                        <Typography sx={{ color: '#475569', mt: 0.5 }}>
-                            Snapshot of your world — numbers have never looked this pretty.
-                        </Typography>
+                                Welcome back, {userData?.getUserById?.username ?? 'friend'}{' '}
+                                <motion.span
+                                    animate={{ rotate: [0, 15, -10, 15, -10, 0] }}
+                                    transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+                                    style={{ display: 'inline-block' }}
+                                >
+                                    👋
+                                </motion.span>
+                            </Typography>
+
+                            <Typography
+                                sx={{
+                                    color: '#475569',
+                                    mt: 0.3,
+                                    fontSize: 14.5,
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
+                            >
+                                Snapshot of your world — everything at a glance.
+                            </Typography>
+                        </Box>
                     </Box>
+
+                    <Tooltip title="Refresh Dashboard">
+                        <motion.button
+                            onClick={refreshAll}
+                            disabled={refreshing}
+                            style={{
+                                borderRadius: 40,
+                                padding: '10px 20px',
+                                fontWeight: 700,
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#fff',
+                                fontFamily: 'Montserrat, sans-serif',
+                                background: 'linear-gradient(90deg,#7c3aed,#60a5fa)',
+                                boxShadow: '0 10px 30px rgba(99,102,241,0.25)',
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: refreshing ? 1 : 1.06 }}
+                        >
+                            {refreshing ? 'Refreshing...' : 'Refresh'}
+                        </motion.button>
+                    </Tooltip>
                 </Box>
 
                 <Grid container spacing={4}>
@@ -531,6 +602,22 @@ const DashboardPage: React.FC = () => {
                     </Grid>
                 </Grid>
             </Box>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={2500}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity as any}
+                    variant="filled"
+                    sx={{ fontWeight: 700, letterSpacing: 0.3 }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Dashboard>
 
     );

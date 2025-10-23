@@ -13,16 +13,16 @@ const GET_RECENT_CONVERSATIONS_LAST_MESSAGES = gql`
 `;
 
 export const useGetRecentConversationsLastMessages = (userId: string | null) => {
-  const { data, loading, error } = useQuery(GET_RECENT_CONVERSATIONS_LAST_MESSAGES, {
+  const { data, loading, error, refetch } = useQuery(GET_RECENT_CONVERSATIONS_LAST_MESSAGES, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };
 
 const GET_UNREAD_SUMMARY = gql`
-  query GetUnreadSummary($userId: Int!) {
+  query GetUnreadSummary($userId: ID!) {
     getUnreadSummary(userId: $userId) {
       totalUnreadMessages
       unreadConversationCount
@@ -31,12 +31,12 @@ const GET_UNREAD_SUMMARY = gql`
 `;
 
 export const useGetUnreadSummary = (userId: number | null) => {
-  const { data, loading, error } = useQuery(GET_UNREAD_SUMMARY, {
+  const { data, loading, error, refetch } = useQuery(GET_UNREAD_SUMMARY, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };
 
 const GET_PENDING_REQUEST_SUMMARY = gql`
@@ -49,12 +49,12 @@ const GET_PENDING_REQUEST_SUMMARY = gql`
 `;
 
 export const useGetPendingRequestSummary = (userId: number | null) => {
-  const { data, loading, error } = useQuery(GET_PENDING_REQUEST_SUMMARY, {
+  const { data, loading, error, refetch } = useQuery(GET_PENDING_REQUEST_SUMMARY, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };
 
 const GET_BLOCKED_USERS_COUNT = gql`
@@ -66,12 +66,12 @@ const GET_BLOCKED_USERS_COUNT = gql`
 `;
 
 export const useGetBlockedUsersCount = (ownerId: number | null) => {
-  const { data, loading, error } = useQuery(GET_BLOCKED_USERS_COUNT, {
+  const { data, loading, error, refetch } = useQuery(GET_BLOCKED_USERS_COUNT, {
     variables: { ownerId },
     skip: !ownerId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };
 
 export const GET_MESSAGE_STATS = gql`
@@ -84,10 +84,10 @@ export const GET_MESSAGE_STATS = gql`
 `;
 
 export const useGetMessageStats = (userId: number | null) => {
-  const { data, loading, error } = useQuery(GET_MESSAGE_STATS, {
+  const { data, loading, error, refetch } = useQuery(GET_MESSAGE_STATS, {
     variables: { userId },
     skip: !userId,
   });
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };
