@@ -100,8 +100,8 @@ const InfoCard: React.FC<Props> = ({
     };
 
     return (
-        <div className="fixed inset-0 h-screen w-screen bg-black/50 flex justify-center z-[9999]">
-            <div className="relative bg-gray-100 p-3 rounded-lg shadow-md w-screen mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
+        <div className="absolute inset-0 h-screen w-full bg-black/50 flex justify-center z-[9999] font-montserrat">
+            <div className="relative bg-gray-100 p-3 rounded-lg shadow-md w-full mx-auto text-sm text-gray-700 opacity-100 pointer-events-auto">
                 <button
                     onClick={closeInfoCard}
                     className="absolute top-2 right-2 sm:top-4 sm:right-4 text-xl sm:text-2xl text-gray-500 mr-10 hover:text-gray-700 transition duration-200 ease-in-out"
