@@ -144,9 +144,9 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
   return (
     <div className='z-10'>
       <div className="relative h-full flex flex-col">
-        <div className="fixed top-0 left-14 right-0 lg:left-[42.9%] bg-white p-4 shadow-md flex items-center justify-between">
+        <div className="fixed top-0 left-14 right-0 lg:left-[45.5%] xl:left-[43.5%] xxl:left-[42.9%] bg-white p-4 shadow-md flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <ArrowLeftOutlined onClick={handleBackNavigation} className="text-xl cursor-pointer" />
+            <ArrowLeftOutlined onClick={handleBackNavigation} className="lg:hidden text-xl cursor-pointer" />
             <Avatar src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`} />
             <div className="flex flex-col">
               <span className="font-semibold">
