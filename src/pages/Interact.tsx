@@ -1594,7 +1594,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   // if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <div>
+    <div className="flex flex-col h-full overflow-hidden">
       <InfoCard
         showInfoCard={showInfoCard}
         closeInfoCard={closeInfoCard}
@@ -1627,7 +1627,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
       />
 
       {showCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div ref={cardRef} className="absolute top-44 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
             <ul className="space-y-8">
               {selectedMessages.length === 1 && (() => {
@@ -1718,7 +1718,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
         userId={userId ?? null}
       />
 
-      <div className="flex flex-col h-screen pt-12">
+      <div className="flex flex-col h-screen pt-12 z-0">
         <div className="flex-1 p-4 overflow-hidden"
           style={{
             backgroundImage: `url(${backgroundImage})`,
@@ -2878,7 +2878,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
               )}
 
               {newMessageCount === 0 && !isAtBottom && messages.length !== 0 && (
-                <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-10">
                   <button
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
