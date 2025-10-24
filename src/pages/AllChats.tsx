@@ -19,6 +19,7 @@ import { CameraOutlined, PaperClipOutlined, AudioOutlined, ReloadOutlined } from
 import { io } from 'socket.io-client';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 import { useSearchAcceptedUsers } from '../hooks/useSearchAcceptedUsers';
+import { useGetUnreadConversationCount } from '../hooks/useGetUnreadMessagesCount';
 const socket = io('http://localhost:5002', {
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -57,6 +58,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const { data: lastMessagesData, loading: lastMessagesLoading } = useGetLastMessages(Number(userId), otherUserIds);
 
     const { data: unreadMessageCountsData, loading: unreadCountsLoading } = useGetUnreadMessagesCount(userId);
+    const { unreadConversationCount, refetch: refetchUnreadTotal } = useGetUnreadConversationCount(userId);
+
+    const [unreadTotal, setUnreadTotal] = useState(0);
+
+    useEffect(() => {
+        if (typeof unreadConversationCount === "number") {
+            setUnreadTotal(unreadConversationCount);
+        }
+    }, [unreadConversationCount]);
 
     const lastMessages = useMemo(() => {
         return lastMessagesData?.getLastMessages || [];
@@ -67,6 +77,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
             await Promise.all([
                 refetchAll(),
                 refetch(),
+                refetchUnreadTotal(),
             ]);
         } catch (error) {
             console.error("Failed to refresh chats:", error);
@@ -83,6 +94,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                 {}
             );
             setUnreadCounts(unreadCountMap);
+
+            // Count how many users have unread > 0
+            const totalUnreadChats = (Object.values(unreadCountMap) as number[])
+                .filter((count) => count > 0).length;
+
+            setUnreadTotal(totalUnreadChats);
         }
     }, [unreadMessageCountsData]);
 
@@ -168,6 +185,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                     ...prev,
                     [message.sender.id]: (prev[message.sender.id] || 0) + 1,
                 }));
+
+                setUnreadTotal(prev => prev + 1);
             }
         });
 
@@ -247,6 +266,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                     ...prev,
                     [id]: 0,
                 }));
+
+                setUnreadTotal(prev => Math.max(prev - 1, 0));
             }
         });
 
@@ -481,6 +502,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                         { key: 'unread', label: 'Unread' },
                     ].map(({ key, label }) => {
                         const isActive = chatFilter === key;
+                        const showBadge = key === 'unread' && unreadTotal > 0;
                         return (
                             <Paper
                                 key={key}
@@ -502,9 +524,28 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                     transition: 'all 0.24s ease',
                                 }}
                             >
-                                <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
-                                    {label}
-                                </Typography>
+                                {showBadge ? (
+                                    <Badge
+                                        badgeContent={unreadTotal}
+                                        color="error"
+                                        sx={{
+                                            '& .MuiBadge-badge': {
+                                                fontFamily: 'Montserrat, sans-serif',
+                                                fontSize: '0.65rem',
+                                                minWidth: '18px',
+                                                height: '18px',
+                                            }
+                                        }}
+                                    >
+                                        <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+                                            {label}
+                                        </Typography>
+                                    </Badge>
+                                ) : (
+                                    <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+                                        {label}
+                                    </Typography>
+                                )}
                             </Paper>
                         );
                     })}

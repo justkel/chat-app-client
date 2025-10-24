@@ -18,3 +18,23 @@ export const useGetUnreadMessagesCount = (userId: string | null) => {
 
   return { data, loading, error };
 };
+
+const GET_UNREAD_CONVERSATION_COUNT = gql`
+  query GetUnreadConversationCount($userId: ID!) {
+    getUnreadConversationCount(userId: $userId)
+  }
+`;
+
+export const useGetUnreadConversationCount = (userId: string | null) => {
+  const { data, loading, error, refetch } = useQuery(GET_UNREAD_CONVERSATION_COUNT, {
+    variables: { userId },
+    skip: !userId,
+  });
+
+  return {
+    unreadConversationCount: data?.getUnreadConversationCount ?? 0,
+    loading,
+    error,
+    refetch,
+  };
+};
