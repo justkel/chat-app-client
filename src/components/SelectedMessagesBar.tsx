@@ -36,8 +36,8 @@ const SelectedMessagesBar: React.FC<SelectedMessagesBarProps> = ({
   const shouldUnstar = allStarred;
 
   return (
-    <div className="bg-white p-4 shadow-md absolute top-0 left-0 w-full z-50">
-      <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-4">
+    <div className="bg-white p-4 shadow-md relative h-full flex flex-col z-50">
+      <div className="fixed top-0 left-14 right-0 md:left-[46%] lg:left-[42.9%] bg-white p-4 shadow-md flex items-center justify-between gap-y-4 gap-x-4">
         <div className="flex items-center">
           <ArrowLeftOutlined className="text-2xl cursor-pointer" onClick={onBack} />
         </div>
