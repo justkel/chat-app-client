@@ -6,7 +6,6 @@ import {
     CameraOutlined,
     AudioOutlined,
     FileOutlined,
-    CalendarOutlined,
     SendOutlined,
 } from "@ant-design/icons";
 
@@ -126,35 +125,6 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
         setIsModalVisible(false);
     };
 
-    // const startRecording = async () => {
-    //     try {
-    //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    //         const recorder = new MediaRecorder(stream);
-    //         setMediaRecorder(recorder);
-    //         audioChunksRef.current = [];
-
-    //         recorder.ondataavailable = (e) => {
-    //             audioChunksRef.current.push(e.data);
-    //         };
-
-    //         recorder.onstop = () => {
-    //             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-    //             const audioFile = new File([audioBlob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
-
-    //             const fakeEvent = {
-    //                 target: { files: [audioFile] },
-    //             } as unknown as React.ChangeEvent<HTMLInputElement>;
-
-    //             handleAudioChange(fakeEvent);
-    //         };
-
-    //         recorder.start();
-    //         setIsRecording(true);
-    //     } catch (error) {
-    //         console.error("Failed to start recording:", error);
-    //     }
-    // };
-
     const toggleRecording = async () => {
         if (isRecording) {
             stopRecording();
@@ -195,7 +165,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
 
 
     return (
-        <div className="flex items-center justify-between max-w-4xl mx-auto p-4 space-x-4">
+        <div className="flex items-center justify-between max-w-xl p-4 ml-10 sm:ml-20 lg:ml-0 xl:ml-52 space-x-4">
             {!isOtherUserBlocked && (
                 <TextArea
                     value={newMessage}
@@ -210,11 +180,51 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     }
                     aria-label="Message Input"
                     className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
-                    rows={2}
+                    rows={1}
                     disabled={selectedImages.length > 0}
                 />
+            )}
 
+            {!isOtherUserBlocked && (
+                <div className="flex items-center gap-2 shrink-0">
 
+                    <Button
+                        shape="circle"
+                        icon={<PlusOutlined />}
+                        onClick={() => setIsModalVisible(true)}
+                        className="!flex !items-center !justify-center border-none hover:bg-gray-100"
+                    />
+
+                    <button
+                        onClick={() => setIsEmojiPickerVisible((prev: boolean) => !prev)}
+                        className="text-xl hover:bg-gray-100 p-2 rounded-full transition"
+                    >
+                        😊
+                    </button>
+
+                    <button
+                        onClick={toggleRecording}
+                        className={`p-2 rounded-full transition lg:text-2xl ${isRecording ? "bg-red-100 text-red-600" : "hover:bg-gray-100"
+                            }`}
+                    >
+                        <AudioOutlined />
+                    </button>
+
+                    {selectedImages.length === 0 && (
+                        <button
+                            onClick={sendMessage}
+                            disabled={!newMessage.trim()}
+                            className={`flex items-center gap-1 bg-green-500 text-white px-4 py-2 rounded-full text-sm md:text-base font-medium transition shadow-sm ${newMessage.trim()
+                                ? "hover:bg-green-600 active:scale-95"
+                                : "opacity-40 cursor-not-allowed"
+                                }`}
+                        >
+                            <SendOutlined />
+                            Send
+                        </button>
+                    )}
+
+                </div>
             )}
 
             <div className="relative">
@@ -226,15 +236,6 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     className="hidden"
                     onChange={handleImageChange}
                 />
-
-                {/* <input
-                    ref={cameraInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="user"
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }}
-                /> */}
 
                 <input
                     type="file"
@@ -252,17 +253,8 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     onChange={handleAudioChange}
                 />
 
-                {!isOtherUserBlocked && (
-                    <Button
-                        shape="circle"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsModalVisible(true)}
-                        className="flex items-center justify-center shadow-md"
-                    />
-                )}
-
                 <Modal
-                    title={<span className="text-lg font-semibold">Choose upload method</span>}
+                    title={<span className="text-lg font-semibold font-montserrat">Choose upload method</span>}
                     open={isModalVisible}
                     onCancel={() => setIsModalVisible(false)}
                     footer={null}
@@ -278,36 +270,36 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                             <div className="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <PictureOutlined className="text-xl" />
                             </div>
-                            <span className="text-sm font-medium">Gallery</span>
+                            <span className="text-sm font-medium font-montserrat">Gallery</span>
                         </div>
 
                         <div onClick={openCameraModal} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
                             <div className="bg-green-100 text-green-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <CameraOutlined className="text-xl" />
                             </div>
-                            <span className="text-sm font-medium">Camera</span>
+                            <span className="text-sm font-medium font-montserrat">Camera</span>
                         </div>
 
                         <div onClick={triggerAudioUpload} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
                             <div className="bg-purple-100 text-purple-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <AudioOutlined className="text-xl" />
                             </div>
-                            <span className="text-sm font-medium">Audio</span>
+                            <span className="text-sm font-medium font-montserrat">Audio</span>
                         </div>
 
                         <div onClick={triggerFileUpload} className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md">
                             <div className="bg-yellow-100 text-yellow-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <FileOutlined className="text-xl" />
                             </div>
-                            <span className="text-sm font-medium">File</span>
+                            <span className="text-sm font-medium font-montserrat">File</span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md col-span-2">
+                        {/* <div className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-100 cursor-pointer transition-shadow shadow-sm hover:shadow-md col-span-2">
                             <div className="bg-red-100 text-red-600 rounded-full w-12 h-12 flex items-center justify-center mb-2">
                                 <CalendarOutlined className="text-xl" />
                             </div>
                             <span className="text-sm font-medium">Calendar</span>
-                        </div>
+                        </div> */}
                     </div>
                 </Modal>
 
@@ -332,36 +324,6 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
                     </div>
                 </Modal>
             </div>
-
-            {!isOtherUserBlocked && (
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setIsEmojiPickerVisible((prev) => !prev)}
-                        className="flex items-center justify-center bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg"
-                    >
-                        <span role="img" aria-label="emoji" className="text-xl">😊</span>
-                    </button>
-
-                    <button
-                        onClick={toggleRecording}
-                        className={`flex items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-gray-200'} w-10 h-10 rounded-full hover:bg-gray-300 shadow-lg transition`}
-                        title={isRecording ? "Click to stop recording" : "Click to start recording"}
-                    >
-                        <AudioOutlined className="text-xl text-black" />
-                    </button>
-
-                    {selectedImages.length === 0 && (
-                        <button
-                            onClick={sendMessage}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition"
-                            disabled={!newMessage.trim()}
-                        >
-                            <SendOutlined style={{ fontSize: '20px' }} />
-                            Send
-                        </button>
-                    )}
-                </div>
-            )}
         </div>
     );
 };
