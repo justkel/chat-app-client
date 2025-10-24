@@ -6,6 +6,7 @@ import {
     InputBase,
     IconButton,
     Box,
+    Tooltip,
 } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +15,7 @@ import { useGetLastMessages } from '../hooks/useGetLastMessage';
 import { useGetUnreadMessagesCount } from '../hooks/useGetUnreadMessagesCount';
 import { useGetChatUserDetails } from '../hooks/useGetOtherUserdetails';
 import { List, ListItem, ListItemAvatar, Avatar, Paper, Typography, Badge } from '@mui/material';
-import { CameraOutlined, PaperClipOutlined, AudioOutlined } from '@ant-design/icons';
+import { CameraOutlined, PaperClipOutlined, AudioOutlined, ReloadOutlined } from '@ant-design/icons';
 import { io } from 'socket.io-client';
 import { CHAT_UPLOAD_PREFIX, CHAT_UPLOAD_FILE_PREFIX, CHAT_UPLOAD_AUDIO_PREFIX } from '../utilss/types';
 import { useSearchAcceptedUsers } from '../hooks/useSearchAcceptedUsers';
@@ -44,7 +45,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const [searchTerm, setSearchTerm] = useState('');
 
     const { data, loading, refetch, error } = useGetAcceptedChatUsers(userId);
-    const { data: dataAll, loading: loadingAll, error: err } = useGetAcceptedChatUsersAll(userId);
+    const { data: dataAll, refetch: refetchAll, loading: loadingAll, error: err } = useGetAcceptedChatUsersAll(userId);
     const { data: searchData } = useSearchAcceptedUsers(userId, searchTerm);
 
     const otherUserIds = useMemo(() => {
@@ -60,6 +61,17 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const lastMessages = useMemo(() => {
         return lastMessagesData?.getLastMessages || [];
     }, [lastMessagesData?.getLastMessages]);
+
+    const refreshChats = async () => {
+        try {
+            await Promise.all([
+                refetchAll(),
+                refetch(),
+            ]);
+        } catch (error) {
+            console.error("Failed to refresh chats:", error);
+        }
+    };
 
     useEffect(() => {
         if (unreadMessageCountsData) {
@@ -463,38 +475,52 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                 mb={2}
                 sx={{ px: 2 }}
             >
-                {[
-                    { key: 'all', label: 'All Chats' },
-                    { key: 'unread', label: 'Unread' },
-                ].map(({ key, label }) => {
-                    const isActive = chatFilter === key;
-                    return (
-                        <Paper
-                            key={key}
-                            elevation={0}
-                            onClick={() => {
-                                setChatFilter(key as any);
-                                if (key !== 'search') setSearchTerm('');
-                            }}
-                            sx={{
-                                cursor: 'pointer',
-                                px: 2.2,
-                                py: 0.7,
-                                borderRadius: '20px',
-                                border: isActive ? '1.8px solid #2980b9' : '1px solid rgba(0,0,0,0.08)',
-                                background: isActive ? 'rgba(41,128,185,0.06)' : 'transparent',
-                                color: isActive ? '#2980b9' : '#333',
-                                fontWeight: 600,
-                                fontSize: '0.95rem',
-                                transition: 'all 0.24s ease',
-                            }}
-                        >
-                            <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
-                                {label}
-                            </Typography>
-                        </Paper>
-                    );
-                })}
+                <Box display="flex" justifyContent="center" alignItems="center" gap={1.5}>
+                    {[
+                        { key: 'all', label: 'All Chats' },
+                        { key: 'unread', label: 'Unread' },
+                    ].map(({ key, label }) => {
+                        const isActive = chatFilter === key;
+                        return (
+                            <Paper
+                                key={key}
+                                elevation={0}
+                                onClick={() => {
+                                    setChatFilter(key as any);
+                                    if (key !== 'search') setSearchTerm('');
+                                }}
+                                sx={{
+                                    cursor: 'pointer',
+                                    px: 2.2,
+                                    py: 0.7,
+                                    borderRadius: '20px',
+                                    border: isActive ? '1.8px solid #2980b9' : '1px solid rgba(0,0,0,0.08)',
+                                    background: isActive ? 'rgba(41,128,185,0.06)' : 'transparent',
+                                    color: isActive ? '#2980b9' : '#333',
+                                    fontWeight: 600,
+                                    fontSize: '0.95rem',
+                                    transition: 'all 0.24s ease',
+                                }}
+                            >
+                                <Typography variant="subtitle2" sx={{ fontFamily: 'Montserrat, sans-serif' }}>
+                                    {label}
+                                </Typography>
+                            </Paper>
+                        );
+                    })}
+                </Box>
+
+                <Tooltip
+                    title={<span className="font-montserrat">Refresh Chats</span>}
+                    placement="right"
+                >
+                    <IconButton onClick={refreshChats}>
+                        <ReloadOutlined
+                            spin={loading}
+                            style={{ fontSize: 20, color: '#2980b9' }}
+                        />
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <Paper elevation={3} sx={{ padding: { xs: 1, sm: 2 }, mx: { xs: 1, sm: 2 }, borderRadius: 2 }}>
