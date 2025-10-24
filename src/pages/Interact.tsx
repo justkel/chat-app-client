@@ -1733,7 +1733,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
             className="overflow-y-auto scrollbar-hide h-[80%] pr-2"
             onScroll={handleScroll}
           >
-            <div className="space-y-8 pb-32">
+            <div className="space-y-8 pb-32 pt-8">
               <div>
                 {Object.keys(groupedMessages).map((timestamp, index) => (
                   <div key={index}>
