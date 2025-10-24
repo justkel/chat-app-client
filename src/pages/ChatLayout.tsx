@@ -27,14 +27,14 @@ const ChatLayout: React.FC = () => {
         <div className="flex h-screen overflow-hidden">
             <Dashboard />
 
-            <div className="hidden 900:block w-2/5 border-r h-full overflow-y-auto">
+            <div className="hidden lg:block w-0 lg:w-2/5 border-r h-full overflow-y-auto">
                 <AllChats
                     onSelectUser={handleSelectUser}
                     selectedUserId={selectedUserId}
                 />
             </div>
 
-            <div className="w-full md:w-3/5 flex-1 bg-gray-50 relative h-full overflow-hidden">
+            <div className="w-full lg:w-3/5 flex-1 bg-gray-50 relative h-full overflow-hidden">
                 {selectedUserId ? (
                     <div className="relative h-full overflow-hidden">
                         <InteractPage otherUserId={selectedUserId} onSelectUser={handleSelectUser} />
