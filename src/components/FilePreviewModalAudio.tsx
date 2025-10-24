@@ -1,4 +1,5 @@
 import { CloseOutlined, SendOutlined } from "@ant-design/icons";
+import ReactDOM from "react-dom";
 
 type FilePreviewModalAudioProps = {
   selectedFile: File | null;
@@ -12,7 +13,7 @@ export const FilePreviewModalAudio: React.FC<FilePreviewModalAudioProps> = ({
   onSend,
 }) => {
     if (!selectedFile) return null;
-  return (
+  return ReactDOM.createPortal (
     <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80 overflow-y-auto pt-32 pb-10 px-4 flex justify-center">
       <div className="bg-white rounded-xl p-6 max-w-2xl w-full shadow-xl relative">
         <button
@@ -61,6 +62,7 @@ export const FilePreviewModalAudio: React.FC<FilePreviewModalAudioProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
