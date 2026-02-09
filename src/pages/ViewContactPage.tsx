@@ -1,44 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
-import { useOtherUserDetails } from '../hooks/useGetOtherUserContactDetails';
-import { useChatSettings } from '../hooks/useGetOtherUserContactDetails';
+import { useOtherUserDetails, useChatSettings } from '../hooks/useGetOtherUserContactDetails';
 import { Avatar, Spin } from 'antd';
-import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, MoreOutlined, EditOutlined } from '@ant-design/icons';
 
 const ViewContactPage: React.FC = () => {
     const { userId, otherUserId } = useParams();
     const { user } = useAuth();
-    const [showCard, setShowCard] = useState(false);
     const navigate = useNavigate();
+    const [showCard, setShowCard] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const toggleCard = () => setShowCard(!showCard);
+    const toggleCard = () => setShowCard(prev => !prev);
 
     const { data: userDetails, loading: userLoading, error: userError } = useOtherUserDetails(userId!, otherUserId!);
     const { data: chatSettings, loading: chatLoading, error: chatError } = useChatSettings(userId!, otherUserId!);
 
     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowCard(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
         if (user) {
             try {
                 const decodedToken: any = jwtDecode(user.token);
-
                 if (decodedToken.sub !== Number(userId)) {
-                    console.warn('User ID does not match the decoded token. Redirecting...');
                     navigate('/chats');
                 }
-            } catch (error) {
-                console.error('Error decoding token:', error);
+            } catch {
                 navigate('/login');
             }
         }
     }, [user, userId, navigate]);
 
-    if (userLoading || chatLoading) return <Spin className="mt-8" />;
-    if (userError || chatError) {
-        console.error(userError || chatError);
-        return <div>Error loading data.</div>;
-    }
+    if (userLoading || chatLoading) return <Spin className="mt-8" size="large" />;
+    if (userError || chatError) return <div>Error loading data.</div>;
 
     const handleEditContact = () => {
         if (userId && otherUserId) {
@@ -46,50 +50,57 @@ const ViewContactPage: React.FC = () => {
         }
     };
 
-    const handleBackNavigation = () => {
-        navigate('/chats');
-    }
+    const handleBackNavigation = () => navigate('/chats');
 
     return (
-        <div className="p-8 min-h-screen font-montserrat relative bg-gradient-to-br from-gray-50 via-gray-100 to-white shadow-lg rounded-2xl">
-            <ArrowLeftOutlined
-                className="absolute top-6 left-6 text-2xl cursor-pointer"
-                onClick={handleBackNavigation}
-            />
-            <MoreOutlined className="absolute top-6 right-6 text-2xl cursor-pointer" onClick={toggleCard} />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white font-montserrat relative flex flex-col items-center p-4 md:p-8">
 
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-16 rounded-3xl shadow-2xl w-[90%] max-w-lg mx-auto text-center mt-16 relative transform transition-all hover:scale-105 hover:shadow-3xl">
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-white p-2 rounded-full shadow-lg">
-                        <Avatar
-                            size={200}
-                            src={`http://localhost:5002${userDetails?.profilePicture}`}
-                            className="mx-auto"
-                        />
-                    </div>
+            <div className="w-full flex justify-between items-center mb-6">
+                <ArrowLeftOutlined
+                    className="text-2xl text-gray-700 hover:text-gray-900 cursor-pointer transition-colors"
+                    onClick={handleBackNavigation}
+                />
+                <MoreOutlined
+                    className="text-2xl text-gray-700 hover:text-gray-900 cursor-pointer transition-colors"
+                    onClick={toggleCard}
+                />
+            </div>
+
+            <div className="relative w-full max-w-md p-8 rounded-3xl bg-white/40 backdrop-blur-md shadow-xl flex flex-col items-center transform transition-all hover:scale-105">
+
+                <div className="relative -mt-24">
+                    <Avatar
+                        size={160}
+                        src={`http://localhost:5002${userDetails?.profilePicture}`}
+                        className="border-4 border-white shadow-lg"
+                    />
                 </div>
-                <div className="mt-40">
-                    <h1 className="text-4xl font-bold text-blue-700 hover:text-blue-900 transition-colors">
-                        {chatSettings?.customUsername || userDetails?.username}
-                    </h1>
-                    {userDetails?.phoneNumber && (
-                        <p className="text-lg mt-4 text-gray-600 hover:text-gray-800 transition-colors">
-                            📞 {userDetails?.phoneNumber}
-                        </p>
-                    )}
-                </div>
-                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-500 rounded-bl-full blur-2xl opacity-50 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-300 to-blue-500 rounded-tr-full blur-2xl opacity-50 pointer-events-none"></div>
+
+                <h1 className="mt-6 text-3xl font-bold text-gray-900">
+                    {chatSettings?.customUsername || userDetails?.username}
+                </h1>
+
+                {userDetails?.phoneNumber && (
+                    <p className="mt-2 text-gray-700 text-lg">
+                        📞 {userDetails?.phoneNumber}
+                    </p>
+                )}
+
+                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-200/30 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-200/30 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
             {showCard && (
-                <div className="absolute top-4 right-4 bg-white shadow-md rounded-lg p-4 z-20 w-48">
-                    <ul className="space-y-8">
+                <div
+                    ref={dropdownRef}
+                    className="absolute top-20 right-6 bg-white/80 backdrop-blur-md shadow-lg rounded-xl p-4 z-20 w-48 transition-all"
+                >
+                    <ul className="space-y-4">
                         <li
-                            className="cursor-pointer hover:text-blue-500"
                             onClick={handleEditContact}
+                            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
                         >
-                            Edit Contact
+                            <EditOutlined /> Edit Contact
                         </li>
                     </ul>
                 </div>
