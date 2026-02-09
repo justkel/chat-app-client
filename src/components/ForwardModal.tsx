@@ -71,7 +71,6 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl w-[600px] relative flex flex-col">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <ArrowLeftOutlined
                         className="text-xl cursor-pointer"

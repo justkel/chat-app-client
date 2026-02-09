@@ -38,6 +38,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
     const { user } = useAuth();
     const [userId, setUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+    const [recordingUsers, setRecordingUsers] = useState<Record<string, boolean>>({});
     const [lastMessagesMap, setLastMessagesMap] = useState<Record<number, any>>({});
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
     const [draftMessages, setDraftMessages] = useState<Record<string, string>>({});
@@ -152,6 +153,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
         socket.on('userActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
             if (userId === uId) return;
             setTypingUsers((prev) => ({
+                ...prev,
+                [uId]: isActive,
+            }));
+        });
+
+        socket.on('userRecordingActivityUpdate', ({ userId: uId, isActive }: { userId: string; isActive: boolean }) => {
+            if (userId === uId) return;
+            setRecordingUsers((prev) => ({
                 ...prev,
                 [uId]: isActive,
             }));
@@ -274,6 +283,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
         // Cleanup listeners
         return () => {
             socket.off('userActivityUpdate');
+            socket.off('userRecordingActivityUpdate');
             socket.off('receiveMessage');
             socket.off('unreadCountReset');
             socket.off('updatedLastMessageForDelMe');
@@ -690,7 +700,19 @@ const ChatPage: React.FC<ChatPageProps> = ({ onSelectUser, selectedUserId }) => 
                                                         >
                                                             Typing...
                                                         </Typography>
-                                                    ) : draftMessage ? (
+                                                    ) : recordingUsers[user.id] ? (
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: '13px',
+                                                                color: '#25D566',
+                                                                fontStyle: 'italic',
+                                                                fontWeight: 700,
+                                                            }}
+                                                            noWrap
+                                                        >
+                                                            recording...
+                                                        </Typography>
+                                                    ): draftMessage ? (
                                                         <Typography
                                                             sx={{
                                                                 fontSize: '13px',

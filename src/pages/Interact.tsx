@@ -60,6 +60,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutR = useRef<NodeJS.Timeout | null>(null); //For ChatPage Component
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingTimeoutR = useRef<NodeJS.Timeout | null>(null);
   const [scrollLock, setScrollLock] = useState(false);
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
@@ -621,6 +622,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     return () => {
       socket.off('receiveMessage');
       socket.off('userTyping');
+      socket.off('userRecording');
       // socket.off('messageDelivered');
       socket.off('messageStatusUpdatedToRead');
       socket.off('messagesDeletedForEveryone');
@@ -756,6 +758,11 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
       recordingTimeoutRef.current = null;
     }
 
+    if (recordingTimeoutR.current) {
+      clearTimeout(recordingTimeoutR.current);
+      recordingTimeoutR.current = null;
+    }
+
     if (isUserBlocked) return;
 
     socket.emit('recording', {
@@ -774,6 +781,18 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
         });
       }, 60_000);
     }
+
+    socket.emit('userRecordingActivity', { userId, otherUserId, isActive: recording });
+
+    recordingTimeoutR.current = setTimeout(() => {
+      socket.emit('userRecordingActivity', { userId, otherUserId, isActive: false });
+      recordingTimeoutR.current = null;
+    }, 30000);
+
+    recordingTimeoutRef.current = setTimeout(() => {
+      socket.emit('recording', { userId, otherUserId, recording: false });
+      recordingTimeoutRef.current = null;
+    }, 30000);
   };
 
   socket.on('disconnect', () => {
