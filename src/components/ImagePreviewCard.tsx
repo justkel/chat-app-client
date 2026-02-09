@@ -20,9 +20,9 @@ const ImagePreviewCard: React.FC<ImagePreviewModalProps> = ({
   if (selectedImageIndex === null) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-70 flex items-center justify-center">
       <div className="relative flex flex-col items-center space-y-4">
-        <div className="relative flex items-center">
+        <div className="relative flex items-center p-4">
           {selectedImageIndex > 0 && (
             <button
               onClick={goPrev}
@@ -49,7 +49,7 @@ const ImagePreviewCard: React.FC<ImagePreviewModalProps> = ({
 
           <button
             onClick={closeImage}
-            className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
+            className="absolute top-10 right-8 bg-white rounded-full p-2 shadow hover:bg-gray-200 transition"
           >
             ❌
           </button>

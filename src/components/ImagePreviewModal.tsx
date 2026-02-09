@@ -1,148 +1,152 @@
+/* eslint-disable jsx-a11y/alt-text */
 import { ChangeEvent, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { CloseOutlined, LeftOutlined, RightOutlined, SendOutlined } from "@ant-design/icons";
+import {
+  CloseOutlined,
+  LeftOutlined,
+  RightOutlined,
+  SendOutlined,
+} from "@ant-design/icons";
 
 type ImagePreviewModalProps = {
-    selectedImages: File[];
-    setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
-    captions: string[];
-    setCaptions: React.Dispatch<React.SetStateAction<string[]>>;
-    onClose: () => void;
-    onSend: () => void;
+  selectedImages: File[];
+  setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
+  captions: string[];
+  setCaptions: React.Dispatch<React.SetStateAction<string[]>>;
+  onClose: () => void;
+  onSend: () => void;
 };
 
 export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
-    selectedImages,
-    setSelectedImages,
-    captions,
-    setCaptions,
-    onClose,
-    onSend,
+  selectedImages,
+  setSelectedImages,
+  captions,
+  setCaptions,
+  onClose,
+  onSend,
 }) => {
-    const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [imageURLs, setImageURLs] = useState<string[]>([]);
 
-    const removeImage = (index: number) => {
-        const newImages = selectedImages.filter((_, i) => i !== index);
-        const newCaptions = captions.filter((_, i) => i !== index);
+  useEffect(() => {
+    const urls = selectedImages.map((img) => URL.createObjectURL(img));
+    setImageURLs(urls);
 
-        setSelectedImages(newImages);
-        setCaptions(newCaptions);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [selectedImages]);
 
-        // Adjust active index if needed
-        if (activeIndex >= newImages.length) {
-            setActiveIndex(Math.max(0, newImages.length - 1));
-        }
-    };
+  useEffect(() => {
+    if (selectedImages.length === 0) {
+      onClose();
+    } else if (activeIndex >= selectedImages.length) {
+      setActiveIndex(selectedImages.length - 1);
+    }
+  }, [selectedImages, onClose, activeIndex]);
 
-    useEffect(() => {
-        if (selectedImages.length === 0) {
-            onClose();
-        }
-    }, [selectedImages, onClose]);
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    setCaptions((prev) => prev.filter((_, i) => i !== index));
+    setActiveIndex((i) => Math.max(0, i - (i === index ? 1 : 0)));
+  };
 
-    const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-        const newCaptions = [...captions];
-        const caption = e.target.value;
-        newCaptions[index] = caption.length <= 100 ? caption : caption.slice(0, 100);
-        setCaptions(newCaptions);
-    };
+  const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const next = [...captions];
+    next[activeIndex] = e.target.value.slice(0, 100);
+    setCaptions(next);
+  };
 
-    const handleArrow = (dir: "left" | "right") => {
-        setActiveIndex((prev) =>
-            dir === "left"
-                ? (prev - 1 + selectedImages.length) % selectedImages.length
-                : (prev + 1) % selectedImages.length
-        );
-    };
-
-    return ReactDOM.createPortal (
-        <div className="fixed inset-0 z-40 bg-black bg-opacity-80 overflow-y-auto pt-32 pb-10 px-4 flex justify-center">
-            <div className="bg-white rounded-xl p-6 max-w-4xl w-full shadow-xl relative">
-
-                <button
-                    onClick={onClose}
-                    className="absolute top-1 right-2 text-red-600 text-xl z-10"
-                >
-                    <CloseOutlined />
-                </button>
-
-                {/* Main Image Display */}
-                <div className="relative flex items-center justify-center h-[300px] md:h-[400px] w-full bg-gray-100 rounded-xl overflow-hidden px-2">
-                    {selectedImages.length > 0 && (
-                        <img
-                            src={URL.createObjectURL(selectedImages[activeIndex])}
-                            alt={`preview-${activeIndex}`}
-                            className="max-h-full max-w-full object-contain"
-                        />
-                    )}
-                    {selectedImages.length > 1 && (
-                        <>
-                            <button
-                                onClick={() => handleArrow("left")}
-                                className="absolute left-2 p-2 bg-white bg-opacity-80 rounded-full"
-                            >
-                                <LeftOutlined />
-                            </button>
-                            <button
-                                onClick={() => handleArrow("right")}
-                                className="absolute right-2 p-2 bg-white bg-opacity-80 rounded-full"
-                            >
-                                <RightOutlined />
-                            </button>
-                        </>
-                    )}
-                </div>
-
-                {/* Thumbnail Preview */}
-                <div className="flex flex-wrap items-center gap-4 mt-20 overflow-x-auto px-1">
-                    {selectedImages.map((image, index) => (
-                        <div
-                            key={index}
-                            className="relative w-20 h-20 flex-shrink-0 border rounded-md overflow-hidden"
-                        >
-                            <img
-                                src={URL.createObjectURL(image)}
-                                alt={`preview-${index}`}
-                                onClick={() => setActiveIndex(index)}
-                                className={`w-full h-full object-cover cursor-pointer ${index === activeIndex ? "ring-2 ring-blue-500" : ""
-                                    }`}
-                            />
-                            <button
-                                onClick={() => removeImage(index)}
-                                className="absolute top-0 right-0 bg-white bg-opacity-90 p-1 rounded-bl"
-                            >
-                                <CloseOutlined className="text-xs text-red-600" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-6 mb-6">
-                    <input
-                        type="text"
-                        placeholder="Enter caption (max 100 characters)"
-                        value={captions[activeIndex] || ""}
-                        onChange={(e) => handleCaptionChange(e, activeIndex)}
-                        className="w-full border p-3 rounded-md"
-                        maxLength={100}
-                    />
-                </div>
-
-                <div className="flex justify-end mt-4">
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onSend();
-                        }}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-                    >
-                        <SendOutlined style={{ fontSize: '20px' }} />
-                        Send
-                    </button>
-                </div>
-
-            </div>
-        </div>, 
-        document.body
+  const navigate = (dir: "prev" | "next") => {
+    setActiveIndex((i) =>
+      dir === "prev"
+        ? Math.max(0, i - 1)
+        : Math.min(selectedImages.length - 1, i + 1)
     );
+  };
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[99999] bg-black text-white flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3">
+        <span className="text-sm opacity-70">
+          {selectedImages.length > 0 ? activeIndex + 1 : 0} /{" "}
+          {selectedImages.length}
+        </span>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full hover:bg-white/10 transition"
+        >
+          <CloseOutlined />
+        </button>
+      </div>
+
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+        {selectedImages.length > 1 && (
+          <>
+            <button
+              onClick={() => navigate("prev")}
+              disabled={activeIndex === 0}
+              className="absolute left-3 md:left-6 p-3 rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-30 transition"
+            >
+              <LeftOutlined />
+            </button>
+            <button
+              onClick={() => navigate("next")}
+              disabled={activeIndex === selectedImages.length - 1}
+              className="absolute right-3 md:right-6 p-3 rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-30 transition"
+            >
+              <RightOutlined />
+            </button>
+          </>
+        )}
+
+        {imageURLs[activeIndex] && (
+          <img
+            src={imageURLs[activeIndex]}
+            alt="preview"
+            className="max-h-full max-w-full object-contain"
+          />
+        )}
+      </div>
+
+      <div className="flex gap-3 px-4 py-3 overflow-x-auto bg-black/40">
+        {imageURLs.map((url, index) => (
+          <div
+            key={index}
+            className={`relative w-16 h-16 rounded-lg overflow-hidden shrink-0 cursor-pointer ${
+              index === activeIndex ? "ring-2 ring-white" : "opacity-70"
+            }`}
+            onClick={() => setActiveIndex(index)}
+          >
+            {url && <img src={url} className="w-full h-full object-cover" />}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                removeImage(index);
+              }}
+              className="absolute top-0 right-0 bg-black/70 p-1 rounded-bl"
+            >
+              <CloseOutlined className="text-xs" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 px-4 py-4 bg-black/60">
+        <input
+          type="text"
+          placeholder="Add a caption…"
+          value={captions[activeIndex] || ""}
+          onChange={handleCaptionChange}
+          className="flex-1 bg-white/10 border border-white/10 rounded-full px-4 py-3 text-sm focus:outline-none focus:border-white/30"
+        />
+        <button
+          onClick={onSend}
+          className="bg-blue-600 hover:bg-blue-700 transition rounded-full px-4 py-3 flex items-center gap-2"
+        >
+          <SendOutlined />
+          <span className="hidden sm:inline">Send</span>
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
 };
