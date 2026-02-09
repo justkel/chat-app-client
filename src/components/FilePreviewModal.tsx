@@ -19,63 +19,61 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   onClose,
   onSend,
 }) => {
-  const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setCaption(e.target.value.length <= 100 ? e.target.value : e.target.value.slice(0, 100));
-  };
-
   useEffect(() => {
     if (!selectedFile) {
       onClose();
     }
   }, [selectedFile, onClose]);
 
-  return ReactDOM.createPortal (
-    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80 overflow-y-auto pt-32 pb-10 px-4 flex justify-center">
-      <div className="bg-white rounded-xl p-6 max-w-4xl w-full shadow-xl relative">
+  const handleCaptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setCaption(e.target.value.slice(0, 100));
+  };
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[99999] bg-black text-white flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3">
+        <span className="text-sm opacity-70">File Preview</span>
         <button
           onClick={onClose}
-          className="absolute top-1 right-2 text-red-600 text-xl z-10"
+          className="p-2 rounded-full hover:bg-white/10 transition"
         >
           <CloseOutlined />
         </button>
+      </div>
 
-        {/* Main File Display */}
-        <div className="relative flex items-center justify-center h-[300px] md:h-[400px] w-full bg-gray-100 rounded-xl overflow-hidden px-2 shadow-lg">
-          {selectedFile && (
-            <div className="w-full text-center">
-              {/* Display file icon based on type */}
-              <div className="flex justify-center items-center text-6xl text-red-600 mb-4">
-                <i className="fa fa-file-pdf"></i>
-              </div>
-              <p className="text-lg font-semibold">{selectedFile?.name}</p>
-              <p className="text-sm text-gray-600 mt-1">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden px-4">
+        {selectedFile && (
+          <div className="w-full max-w-2xl flex flex-col items-center justify-center bg-gray-100 rounded-xl p-6 shadow-lg">
+            <div className="flex justify-center items-center text-6xl text-red-600 mb-4">
+              <i
+                className={`fa ${
+                  selectedFile.type.includes("pdf") ? "fa-file-pdf" : "fa-file"
+                }`}
+              ></i>
             </div>
-          )}
-        </div>
+            <p className="text-lg font-semibold text-black">{selectedFile.name}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {(selectedFile.size / 1024).toFixed(2)} KB
+            </p>
+          </div>
+        )}
+      </div>
 
-        <div className="mt-32 mb-6">
-          <input
-            type="text"
-            placeholder="Enter caption (max 100 characters)"
-            value={caption}
-            onChange={handleCaptionChange}
-            className="w-full border p-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            maxLength={100}
-          />
-        </div>
-
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onSend();
-            }}
-            className="bg-blue-600 text-white px-6 py-3 rounded-full flex items-center gap-2 hover:bg-blue-700 disabled:bg-gray-400 shadow-lg transition duration-200 ease-in-out"
-          >
-            <SendOutlined style={{ fontSize: "20px" }} />
-            Send
-          </button>
-        </div>
+      <div className="flex items-center gap-3 px-4 py-4 bg-black/60">
+        <input
+          type="text"
+          placeholder="Add a caption…"
+          value={caption}
+          onChange={handleCaptionChange}
+          className="flex-1 bg-white/10 border border-white/10 rounded-full px-4 py-3 text-sm focus:outline-none focus:border-white/30"
+        />
+        <button
+          onClick={onSend}
+          className="bg-blue-600 hover:bg-blue-700 transition rounded-full px-4 py-3 flex items-center gap-2"
+        >
+          <SendOutlined />
+          <span className="hidden sm:inline">Send</span>
+        </button>
       </div>
     </div>,
     document.body
