@@ -55,9 +55,11 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   const [messages, setMessages] = useState<any[]>([]);
   const [messagesAll, setMessagesAll] = useState<any[]>([]);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const [isOtherUserRecording, setIsOtherUserRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutR = useRef<NodeJS.Timeout | null>(null); //For ChatPage Component
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [scrollLock, setScrollLock] = useState(false);
   const [isReceiverOnPage, setIsReceiverOnPage] = useState(false);
   const [newMessageCount, setNewMessageCount] = useState(0);
@@ -567,6 +569,12 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
       }
     });
 
+    socket.on('userRecording', ({ userId: recordingUserId, recording }) => {
+      if (recordingUserId !== userId && !isOtherUserBlocked) {
+        setIsOtherUserRecording(recording);
+      }
+    });
+
     socket.on('userBlocked', ({ userId: uId, otherUserId: othId, isOtherUserBlocked: othBlocked, isUserBlocked: isB }) => {
       if (uId !== userId) {
         setIsUserBlocked(othBlocked);
@@ -648,7 +656,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
         const { bottom } = messagesEndRef.current.getBoundingClientRect();
         const isNearBottom = bottom <= window.innerHeight + 400; // You can adjust the 50 to be the desired threshold
 
-        if (isOtherUserTyping && isNearBottom) {
+        if ((isOtherUserTyping || isOtherUserRecording) && isNearBottom) {
           messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
       }
@@ -656,7 +664,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
     checkIfAtBottom();
 
-  }, [isOtherUserTyping, isAtBottom]);
+  }, [isOtherUserTyping, isAtBottom, isOtherUserRecording]);
 
   // // Scroll to the bottom when the other user is typing, only if the user is at the bottom
   // useEffect(() => {
@@ -685,6 +693,14 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
       }
     };
   }, []);
@@ -731,6 +747,32 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
       //     );
       //   }
       // }, 2000);
+    }
+  };
+
+  const handleRecording = (recording: boolean) => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+
+    if (isUserBlocked) return;
+
+    socket.emit('recording', {
+      userId,
+      otherUserId,
+      recording,
+    });
+
+    // Safety auto-stop (disconnects, crashes, tab close)
+    if (recording) {
+      recordingTimeoutRef.current = setTimeout(() => {
+        socket.emit('recording', {
+          userId,
+          otherUserId,
+          recording: false,
+        });
+      }, 60_000);
     }
   };
 
@@ -2908,6 +2950,13 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                 </div>
               )}
 
+              {isOtherUserRecording && (
+                <div className="text-sm text-red-500 italic flex items-center gap-2">
+                  <AudioOutlined />
+                  Recording audio…
+                </div>
+              )}
+
               <div ref={messagesEndRef}></div>
             </div>
           </div>
@@ -2956,6 +3005,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                 handleImageChange={handleImageChange}
                 handleFileChange={handleFileChange}
                 handleAudioChange={handleAudioChange}
+                handleRecording={handleRecording}
                 isModalVisible={isModalVisible}
                 setIsModalVisible={setIsModalVisible}
                 triggerGalleryUpload={triggerGalleryUpload}

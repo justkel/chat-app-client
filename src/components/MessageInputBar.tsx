@@ -23,6 +23,7 @@ interface MessageInputBarProps {
     handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleAudioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleRecording: (recording: boolean) => void;
     isModalVisible: boolean;
     isOtherUserBlocked: boolean;
     setIsModalVisible: (val: boolean) => void;
@@ -46,6 +47,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     handleImageChange,
     handleFileChange,
     handleAudioChange,
+    handleRecording,
     isModalVisible,
     isOtherUserBlocked,
     setIsModalVisible,
@@ -128,6 +130,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
     const toggleRecording = async () => {
         if (isRecording) {
             stopRecording();
+            handleRecording(false);
         } else {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -152,6 +155,7 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
 
                 recorder.start();
                 setIsRecording(true);
+                handleRecording(true);
             } catch (error) {
                 console.error("Failed to start recording:", error);
             }
