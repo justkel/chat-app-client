@@ -7,6 +7,9 @@ const GET_OTHER_USER_DETAILS = gql`
       profilePicture
       username
       phoneNumber
+      email
+      firstName
+      lastName
     }
   }
 `;
