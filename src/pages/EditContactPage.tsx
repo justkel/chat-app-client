@@ -55,7 +55,10 @@ const EditContactPage: React.FC = () => {
                     },
                 },
             });
-            message.success('Chat settings updated successfully!');
+            message.success({
+                content: 'Chat settings updated successfully!',
+                style: { marginTop: '40px' }
+            });
             window.location.href = `/view-contact/${userId}/${otherUserId}`;
         } catch (err) {
             console.error(err);
