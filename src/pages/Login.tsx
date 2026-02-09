@@ -42,10 +42,12 @@ const Login: React.FC = () => {
 
         <div className="mt-8">
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
+            autoComplete="new-email"
+            name="new-email-field-123"
             className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
@@ -82,9 +84,8 @@ const Login: React.FC = () => {
           whileTap={{ scale: loading ? 1 : 0.97 }}
           onClick={handleLogin}
           disabled={loading}
-          className={`w-full mt-6 py-3 rounded-xl text-white font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md transition ${
-            loading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
-          }`}
+          className={`w-full mt-6 py-3 rounded-xl text-white font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md transition ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+            }`}
         >
           {loading ? 'Logging in...' : 'Login'}
         </motion.button>
