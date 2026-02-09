@@ -11,16 +11,16 @@ interface User {
 }
 
 interface OtherUser {
-  id: string | number;
-  fullName: string;
-  email: string;
-  profilePicture: string;
+    id: string | number;
+    fullName: string;
+    email: string;
+    profilePicture: string;
 }
 
 interface BlockedUser {
-  id: string | number;
-  isOtherUserBlocked: boolean;
-  otherUser: OtherUser;
+    id: string | number;
+    isOtherUserBlocked: boolean;
+    otherUser: OtherUser;
 }
 
 interface ForwardModalProps {
@@ -69,7 +69,7 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
         .join(', ');
 
     return (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-montserrat">
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-xl w-full max-w-[600px] max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between mb-4 md:mb-6">
                     <ArrowLeftOutlined
@@ -141,8 +141,10 @@ const ForwardModal: React.FC<ForwardModalProps> = ({ showModal, setShowModal, da
                                 );
 
                                 return isBlockedUser ? (
-                                    <Tooltip key={user.id} title="This user is blocked and cannot receive forwarded messages">
-                                        {userItem}
+                                    <Tooltip key={user.id} title="This user is blocked and cannot receive forwarded messages" classNames={{
+                                        root: 'font-montserrat text-sm',
+                                    }}>
+                                        <div className="font-montserrat">{userItem}</div>
                                     </Tooltip>
                                 ) : (
                                     userItem
