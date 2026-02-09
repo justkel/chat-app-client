@@ -122,14 +122,17 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
   };
 
   const goPrev = () => {
-    if (selectedImageIndex && selectedImageIndex > 0) {
-      setSelectedImageIndex((prev) => prev! - 1);
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex((prev) => (prev !== null ? prev - 1 : null));
     }
   };
 
   const goNext = () => {
-    if (selectedImageIndex && selectedImageIndex < imageMessages.length - 1) {
-      setSelectedImageIndex((prev) => prev! + 1);
+    if (
+      selectedImageIndex !== null &&
+      selectedImageIndex < imageMessages.length - 1
+    ) {
+      setSelectedImageIndex((prev) => (prev !== null ? prev + 1 : null));
     }
   };
 
@@ -2993,7 +2996,6 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
           <ImagePreviewCard
             selectedImageIndex={selectedImageIndex}
-            selectedImage={selectedImage}
             imageMessages={imageMessages}
             goPrev={goPrev}
             goNext={goNext}
