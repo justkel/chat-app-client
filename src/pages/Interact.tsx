@@ -3038,6 +3038,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
               {showPreviewModal && (
                 <ImagePreviewModal
+                  otherUserData={otherUserData}
+                  userId={userId}
+                  otherUserId={otherUserId ?? null}
                   selectedImages={selectedImages}
                   setSelectedImages={setSelectedImages}
                   captions={captions}
@@ -3063,6 +3066,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
               {showAudioPreviewModal && (
                 <FilePreviewModalAudio
+                  otherUserData={otherUserData}
+                  userId={userId}
+                  otherUserId={otherUserId ?? null}
                   selectedFile={selectedAudio}
                   onClose={closeAudioPreviewModal}
                   onSend={uploadAudioAndSend}

@@ -1,14 +1,22 @@
 import { ChangeEvent, useState, useEffect } from "react";
 import { CloseOutlined, SendOutlined } from "@ant-design/icons";
+import { Avatar } from "antd";
+import { useChatSettings } from "../hooks/useGetOtherUserContactDetails";
 import ReactDOM from "react-dom";
 
 type FilePreviewModalAudioProps = {
+  otherUserData: any;
+  userId: string | null;
+  otherUserId: string | null | undefined;
   selectedFile: File | null;
   onClose: () => void;
   onSend: () => void;
 };
 
 export const FilePreviewModalAudio: React.FC<FilePreviewModalAudioProps> = ({
+  otherUserData,
+  userId,
+  otherUserId,
   selectedFile,
   onClose,
   onSend,
@@ -31,10 +39,24 @@ export const FilePreviewModalAudio: React.FC<FilePreviewModalAudioProps> = ({
     setCaption(e.target.value.slice(0, 100));
   };
 
+  const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
+
   if (!selectedFile) return null;
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[99999] bg-black text-white flex flex-col">
+      <div className="flex items-center gap-3">
+        <Avatar
+          src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`}
+        />
+        <div className="flex flex-col leading-tight">
+          <span className="font-semibold text-sm">
+            {chatSettings?.customUsername ||
+              otherUserData?.getOtherUserById?.username}
+          </span>
+          <span className="text-xs opacity-60">File Preview</span>
+        </div>
+      </div>
       <div className="flex items-center justify-between px-4 py-3">
         <span className="text-sm opacity-70">Audio Preview</span>
         <button

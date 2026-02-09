@@ -7,8 +7,13 @@ import {
   RightOutlined,
   SendOutlined,
 } from "@ant-design/icons";
+import { Avatar } from "antd";
+import { useChatSettings } from "../hooks/useGetOtherUserContactDetails";
 
 type ImagePreviewModalProps = {
+  otherUserData: any;
+  userId: string | null;
+  otherUserId: string | null | undefined;
   selectedImages: File[];
   setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
   captions: string[];
@@ -18,6 +23,9 @@ type ImagePreviewModalProps = {
 };
 
 export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
+  otherUserData,
+  userId,
+  otherUserId,
   selectedImages,
   setSelectedImages,
   captions,
@@ -63,8 +71,22 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     );
   };
 
+  const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
+
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[99999] bg-black text-white flex flex-col">
+      <div className="flex items-center gap-3">
+        <Avatar
+          src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`}
+        />
+        <div className="flex flex-col leading-tight">
+          <span className="font-semibold text-sm">
+            {chatSettings?.customUsername ||
+              otherUserData?.getOtherUserById?.username}
+          </span>
+          <span className="text-xs opacity-60">File Preview</span>
+        </div>
+      </div>
       <div className="flex items-center justify-between px-4 py-3">
         <span className="text-sm opacity-70">
           {selectedImages.length > 0 ? activeIndex + 1 : 0} /{" "}
