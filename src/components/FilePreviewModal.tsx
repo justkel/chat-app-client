@@ -1,8 +1,13 @@
 import { ChangeEvent, useEffect } from "react";
 import { CloseOutlined, SendOutlined } from "@ant-design/icons";
+import { Avatar } from "antd";
+import { useChatSettings } from "../hooks/useGetOtherUserContactDetails";
 import ReactDOM from "react-dom";
 
 type FilePreviewModalProps = {
+  otherUserData: any;
+  userId: string | null;
+  otherUserId: string | null | undefined;
   selectedFile: File | null;
   setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
   caption: string;
@@ -12,6 +17,9 @@ type FilePreviewModalProps = {
 };
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
+  otherUserData,
+  userId,
+  otherUserId,
   selectedFile,
   setSelectedFile,
   caption,
@@ -29,10 +37,24 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     setCaption(e.target.value.slice(0, 100));
   };
 
+  const { data: chatSettings } = useChatSettings(userId!, otherUserId!);
+
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[99999] bg-black text-white flex flex-col">
       <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-sm opacity-70">File Preview</span>
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={`http://localhost:5002${otherUserData?.getOtherUserById?.profilePicture}`}
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="font-semibold text-sm">
+              {chatSettings?.customUsername ||
+                otherUserData?.getOtherUserById?.username}
+            </span>
+            <span className="text-xs opacity-60">File Preview</span>
+          </div>
+        </div>
+
         <button
           onClick={onClose}
           className="p-2 rounded-full hover:bg-white/10 transition"
@@ -47,11 +69,15 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             <div className="flex justify-center items-center text-6xl text-red-600 mb-4">
               <i
                 className={`fa ${
-                  selectedFile.type.includes("pdf") ? "fa-file-pdf" : "fa-file"
+                  selectedFile.type.includes("pdf")
+                    ? "fa-file-pdf"
+                    : "fa-file"
                 }`}
               ></i>
             </div>
-            <p className="text-lg font-semibold text-black">{selectedFile.name}</p>
+            <p className="text-lg font-semibold text-black">
+              {selectedFile.name}
+            </p>
             <p className="text-sm text-gray-600 mt-1">
               {(selectedFile.size / 1024).toFixed(2)} KB
             </p>

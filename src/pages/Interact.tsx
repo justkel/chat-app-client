@@ -3049,6 +3049,9 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
 
               {showFilePreviewModal && (
                 <FilePreviewModal
+                  otherUserData={otherUserData}
+                  userId={userId}
+                  otherUserId={otherUserId ?? null}
                   selectedFile={selectedFile}
                   setSelectedFile={setSelectedFile}
                   caption={fileCaption}
