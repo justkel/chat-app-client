@@ -210,7 +210,7 @@ const HeaderWithInlineCard: React.FC<HeaderWithInlineCardProps> = ({
         <div ref={cardRef} className="absolute top-44 right-0 bg-white shadow-md rounded-lg p-4 z-20 w-full max-w-xs">
           <ul className="space-y-4">
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewContact}>View Contact</li>
-            <li className="cursor-pointer hover:text-blue-500">Search</li>
+            {/* <li className="cursor-pointer hover:text-blue-500">Search</li> */}
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewMedia}>Media</li>
             <li className="cursor-pointer hover:text-blue-500" onClick={handleViewWallPaper}>Wallpaper</li>
             <li className="cursor-pointer hover:text-blue-500" onClick={showBlockConfirmModal}>
