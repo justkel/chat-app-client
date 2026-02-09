@@ -108,10 +108,10 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
     );
   }, [messages]);
 
-  const selectedImage =
-    selectedImageIndex !== null
-      ? `http://localhost:5002${imageMessages[selectedImageIndex]?.content}`
-      : undefined;
+  // const selectedImage =
+  //   selectedImageIndex !== null
+  //     ? `http://localhost:5002${imageMessages[selectedImageIndex]?.content}`
+  //     : undefined;
 
 
   const openImage = (imageUrl: string) => {
