@@ -44,7 +44,7 @@ const Dashboard = () => {
     Modal.confirm({
       title: 'Confirm',
       icon: <ExclamationCircleOutlined />,
-      content: 'Are you sure you want to sign out?',
+      content: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Are you sure you want to sign out?</Text>,
       okText: <Text style={{ fontFamily: 'Montserrat, sans-serif', color: '#fff' }}>Sign Out</Text>,
       cancelText: <Text style={{ fontFamily: 'Montserrat, sans-serif' }}>Cancel</Text>,
       onOk: logout,
