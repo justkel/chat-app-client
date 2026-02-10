@@ -194,7 +194,8 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
           px-4 py-3 text-sm
           placeholder:text-gray-500
           focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200
-          transition-all
+          transition-all font-montserrat
+    placeholder:font-montserrat
         "
                         />
                     </div>
