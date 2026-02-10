@@ -167,67 +167,88 @@ const MessageInputBar: React.FC<MessageInputBarProps> = ({
         setIsRecording(false);
     };
 
-
     return (
-        <div className="flex items-center justify-between max-w-xl p-4 ml-10 sm:ml-20 lg:ml-0 xl:ml-52 space-x-4">
+        <div className="">
             {!isOtherUserBlocked && (
-                <TextArea
-                    value={newMessage}
-                    onChange={(e) => {
-                        setNewMessage(e.target.value);
-                        handleTyping();
-                    }}
-                    placeholder={
-                        selectedImages.length > 0
-                            ? "Remove image(s) to type a message..."
-                            : "Type your message..."
-                    }
-                    aria-label="Message Input"
-                    className="flex-grow resize-none rounded-lg border border-gray-300 bg-white p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60"
-                    rows={1}
-                    disabled={selectedImages.length > 0}
-                />
-            )}
+                <div
+                    className="
+    w-full flex items-center gap-3 px-3 py-2
+    bg-gray-50/90 backdrop-blur
+    border-t border-b border-gray-200
+    rounded-t-2xl rounded-b-2xl
+    shadow-[0_-2px_8px_rgba(0,0,0,0.04)]
+  "
+                >
+                    <div className="basis-[70%]">
+                        <TextArea
+                            value={newMessage}
+                            onChange={(e) => {
+                                setNewMessage(e.target.value);
+                                handleTyping();
+                            }}
+                            placeholder="Type a message"
+                            rows={1}
+                            className="
+          w-full resize-none rounded-full
+          bg-gray-100 border border-transparent
+          px-4 py-3 text-sm
+          placeholder:text-gray-500
+          focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200
+          transition-all
+        "
+                        />
+                    </div>
 
-            {!isOtherUserBlocked && (
-                <div className="flex items-center gap-2 shrink-0">
+                    <div className="basis-[30%] flex items-center justify-end gap-2">
 
-                    <Button
-                        shape="circle"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsModalVisible(true)}
-                        className="!flex !items-center !justify-center border-none hover:bg-gray-100"
-                    />
+                        <button
+                            onClick={() => setIsModalVisible(true)}
+                            className="p-2 rounded-full text-gray-600
+                   hover:bg-gray-100 transition"
+                            aria-label="Attach"
+                        >
+                            <PlusOutlined />
+                        </button>
 
-                    <button
-                        onClick={() => setIsEmojiPickerVisible((prev: boolean) => !prev)}
-                        className="text-xl hover:bg-gray-100 p-2 rounded-full transition"
-                    >
-                        😊
-                    </button>
+                        <button
+                            onClick={() => setIsEmojiPickerVisible(prev => !prev)}
+                            className="p-2 rounded-full text-gray-600
+                   hover:bg-gray-100 transition"
+                            aria-label="Emoji"
+                        >
+                            😊
+                        </button>
 
-                    <button
-                        onClick={toggleRecording}
-                        className={`p-2 rounded-full transition lg:text-2xl ${isRecording ? "bg-red-100 text-red-600" : "hover:bg-gray-100"
-                            }`}
-                    >
-                        <AudioOutlined />
-                    </button>
+                        <button
+                            onClick={toggleRecording}
+                            className={`p-2 rounded-full transition
+          ${isRecording
+                                    ? "bg-red-100 text-red-600"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }
+        `}
+                            aria-label="Record audio"
+                        >
+                            <AudioOutlined />
+                        </button>
 
-                    {selectedImages.length === 0 && (
                         <button
                             onClick={sendMessage}
                             disabled={!newMessage.trim()}
-                            className={`flex items-center gap-1 bg-green-500 text-white px-4 py-2 rounded-full text-sm md:text-base font-medium transition shadow-sm ${newMessage.trim()
-                                ? "hover:bg-green-600 active:scale-95"
-                                : "opacity-40 cursor-not-allowed"
-                                }`}
+                            className="
+          ml-1 flex items-center justify-center
+          h-10 w-10 rounded-full
+          bg-green-500 text-white
+          shadow-sm
+          hover:bg-green-600 active:scale-95
+          disabled:opacity-40 disabled:cursor-not-allowed
+          transition
+        "
+                            aria-label="Send"
                         >
                             <SendOutlined />
-                            Send
                         </button>
-                    )}
-
+                    </div>
                 </div>
             )}
 

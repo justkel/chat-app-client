@@ -3013,30 +3013,32 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
               otherUserData={otherUserData}
             />
 
-            <div className="fixed bottom-0 w-full shadow-lg">
-              <MessageInputBar
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
-                handleTyping={handleTyping}
-                selectedImages={selectedImages}
-                fileInputRef={fileInputRef}
-                cameraInputRef={cameraInputRef}
-                audioInputRef={audioInputRef}
-                actualFileInputRef={actualFileInputRef}
-                handleImageChange={handleImageChange}
-                handleFileChange={handleFileChange}
-                handleAudioChange={handleAudioChange}
-                handleRecording={handleRecording}
-                isModalVisible={isModalVisible}
-                setIsModalVisible={setIsModalVisible}
-                triggerGalleryUpload={triggerGalleryUpload}
-                triggerFileUpload={triggerFileUpload}
-                triggerCamera={triggerCamera}
-                triggerAudioUpload={triggerAudioUpload}
-                setIsEmojiPickerVisible={setIsEmojiPickerVisible}
-                sendMessage={sendMessage}
-                isOtherUserBlocked={isOtherUserBlocked}
-              />
+            <div className="absolute left-0 right-0 shadow-sm z-40">
+              <div className="mx-auto max-w-5xl px-3 relative">
+                <MessageInputBar
+                  newMessage={newMessage}
+                  setNewMessage={setNewMessage}
+                  handleTyping={handleTyping}
+                  selectedImages={selectedImages}
+                  fileInputRef={fileInputRef}
+                  cameraInputRef={cameraInputRef}
+                  audioInputRef={audioInputRef}
+                  actualFileInputRef={actualFileInputRef}
+                  handleImageChange={handleImageChange}
+                  handleFileChange={handleFileChange}
+                  handleAudioChange={handleAudioChange}
+                  handleRecording={handleRecording}
+                  isModalVisible={isModalVisible}
+                  setIsModalVisible={setIsModalVisible}
+                  triggerGalleryUpload={triggerGalleryUpload}
+                  triggerFileUpload={triggerFileUpload}
+                  triggerCamera={triggerCamera}
+                  triggerAudioUpload={triggerAudioUpload}
+                  setIsEmojiPickerVisible={setIsEmojiPickerVisible}
+                  sendMessage={sendMessage}
+                  isOtherUserBlocked={isOtherUserBlocked}
+                />
+              </div>
 
               {showPreviewModal && (
                 <ImagePreviewModal
