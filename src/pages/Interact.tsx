@@ -2933,7 +2933,7 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
                   </span>
 
                   <button
-                    className="ml-0 text-lg font-bold hover:opacity-80 transition-opacity"
+                    className="ml-0 mb-10 text-lg font-bold hover:opacity-80 transition-opacity"
                     onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
                   >
                     ↓
@@ -2954,28 +2954,38 @@ const InteractPage: React.FC<InteractPageProps> = ({ otherUserId, onSelectUser }
               )}
 
               {isOtherUserTyping && (
-                <div className="mt-4">
-                  <div className="relative max-w-16 h-11 text-black p-4 rounded-lg">
-                    {/* Pointed extension (speech bubble) */}
-                    {/* <div className="absolute bottom-0 left-0 w-4 h-4 transform translate-y-1/2 -translate-x-1/2 rotate-45 clip-path-polygon"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(156, 163, 175, 1) 0%, rgba(107, 114, 128, 1) 100%)',
-                      }}
-                    ></div> */}
+                <div className="mt-4 flex">
+                  <div className="relative backdrop-blur-md bg-white/80 dark:bg-black/60 px-6 py-4 rounded-2xl shadow-xl border border-white/30">
 
-                    <div className="flex items-center space-x-1 pt-2">
-                      <span className="w-4 h-2 rounded-full animate-wave motion-safe:animate-wave" style={{ backgroundColor: '#1B5E20' }}></span>
-                      <span className="w-4 h-2 bg-indigo-700 rounded-full animate-waveMiddle motion-safe:animate-waveMiddle"></span>
-                      <span className="w-4 h-2 bg-purple-800 rounded-full animate-waveReverse motion-safe:animate-waveReverse"></span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Typing
+                      </span>
+
+                      <div className="flex items-end gap-1">
+                        <span className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s] shadow-md"></span>
+                        <span className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s] shadow-md"></span>
+                        <span className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce shadow-md"></span>
+                      </div>
                     </div>
+
                   </div>
                 </div>
               )}
 
               {isOtherUserRecording && (
-                <div className="text-sm text-red-500 italic flex items-center gap-2">
-                  <AudioOutlined />
-                  Recording audio…
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                bg-red-600/90 backdrop-blur-md
+                text-white shadow-md border border-red-400/40">
+
+                  <div className="relative flex items-center justify-center">
+                    <span className="absolute w-5 h-5 bg-red-400 rounded-full animate-ping opacity-75"></span>
+                    <AudioOutlined className="text-lg z-10" />
+                  </div>
+
+                  <span className="font-medium text-sm tracking-wide">
+                    Recording...
+                  </span>
                 </div>
               )}
 
